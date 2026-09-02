@@ -1,7 +1,7 @@
 # Panel 13: Variable step sizes
 
-Not built yet. See `docs/idea.md` (section "13. Variable step sizes") for the beat, and `docs/plan.md`
-for the pane contract. Panes this directory will hold:
+Built. See `docs/idea.md` (section "13. Variable step sizes") for the beat, and `docs/plan.md` for the
+pane contract. Panes in this directory:
 
 - `spine.html` + `spine.js`: Variable step sizes
 - `left.html` + `left.js`: refresher, Local vs global error

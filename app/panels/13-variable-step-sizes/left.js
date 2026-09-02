@@ -50,7 +50,7 @@ export function mount(root, ctx) {
     const local = Math.abs(one.x - xNext);
     const global = Math.abs(s.x[i + 1] - s.exact[i + 1]);
 
-    const accent = cssVar('--accent');
+    const accent = cssVar('--stable');
     drawPolyline(g, view, [t0, t0], [view.yMin, view.yMax], { color: cssVar('--axis'), width: 1, dash: [3, 3], alpha: 0.5 });
     drawPolyline(g, view, [t0, t0 + h], [x0, one.x], { color: accent, width: 3 });
     drawPoint(g, view, t0, x0, { r: 4.5, fill: cssVar('--exact') });
@@ -59,9 +59,9 @@ export function mount(root, ctx) {
 
     out.set([
       `step ${i} → ${i + 1}, t = ${fmt(t0, 3)} → ${fmt(t0 + h, 3)} s, ${METHODS[method].label} (order ${order})\n`,
-      el('span', { style: `color:${accent}` }, 'local'), `: one step from the exact state lands ${fmt(local, 5)} off`,
+      el('span', { class: 'swatch stable' }), `local: one step from the exact state lands ${fmt(local, 5)} off`,
       `  (next Taylor term h^${order + 1}/${order + 1}! · |x⁽${order + 1}⁾| = ${fmt(est.x, 5)})\n`,
-      el('span', { style: `color:${cssVar('--approx')}` }, 'global'), `: the run is ${fmt(global, 5)} off after ${i + 1} steps`,
+      el('span', { class: 'swatch approx' }), `global: the run is ${fmt(global, 5)} off after ${i + 1} steps`,
       local > 0 && Number.isFinite(global) ? `, ${fmt(global / local, 1)}× the local error` : '',
     ]);
   });

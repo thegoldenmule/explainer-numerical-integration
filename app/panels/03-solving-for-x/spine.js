@@ -44,8 +44,8 @@ export function mount(root, ctx) {
       if (Number.isFinite(x) && Math.abs(x) < 1e6) drawPoint(g, view, t, x, { r: 5, fill: cssVar('--approx') });
       out.set([
         `t = ${fmt(t, 3)} s   step ${picked} of ${s.n - 1}\n`,
-        el('span', { style: `color:${cssVar('--approx')}` }, `x ≈ ${fmt(x, 4)}`), '   ',
-        el('span', { style: `color:${cssVar('--exact')}` }, `x = ${fmt(ex, 4)}`),
+        el('span', { class: 'swatch approx' }), `x ≈ ${fmt(x, 4)}   `,
+        el('span', { class: 'swatch exact' }), `x = ${fmt(ex, 4)}`,
         `   |error| = ${fmt(Math.abs(x - ex), 4)}`,
       ]);
     } else {
