@@ -4,8 +4,7 @@
     <p>Conventional wisdom says that you just pick the method with the largest stability region.
       However, not only does this not guarantee stability (you still need to do the work of
       calculating your eigenvalues), it may be that we are instead <em>over-calculating</em>.
-      Ideally we want to be able to make <math><mi>h</mi></math> as large as possible without
-      blowing up our simulation. This is where <em>local truncation error</em> comes in.</p>
+      This is where <em>local truncation error</em> comes in.</p>
     <p>Euler and RK4 are both the first few terms of an infinite Taylor series. This is good
       news, because it means we can simply take the next term in the Taylor expansion as our
       error estimate: for Euler that is the <math><msup><mi>h</mi><mn>2</mn></msup></math> term,

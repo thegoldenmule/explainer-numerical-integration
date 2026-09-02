@@ -12,9 +12,7 @@
       solution.</p>
     <p>The blue line is the explicit solution for some trajectory. The red, segmented line is
       the iterative approximation to it, calculated at small “steps” in time, called
-      <math><mi>dt</mi></math>. With a <math><mi>dt</mi></math> of 1/60th of a second, we
-      calculate when <math><mrow><mi>t</mi><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>/</mo><mn>60</mn><mo>,</mo><mn>2</mn><mo>/</mo><mn>60</mn><mo>,</mo><mo>…</mo></mrow></math>
-      Most methods, in most cases, will be able to stay closer to the explicit solution with a
+      <math><mi>dt</mi></math>, like 1/60th of a second. Most methods, in most cases, will be able to stay closer to the explicit solution with a
       smaller <math><mi>dt</mi></math>. However, more steps lead to more time spent processing.</p>
     <p>Now you can see one of the tensions inside of a physics engine. We want to stay “close
       enough” to that blue line so that our physics engine doesn’t explode. At the same time,
