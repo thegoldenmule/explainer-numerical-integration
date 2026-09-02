@@ -270,7 +270,9 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 **8. Recap: real time.** Concrete; `h` adjustable.
 - *Spine viz:* the simulation running with a frame-budget bar beside it. Raise `h` and the
   compute cost per frame falls while the error against the exact curve rises. The tension
-  from panel 3, now with a clock on it.
+  from panel 3, now with a clock on it. The bar is log-scaled from 0.1 µs to 16.7 ms: one
+  spring step costs well under a microsecond, so a linear bar against the frame would be
+  empty.
 - *Left, step down (one frame):* a single 16.7 ms frame as a timeline with the physics step
   inside it. What a millisecond is.
 - *Right, step up (`h = *`):* explode `h`. The same simulation runs across a spread of step
@@ -284,7 +286,9 @@ wildcards), then the left pane as a step down and the right pane as a step up.
   simulation. The readout is *measured*: the ratio of the error at step `i+1` to the error
   at step `i`, and the doubling time `h·ln2 / ln(ratio)` derived from it. No integrator has
   been introduced yet, so there is no formula for the ratio here; panel 10 derives it as
-  `R(hλ)`. The number becomes a story.
+  `R(hλ)`. The number becomes a story. With Euler the measured ratio stays above 1 at every
+  `h` the slider allows on both presets, so the crossing to below 1 is shown on the right
+  pane and on panel 11, not here.
 - *Left, step down (one step):* error in, error out, the ratio as a single number. Then a
   geometric sequence: a ratio above 1 compounds, below 1 decays.
 - *Right, step up (decouple the system):* the modal equation. The 2D system split into
@@ -546,10 +550,15 @@ built API differs from the wording, the entry says so.
   owns a stepper, advances it by wall-clock time at the tuple's `h` (several steps per frame
   when `h` is small), writes `t` to the store `{ silent: true }`, exposes the growing
   trajectory arrays and the exact curve sampled at the same times, and restarts when any
-  tuple entry other than `t` changes. It also reports per-frame compute cost (panel 8's
+  tuple entry other than `t` changes. It also reports per-step compute cost (panel 8's
   budget bar), the error series and its measured step-to-step ratio (panel 9), and can
   run the adaptive controller instead of a fixed `h` (panel 13). Play, pause, reset, and
-  single-step are its verbs; `ui/transport.js` renders them.
+  single-step are its verbs; `ui/transport.js` renders them. Cost cannot come from timing
+  the frame: without cross-origin isolation `performance.now()` is quantized to 0.1 ms and
+  a frame of spring steps takes under a microsecond, so the player measures a warmed
+  benchmark of one step instead. The measured growth ratio for a *stable* method reads a
+  hair above 1 (accumulating truncation error, not amplification), so panel 9's story is
+  told with Euler.
 - **Sweeps, `math/sweep.js`** (6-right, 8-right, 10-right, 11-right, 12-right-2, 13-right).
   `sweep(values, value => result)` with memoization keyed on the tuple, so exploding `h` or
   the target error across a small range is one call and does not rerun on every frame.
