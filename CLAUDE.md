@@ -10,6 +10,8 @@ An interactive, in-browser explainer of physical and numerical stability (a damp
 several integrators, one complex plane). `docs/idea.md` is the concept and outline, section by
 section; `docs/plan.md` is the application architecture. Read `plan.md` before touching `app/`.
 `docs/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+`docs/checkpoints.md` is the plan for the "say it in your own words" checkpoints (a Claude
+API grader behind a small `server/`); it is authoritative for that feature and is not built yet.
 
 ## Commands
 

@@ -26,7 +26,9 @@ the tool adds.
 
 The explainer follows the two essays section by section, in their order. Each step names
 the concept from the essay, then the interactive beat that carries it. Part I sections are
-1–7, Part II sections are 8–13.
+1–7, Part II sections are 8–13. Some panels are followed by a checkpoint row that asks the
+reader to restate the concept in their own words; those are specified in `checkpoints.md`,
+not here.
 
 ### Part I: how physics engines work, and how they break
 
