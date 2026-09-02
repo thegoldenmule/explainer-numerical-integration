@@ -1,8 +1,8 @@
 // Panel 13, right: the adaptive control loop in detail, then the target error exploded. A
-// sweep of target errors produces a small bundle of h(t) profiles; a slider along the range
-// highlights one, with its accept/reject counts, the estimate-vs-target strip, and the
-// controller's last decision read out. The highlight index is local to the pane (a stand-in
-// for the aux store's sweep highlight and the shared sweep strip).
+// sweep of target errors centered on the reader's aux.tol produces a small bundle of h(t)
+// profiles; the sweep strip highlights one (aux.highlight, clamped to this sweep on read;
+// −1 means the reader's own target in the middle), with its accept/reject counts, the
+// estimate-vs-target strip, and the controller's last decision read out.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -12,29 +12,39 @@ import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/p
 import { runAdaptive, CONTROLLER_DEFAULTS } from 'shared/math/adaptive.js';
 import { METHODS } from 'shared/math/integrators.js';
 import { sweep, sweepRange, sweepKey } from 'shared/math/sweep.js';
+import { aux, AUX_LIMITS } from 'shared/aux.js';
 import { readout, controls } from 'shared/ui/controls.js';
+import { sweepStrip } from 'shared/ui/sweep.js';
 
 const T_END = 120;
 const H_MAX = 16;
-const TOLS = sweepRange(1e-3, 1e-1, 7, { log: true });   // index 3 is the essay's 0.01
+const COUNT = 7;      // targets in the bundle; the middle one is the reader's aux.tol
+const SPREAD = 10;    // tol/SPREAD … tol·SPREAD
+const CENTER = (COUNT - 1) / 2;
+
+/** The sweep's targets, a log range around the reader's tol clipped to the aux limits. */
+function targets(tol) {
+  const [lo, hi] = AUX_LIMITS.tol;
+  return sweepRange(Math.max(lo, tol / SPREAD), Math.min(hi, tol * SPREAD), COUNT, { log: true });
+}
+/** aux.highlight is shared by every sweep: clamp to this one, and −1 means the reader's own target. */
+const highlightIndex = () => { const i = aux.get().highlight; return i < 0 ? CENTER : Math.min(COUNT - 1, i); };
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
-  let highlight = 3;
 
   // one wide stage: the highlighted run's estimates against its target on top, the h(t) bundle below
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
   const out = readout({ label: 'the loop, for the highlighted target' });
-  const input = el('input', { type: 'range', min: 0, max: TOLS.length - 1, step: 1, value: highlight });
-  const label = el('output');
 
-  const runs = state => sweep(TOLS, tol => runAdaptive({
+  const runs = (state, tols) => sweep(tols, tol => runAdaptive({
     method: state.method, tol, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0, hInit: state.h, hMax: H_MAX,
-  }, T_END), { key: sweepKey({ panel: '13-right', method: state.method, h: state.h, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0 }) });
+  }, T_END), { key: sweepKey({ panel: '13-right', method: state.method, h: state.h, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0, tol: aux.get().tol }) });
 
   stage.onDraw(({ w, h, dpr }) => {
     const state = store.get();
-    const results = runs(state);
+    const results = runs(state, targets(aux.get().tol));
+    const highlight = highlightIndex();
     const { value: tol, result: r } = results[highlight];
     const g = stage.ctx('plot');
     g.clearRect(0, 0, w, h);
@@ -66,7 +76,6 @@ export function mount(root, ctx) {
     const i = r.n - 2;   // the last accepted step: h[i] produced error[i]; h[n−1] is the controller's proposal
     const lastErr = i >= 0 ? r.error[i] : NaN, lastH = i >= 0 ? r.h[i] : NaN, nextH = r.h[r.n - 1];
     const ratio = lastErr > 0 ? CONTROLLER_DEFAULTS.safety * (tol / lastErr) ** (1 / (order + 1)) : Infinity;
-    label.textContent = `target ${fmt(tol, 4)}${highlight === 3 ? ' (the essay’s 0.01)' : ''}`;
     out.set([
       `${r.n - 1} accepted, ${r.rejected} rejected${r.forced ? `, ${r.forced} forced at the floor` : ''}; h peaks at ${fmt(r.hPeak, 3)} s; max |x − exact| = ${fmt(err, 3)}`,
       r.blewUp ? el('span', { class: 'unstable' }, '; blew up') : !r.complete ? '; stopped early' : '', '\n',
@@ -80,12 +89,30 @@ export function mount(root, ctx) {
   });
 
   const invalidate = stage.invalidate;
-  input.addEventListener('input', () => { highlight = Number(input.value); invalidate(); }, { signal });
-  root.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'highlight one target error along the range'), label), input),
-  ));
+
+  // the strip's values are fixed at construction, and the spine's tol slider can move while
+  // this pane is mounted off-screen, so rebuild the strip when the center changes
+  const box = el('div');
+  let strip = null;
+  function buildStrip() {
+    const values = targets(aux.get().tol);
+    const next = sweepStrip({
+      values, label: 'highlight one target error along the range', signal, initial: highlightIndex(),
+      format: v => `target ${fmt(v, 4)}${v === values[CENTER] ? ' (the spine’s target)' : ''}`,
+      onSelect: i => aux.set({ highlight: i }),
+    });
+    strip ? strip.el.replaceWith(next.el) : box.append(next.el);
+    strip = next;
+  }
+  buildStrip();
+  root.append(controls(box));
   root.append(out.el);
 
   const unsub = store.subscribe(invalidate, { immediate: false });
-  return { destroy() { unsub(); } };
+  const unsubAux = aux.subscribe((s, patch) => {
+    if ('tol' in patch) buildStrip();
+    if ('highlight' in patch) strip.select(highlightIndex(), { notify: false });
+    if ('tol' in patch || 'highlight' in patch) invalidate();
+  }, { immediate: false });
+  return { destroy() { unsub(); unsubAux(); } };
 }
