@@ -1,0 +1,25 @@
+<article>
+  <h2>Explode order</h2>
+  <div class="prose">
+    <p>The left pane cut the series at one <math><mi>λ</mi></math>, term by term. This is the
+      same truncation across the whole plane, order by order: the regions for RK1 through RK4
+      overlaid, each the set of <math><mrow><mi>h</mi><mi>λ</mi></mrow></math> where the
+      degree-<math><mi>n</mi></math> Taylor polynomial of
+      <math><msup><mi>e</mi><mrow><mi>h</mi><mi>λ</mi></mrow></msup></math> has modulus at most
+      one:</p>
+    <math display="block">
+      <mrow><mo>|</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>n</mi></munderover>
+      <mfrac><msup><mrow><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow><mi>j</mi></msup><mrow><mi>j</mi><mo>!</mo></mrow></mfrac>
+      <mo>|</mo><mo>≤</mo><mn>1</mn></mrow>
+    </math>
+    <p>Order 1 is the Euler disk. Order 2 is a slightly larger blob that still only touches the
+      imaginary axis at the origin. Orders 3 and 4 are the first that reach across the axis and
+      enclose a stretch of it, which is why RK4 survives the spring that broke Euler. The regions
+      do not simply nest: RK4’s has lobes that RK3’s lacks, and both give up some of the far
+      negative real axis. Shrinking the step size still scales every one of them toward the
+      origin. And we can still see that there are issues with positive real values or extreme
+      negative real values: no explicit order reaches the right half plane.</p>
+    <p>Hover an order to highlight its region and its polynomial and dim the rest.</p>
+  </div>
+  <div class="viz"></div>
+</article>

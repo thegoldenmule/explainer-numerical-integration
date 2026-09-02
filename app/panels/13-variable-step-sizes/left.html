@@ -1,0 +1,26 @@
+<article>
+  <h2>Local vs global error</h2>
+  <div class="prose">
+    <p><strong>Local truncation error</strong> is the error of one step, starting from the
+      exact state. For Euler it is the first term the method dropped from the Taylor series,</p>
+    <math display="block">
+      <mrow><mfrac><msup><mi>h</mi><mn>2</mn></msup><mn>2</mn></mfrac><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo><mo>…</mo>
+      <mspace width="2em"/>
+      <mtext>(RK4: </mtext><mfrac><msup><mi>h</mi><mn>5</mn></msup><mn>120</mn></mfrac><msup><mi>x</mi><mrow><mo>(</mo><mn>5</mn><mo>)</mo></mrow></msup><mo>+</mo><mo>…</mo><mtext>)</mtext></mrow>
+    </math>
+    <p><strong>Global error</strong> is what has accumulated at time <math><mi>t</mi></math>
+      after <math><mrow><mi>t</mi><mo>/</mo><mi>h</mi></mrow></math> of those steps, each one
+      starting from the previous step’s already-wrong state. Roughly, the count multiplies away
+      one power of <math><mi>h</mi></math>: Euler’s local
+      <math><msup><mi>h</mi><mn>2</mn></msup></math> becomes a global
+      <math><mi>h</mi></math>, and RK4’s local <math><msup><mi>h</mi><mn>5</mn></msup></math>
+      becomes a global <math><msup><mi>h</mi><mn>4</mn></msup></math>. That exponent is what
+      “fourth order” means.</p>
+    <p>The two are not the same thing, and stability is a third. Local error says how wrong one
+      step is; the ratio from panel 9 says whether those errors compound. A controller can only
+      see the first, one step at a time, and that is what it steers by.</p>
+    <p>Take one step from the exact curve and read its local error; then let the steps run and
+      watch the global error pull away from the local one.</p>
+  </div>
+  <div class="viz"></div>
+</article>

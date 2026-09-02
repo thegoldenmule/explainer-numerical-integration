@@ -1,0 +1,31 @@
+<article>
+  <h2>Implicit Euler</h2>
+  <div class="prose">
+    <p>The same one step, but solved for the <em>next</em> state instead of the current one:</p>
+    <math display="block">
+      <mrow><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>x</mi><mi>i</mi></msub><mo>+</mo><mi>h</mi><mo>·</mo><mi>f</mi><mo>(</mo><msub><mi>t</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>)</mo></mrow>
+    </math>
+    <p>The unknown appears on both sides, so each step is an equation to solve, and for a
+      general force that means a root-finding loop inside every frame. That is why it turns out
+      to be really hard to implement. For a linear system it is cheap: the step is a fixed 2×2
+      matrix, inverted once.</p>
+    <p>Apply it to the modal equation and the root is
+      <math><mrow><mi>z</mi><mo>=</mo><mn>1</mn><mo>/</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow></math>,
+      so the region is</p>
+    <math display="block">
+      <mrow><mo>|</mo><mn>1</mn><mo>−</mo><mi>h</mi><mi>λ</mi><mo>|</mo><mo>≥</mo><mn>1</mn></mrow>
+    </math>
+    <p>the outside of a disk of radius <math><mrow><mn>1</mn><mo>/</mo><mi>h</mi></mrow></math>
+      centered at <math><mrow><mo>+</mo><mn>1</mn><mo>/</mo><mi>h</mi></mrow></math>: stable
+      almost everywhere, including the entire left half plane, at any step.</p>
+    <p>The catch is in the number, not the region. For the current spring
+      <math><mrow><mo>|</mo><mi>z</mi><mo>|</mo><mo>=</mo><mn data-var="abs-implicit">0.947</mn></mrow></math>
+      per step where the exact factor is <math><mn data-var="abs-exact">0.998</mn></math>, so
+      the method drains energy the spring should keep. With the essay’s parameters it reads
+      0.26 at <math><mrow><mi>t</mi><mo>=</mo><mn>60</mn></mrow></math> against an exact 0.71.
+      The larger the step, the heavier the damping. Never explodes, always lies.</p>
+    <p>Drag <math><mi>h</mi></math> through the bundle of implicit runs to highlight one and
+      watch the over-damping grow with the step.</p>
+  </div>
+  <div class="viz"></div>
+</article>

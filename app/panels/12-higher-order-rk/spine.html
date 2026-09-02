@@ -1,0 +1,29 @@
+<article>
+  <h2>Higher-order Runge-Kutta</h2>
+  <div class="prose">
+    <p>If we try the same spring simulation on a higher order Runge-Kutta numerical method, like
+      the fourth order (abbreviated RK4), it runs without issue. The first two terms of RK4 are
+      equivalent to Euler’s method; working the analysis through, it’s common to define a
+      function <math><mi>q</mi></math> such that</p>
+    <math display="block">
+      <mrow><mi>q</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo><mo>=</mo><mn>1</mn><mo>+</mo><mi>h</mi><mi>λ</mi>
+      <mo>+</mo><mfrac><msup><mrow><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow><mn>2</mn></msup><mn>2</mn></mfrac>
+      <mo>+</mo><mfrac><msup><mrow><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow><mn>3</mn></msup><mn>6</mn></mfrac>
+      <mo>+</mo><mfrac><msup><mrow><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow><mn>4</mn></msup><mn>24</mn></mfrac></mrow>
+    </math>
+    <p>so that the characteristic polynomial is <math><mrow><mi>p</mi><mo>(</mo><mi>z</mi><mo>)</mo><mo>=</mo><mi>z</mi><mo>−</mo><mi>q</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow></math>,
+      with a single root at <math><mrow><mi>z</mi><mo>=</mo><mi>q</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow></math>.
+      RK4 is numerically stable when <math><mrow><mo>|</mo><mi>q</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo><mo>|</mo><mo>≤</mo><mn>1</mn></mrow></math>.
+      Not only is the stability region pretty dang large for a stupidly big step size, the RK4
+      method handles oscillation much better as well.</p>
+    <p>For completeness, the <em>implicit</em> Euler method’s region is
+      <math><mrow><mo>|</mo><mn>1</mn><mo>−</mo><mi>h</mi><mi>λ</mi><mo>|</mo><mo>≥</mo><mn>1</mn></mrow></math>:
+      the outside of a disk, stable almost everywhere. Careful readers will ask: why not use this
+      for everything? It turns out to be really hard to implement, and it has a cost the region
+      does not show: it never explodes, but its spring is visibly over-damped against the exact
+      curve. The three panes to the right explain each way out of the Euler disk.</p>
+    <p>Switch integrator and the region redraws; the small multiples pin the same
+      <math><mi>λ</mi></math> on all three, inside one and outside another.</p>
+  </div>
+  <div class="viz"></div>
+</article>

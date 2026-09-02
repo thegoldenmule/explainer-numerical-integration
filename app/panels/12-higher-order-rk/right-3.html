@@ -1,0 +1,29 @@
+<article>
+  <h2>Verlet</h2>
+  <div class="prose">
+    <p>A different structure. Störmer–Verlet does not carry a velocity at all; it updates
+      position from the two previous positions:</p>
+    <math display="block">
+      <mrow><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mn>2</mn><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msup><mi>h</mi><mn>2</mn></msup><msub><mi>a</mi><mi>i</mi></msub></mrow>
+    </math>
+    <p>With a velocity-dependent force like drag, the velocity it needs is the one it has not
+      computed yet, so it is solved implicitly or lagged as
+      <math><mrow><mo>(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>)</mo><mo>/</mo><mi>h</mi></mrow></math>.
+      The method is symplectic: it preserves amplitude and drifts phase, instead of decaying
+      like implicit Euler or exploding like explicit Euler. That is why particle systems and
+      cloth use it.</p>
+    <p>It has no scalar <math><mrow><mi>R</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow></math>,
+      so there is no region to shade on the <math><mi>λ</mi></math> plane. The honest picture is
+      the spectral radius <math><mi>ρ</mi></math> of its 2×2 update, drawn as a heatmap over the
+      step per natural period, <math><mrow><mi>h</mi><mi>ω</mi></mrow></math>, and the damping
+      ratio <math><mi>ζ</mi></math>. The wall at <math><mrow><mi>h</mi><mi>ω</mi><mo>=</mo><mn>2</mn></mrow></math>
+      is a hard edge: for the demo spring, <math><mrow><mi>ω</mi><mo>=</mo><mn>10</mn></mrow></math>,
+      it is stable at <math><mrow><mi>h</mi><mo>=</mo><mn>0.19</mn></mrow></math>
+      (<math><mrow><mi>ρ</mi><mo>=</mo><mn>0.99</mn></mrow></math>) and unstable at
+      <math><mrow><mi>h</mi><mo>=</mo><mn>0.20</mn></mrow></math>
+      (<math><mrow><mi>ρ</mi><mo>=</mo><mn>1.21</mn></mrow></math>).</p>
+    <p>Three ways out of the Euler disk, then: more terms, solve backward, or change the
+      structure. Hover a cell of the heatmap to see its trajectory against the exact curve.</p>
+  </div>
+  <div class="viz"></div>
+</article>

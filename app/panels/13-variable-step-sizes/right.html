@@ -1,0 +1,25 @@
+<article>
+  <h2>Adaptive step controllers</h2>
+  <div class="prose">
+    <p>The control loop, step by step: take a step, estimate its local error, compare it with
+      the target, and set the next step from the ratio. For a method of order
+      <math><mi>p</mi></math> the local error scales like
+      <math><msup><mi>h</mi><mrow><mi>p</mi><mo>+</mo><mn>1</mn></mrow></msup></math>, so the
+      step that would just meet the target is</p>
+    <math display="block">
+      <mrow><msub><mi>h</mi><mtext>next</mtext></msub><mo>=</mo><mi>h</mi><mo>·</mo>
+      <msup><mrow><mo>(</mo><mfrac><mtext>target</mtext><mtext>error</mtext></mfrac><mo>)</mo></mrow><mrow><mn>1</mn><mo>/</mo><mo>(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow></msup></mrow>
+    </math>
+    <p>usually with a safety factor and a cap on how fast <math><mi>h</mi></math> may grow. If
+      the error came in over the target, the step is rejected and retried smaller. The estimate
+      comes from the next Taylor term, or from taking the step twice at half size and comparing.</p>
+    <p>Then explode the target. A sweep of target errors produces a small bundle of
+      <math><mrow><mi>h</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math> profiles: loose targets
+      race to large steps and stay there while the spring is quiet; tight targets crawl. This
+      is where the cost-versus-accuracy tradeoff from panels 3 and 8 finally becomes a dial,
+      and where the 16-second step comes from: with RK4 the estimate is so small that the
+      controller keeps doubling until something else stops it.</p>
+    <p>Drag the target error along the range to highlight one profile and dim the rest.</p>
+  </div>
+  <div class="viz"></div>
+</article>
