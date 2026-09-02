@@ -1,0 +1,23 @@
+<article>
+  <h2>Explode h: nested disks</h2>
+  <div class="prose">
+    <p>Since our time step <math><mi>h</mi></math> is in the inequality, it heavily affects the
+      stability of a method. The spine draws the disk for one <math><mi>h</mi></math>; here it is
+      drawn for a small range of step sizes at once, all on one plane, with the eigenvalues
+      fixed.</p>
+    <p>Each disk has radius <math><mrow><mn>1</mn><mo>/</mo><mi>h</mi></mrow></math> and is
+      centered at <math><mrow><mo>−</mo><mn>1</mn><mo>/</mo><mi>h</mi></mrow></math>, so every
+      one of them touches the origin from the left and none of them reaches the right half
+      plane. Halving the step doubles the disk: at 1/30 s the radius is 30, at 1/60 s it is 60.
+      With a 1/60 second step the region of stability scales, so it does include eigenvalues
+      for which it would previously have been unstable.</p>
+    <p>But the disks are nested, not growing in every direction. Near the imaginary axis the
+      edge is nearly tangent to it, so a lightly damped spring, whose eigenvalues sit just left
+      of that axis and far up it, needs a very small <math><mi>h</mi></math> to fall inside, and
+      an undamped one never does. Shrinking <math><mi>h</mi></math> buys time; it does not buy
+      oscillation.</p>
+    <p>Drag <math><mi>h</mi></math> along the range to highlight one disk and dim the rest; find
+      the largest step whose disk still holds the eigenvalues.</p>
+  </div>
+  <div class="viz"></div>
+</article>

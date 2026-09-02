@@ -1,0 +1,25 @@
+<article>
+  <h2>The exact solution, no method</h2>
+  <div class="prose">
+    <p>Drop the integrator. For one mode, the exact solution of
+      <math><mrow><msup><mi>x</mi><mo>′</mo></msup><mo>=</mo><mi>λ</mi><mi>x</mi></mrow></math>
+      is <math><mrow><mi>x</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo><msub><mi>x</mi><mn>0</mn></msub><msup><mi>e</mi><mrow><mi>λ</mi><mi>t</mi></mrow></msup></mrow></math>,
+      and with <math><mrow><mi>λ</mi><mo>=</mo><mi>α</mi><mo>+</mo><mi>i</mi><mi>ω</mi></mrow></math>
+      that splits into a size and a turn:</p>
+    <math display="block">
+      <mrow><msup><mi>e</mi><mrow><mi>λ</mi><mi>t</mi></mrow></msup><mo>=</mo><msup><mi>e</mi><mrow><mi>α</mi><mi>t</mi></mrow></msup><mo>(</mo><mi>cos</mi><mi>ω</mi><mi>t</mi><mo>+</mo><mi>i</mi><mo>·</mo><mi>sin</mi><mi>ω</mi><mi>t</mi><mo>)</mo></mrow>
+    </math>
+    <p>So the plane reads by example. On the negative real axis,
+      <math><mrow><mi>ω</mi><mo>=</mo><mn>0</mn></mrow></math>: pure decay, a curve that slides
+      to zero. On the imaginary axis, <math><mrow><mi>α</mi><mo>=</mo><mn>0</mn></mrow></math>:
+      pure oscillation, forever, at the same amplitude. In between, a spiral in the plane and a
+      ringing decay in time. In the right half plane the spiral runs outward and the real
+      system itself is unstable; no method can fix that.</p>
+    <p>This is what a method is trying to reproduce. Every red curve in the piece is judged
+      against a blue one drawn from this formula, and the disk on the spine is the set of
+      <math><mi>λ</mi></math> where Euler’s version of it does not grow.</p>
+    <p>Pick a <math><mi>λ</mi></math> on the plane and see its closed-form curve; walk it from
+      the real axis up to the imaginary one.</p>
+  </div>
+  <div class="viz"></div>
+</article>
