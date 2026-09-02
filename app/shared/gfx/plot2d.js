@@ -41,17 +41,22 @@ export function observeResize(target, cb) {
  *   makeView({ w, h, dpr, xMin, xMax, yMin, yMax })
  *   view.X(x), view.Y(y)   plot → pixel;   view.x(px), view.y(py)   pixel → plot
  * Convenience: pass { cx, cy, halfW, halfH } instead of min/max.
+ * `yLog: true` maps y through log10 (yMin, yMax > 0, in linear units); y ≤ 0 maps to NaN,
+ * which drawPolyline skips.
  */
-export function makeView({ w, h, dpr = 1, xMin, xMax, yMin, yMax, cx = 0, cy = 0, halfW, halfH }) {
+export function makeView({ w, h, dpr = 1, xMin, xMax, yMin, yMax, cx = 0, cy = 0, halfW, halfH, yLog = false }) {
   if (xMin == null) { xMin = cx - halfW; xMax = cx + halfW; }
   if (yMin == null) { yMin = cy - (halfH ?? halfW * h / w); yMax = cy + (halfH ?? halfW * h / w); }
-  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const sx = w / (xMax - xMin);
+  const lyMin = yLog ? Math.log10(yMin) : yMin, lyMax = yLog ? Math.log10(yMax) : yMax;
+  const sy = h / (lyMax - lyMin);
+  const fy = yLog ? Math.log10 : (y => y), gy = yLog ? (l => 10 ** l) : (l => l);
   return {
-    w, h, dpr, xMin, xMax, yMin, yMax, sx, sy,
+    w, h, dpr, xMin, xMax, yMin, yMax, sx, sy, yLog,
     X: x => (x - xMin) * sx,
-    Y: y => h - (y - yMin) * sy,
+    Y: y => h - (fy(y) - lyMin) * sy,
     x: px => xMin + px / sx,
-    y: py => yMin + (h - py) / sy,
+    y: py => gy(lyMin + (h - py) / sy),
     /** pointer event → plot coords */
     fromEvent(ev, canvas) {
       const r = canvas.getBoundingClientRect();
@@ -70,8 +75,8 @@ export function niceStep(range, target = 5) {
 export function fmtTick(v) {
   if (Math.abs(v) < 1e-12) return '0';
   const a = Math.abs(v);
-  const s = a >= 100 ? v.toFixed(0) : a >= 1 ? String(+v.toFixed(2)) : String(+v.toPrecision(2));
-  return s.replace('-', '−');
+  const s = a >= 1e5 || a < 1e-3 ? v.toExponential(0).replace('e+', 'e') : a >= 100 ? v.toFixed(0) : a >= 1 ? String(+v.toFixed(2)) : String(+v.toPrecision(2));
+  return s.replace(/-/g, '−');
 }
 
 /** Grid lines, axes through the origin (if visible), tick labels. */
@@ -83,7 +88,7 @@ export function drawGrid(ctx, view, { labels = true, xLabel, yLabel, ticks = 5 }
   ctx.strokeStyle = cssVar('--grid');
   ctx.fillStyle = cssVar('--tick');
   const xs = niceStep(view.xMax - view.xMin, ticks), ys = niceStep(view.yMax - view.yMin, ticks);
-  const X0 = view.X(0), Y0 = view.Y(0);
+  const X0 = view.X(0), Y0 = view.yLog ? h : view.Y(0);
   const labelY = Math.min(Math.max(Y0, 14 * dpr), h - 4 * dpr);
   const labelX = Math.min(Math.max(X0, 4 * dpr), w - 30 * dpr);
   ctx.beginPath();
@@ -93,16 +98,25 @@ export function drawGrid(ctx, view, { labels = true, xLabel, yLabel, ticks = 5 }
     ctx.moveTo(X, 0); ctx.lineTo(X, h);
     if (labels) ctx.fillText(fmtTick(v), X + 3 * dpr, labelY - 4 * dpr);
   }
-  for (let v = Math.ceil(view.yMin / ys) * ys; v <= view.yMax + 1e-9; v += ys) {
-    if (Math.abs(v) < 1e-9) continue;
-    const Y = view.Y(v);
-    ctx.moveTo(0, Y); ctx.lineTo(w, Y);
-    if (labels) ctx.fillText(fmtTick(v), labelX + 4 * dpr, Y - 3 * dpr);
+  if (view.yLog) {
+    // one line per decade, labels on each
+    for (let e = Math.ceil(Math.log10(view.yMin) - 1e-9); e <= Math.log10(view.yMax) + 1e-9; e++) {
+      const Y = view.Y(10 ** e);
+      ctx.moveTo(0, Y); ctx.lineTo(w, Y);
+      if (labels) ctx.fillText(fmtTick(10 ** e), labelX + 4 * dpr, Y - 3 * dpr);
+    }
+  } else {
+    for (let v = Math.ceil(view.yMin / ys) * ys; v <= view.yMax + 1e-9; v += ys) {
+      if (Math.abs(v) < 1e-9) continue;
+      const Y = view.Y(v);
+      ctx.moveTo(0, Y); ctx.lineTo(w, Y);
+      if (labels) ctx.fillText(fmtTick(v), labelX + 4 * dpr, Y - 3 * dpr);
+    }
   }
   ctx.stroke();
   ctx.strokeStyle = cssVar('--axis');
   ctx.beginPath();
-  if (Y0 >= 0 && Y0 <= h) { ctx.moveTo(0, Y0); ctx.lineTo(w, Y0); }
+  if (!view.yLog && Y0 >= 0 && Y0 <= h) { ctx.moveTo(0, Y0); ctx.lineTo(w, Y0); }
   if (X0 >= 0 && X0 <= w) { ctx.moveTo(X0, 0); ctx.lineTo(X0, h); }
   ctx.stroke();
   if (labels) {
