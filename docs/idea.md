@@ -95,7 +95,8 @@ the concept from the essay, then the interactive beat that carries it. Part I se
     term is a local truncation error estimate, computable in real time. Set a target error
     and grow `h` until you hit it, or add terms. The college paper: RK4 at a 0.01 error bound
     tried a 16-second step. *Beat:* a target-error slider with `h(t)` plotted as its own
-    trajectory; the reviewer can reproduce the 16-second step themselves.
+    trajectory. On the spring the controller tops out near 2 s (see the numeric notes); the
+    16-second step needs a system whose higher derivatives vanish, and the panel shows why.
 
 ## Flow diagram
 
@@ -354,8 +355,10 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 
 **13. Variable step sizes.** `h` becomes a function of `t`.
 - *Spine viz:* a target-error slider with `h(t)` plotted as its own trajectory under the
-  simulation. Set the bound to 0.01 with RK4 and watch the controller push `h` toward the
-  16-second step from the college paper.
+  simulation. Set the bound to 0.01 with RK4 and watch the controller push `h` to about 2 s
+  on this spring. A "constant force only" switch (`k = c = 0`) shows the college paper's
+  mechanism: with no higher derivatives the next Taylor term is zero, the estimator reads no
+  error, and `h` runs to its cap, the 16-second step.
 - *Left, step down (one step's error):* local truncation error on a single step, the next
   Taylor term, versus the global error accumulated over many steps.
 - *Right, step up (explode target error):* the adaptive control loop in detail, then a sweep
@@ -507,8 +510,8 @@ does not yet give.
   series.
 - **Adaptive stepping, `math/adaptive.js`** (13, 13-right). A local error estimate per step
   (step doubling or the embedded next Taylor term), a controller that grows or shrinks `h`
-  toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The essay's
-  16-second step is the number to reproduce.
+  toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The stepper
+  gets a `setH` so `h` can change every step; Verlet re-seeds its `x_{−1}` consistently.
 - **Inversion, in `system.js`** (11, 11-left). `paramsFromEigenvalue(m, λ)` giving
   `c = −2m·Re λ`, `k = m|λ|²`, so dragging `λ` on the plane still drives the tuple, and an
   `exactFromEigenvalue` for the no-method left pane.
@@ -616,9 +619,9 @@ does not yet give.
 predicted angle), `forces` (assembling the linearized drag and spring reproduces the
 tuple's `c` and `k`), `taylor` (the degree-4 sum equals `amplification('rk4')`), `modes`
 (projection and reconstruction round-trip), `adaptive` (RK4 with the essay parameters at a
-0.01 bound grows `h` past one second; the 16-second figure is recorded once it is
-reproduced), and the measured error ratio in `simulate` matching `|1 + hλ|` for Euler in
-the unstable regime. Any number those tests pin is added to the confirmations below.
+0.01 bound peaks near `h = 2.1 s`; with `k = c = 0` it runs to the cap), and the measured
+error ratio in `simulate` matching `|1 + hλ|` for Euler in the unstable regime. Any number
+those tests pin is added to the confirmations below.
 
 ### Order
 
@@ -645,6 +648,20 @@ Scripts: `poc/numerics.mjs`, `poc/numerics2.mjs`.
 - Implicit Euler is stable everywhere but artificially damps: `0.26` vs exact `0.71` at
   `t = 60` with the essay's parameters. That contrast is the teaching payload.
 - Semi-implicit Euler and Störmer–Verlet preserve amplitude and slowly drift phase.
+- **Adaptive RK4 with the essay's parameters at a 0.01 bound** (`shared/math/adaptive.js`,
+  step doubling): `h` peaks at `2.10 s`, median `1.81 s`, 70 steps for 120 s, no
+  rejections, max global error `0.29`. With the essay's own recipe (next Taylor term, `x`
+  only) the peak is `1.55 s`, or `1.86 s` with no growth clamp. **The 16-second step is not
+  reachable on this spring:** `h⁵/120 · |x⁽⁵⁾| ≤ 0.01` at `h = 16` needs
+  `|x⁽⁵⁾| ≈ 1e−6`, and with `ω ≈ 1` the fifth derivative is order 1. The mechanism that does
+  produce it: with `k = c = 0` every derivative past `a` vanishes, both estimators read zero
+  error, and `h` runs straight to its cap. The likely story behind the anecdote is a
+  projectile under constant gravity, where RK4's next term is exactly zero while Euler's
+  `h²/2 · |a|` is not, which matches "Euler worked well but RK4 tried 16 s".
+- **Adaptive explicit Euler with the demo parameters at a 0.01 bound** is slowed, not
+  stabilized: `|x| ≈ 3.2` by `t = 12` (`11.8` by `t = 60`) against `9.8e7` for fixed
+  `h = 1/30`, with `h` held at `0.005–0.018` and 112 rejected steps. The Euler disk needs
+  `h ≤ 0.001` there; a local-error tolerance never enforces stability.
 
 ## Prior art (and the gap)
 
