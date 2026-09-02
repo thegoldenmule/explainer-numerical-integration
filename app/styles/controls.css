@@ -94,3 +94,8 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .swatch.stable { background: var(--stable); }
 .swatch.unstable { background: var(--unstable); }
 .swatch.region { background: var(--region); opacity: 0.55; }
+
+/* player transport: play/pause, step, reset, optional speed buttons */
+.transport { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+.transport-group { display: inline-flex; gap: 0.35rem; }
+.transport .btn { min-width: 4rem; }
