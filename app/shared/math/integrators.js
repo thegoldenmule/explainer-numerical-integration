@@ -17,8 +17,8 @@ export const METHOD_IDS = Object.freeze(Object.keys(METHODS));
  * Verlet keeps x_{n−1} internally, seeded with the exact x(−h); its v is the backward
  * difference (x_n − x_{n−1}) / h, an estimate, which is also what its drag term uses.
  *
- * setH(h) changes the step from here on (Verlet re-seeds x_{n−1} so its backward difference
- * is preserved) and clone() returns an independent stepper at the same state; together they
+ * setH(h) changes the step from here on (Verlet rebuilds x_{n−1} so its velocity at t is
+ * preserved) and clone() returns an independent stepper at the same state; together they
  * let the adaptive controller take trial steps of varying size (math/adaptive.js).
  */
 export function createStepper({ method, h, m, c, k, x0 = 1, v0 = 0 }) {
