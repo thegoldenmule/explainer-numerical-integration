@@ -1,0 +1,27 @@
+<article>
+  <h2>ODEs vs PDEs; intractability</h2>
+  <div class="prose">
+    <p>An ordinary differential equation has one independent variable. Ours is time: the state
+      of the point mass is a few numbers, and the equation says how they change as
+      <math><mi>t</mi></math> advances.</p>
+    <p>Add a second independent variable and you have a partial differential equation. A
+      vibrating string or a heat bar next to the point mass has a value at every point in space
+      as well as every instant in time, so its “state” is a whole function, and the equation
+      couples the change in time to the shape in space:</p>
+    <math display="block">
+      <mrow><mfrac><mrow><msup><mo>∂</mo><mn>2</mn></msup><mi>u</mi></mrow><mrow><mo>∂</mo><msup><mi>t</mi><mn>2</mn></msup></mrow></mfrac>
+      <mo>=</mo><msup><mi>c</mi><mn>2</mn></msup>
+      <mfrac><mrow><msup><mo>∂</mo><mn>2</mn></msup><mi>u</mi></mrow><mrow><mo>∂</mo><msup><mi>x</mi><mn>2</mn></msup></mrow></mfrac></mrow>
+    </math>
+    <p>That is a different problem, with boundary conditions and a grid of unknowns per step.
+      Rigid body engines stay with ODEs.</p>
+    <p>Even the ODE is generally intractable. The linear spring has a closed form (the blue
+      curve), but add a nonlinear force and the closed form goes away, and an engine has many
+      bodies with many forces each. Why can’t we just figure out the exact solution to a complex
+      system? Among other reasons, see Bonini’s paradox: a model complete enough to be exact is
+      as hard to understand as the thing it models.</p>
+    <p>Poke the string and the point mass side by side; one is a number over time, the other is
+      a shape over time.</p>
+  </div>
+  <div class="viz"></div>
+</article>

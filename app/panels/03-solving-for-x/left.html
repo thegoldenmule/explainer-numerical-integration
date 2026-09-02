@@ -1,0 +1,24 @@
+<article>
+  <h2>x, v, a: derivatives</h2>
+  <div class="prose">
+    <p>Position <math><mi>x</mi></math> is where the mass is. Velocity <math><mi>v</mi></math> is
+      how fast <math><mi>x</mi></math> is changing right now: the slope of the
+      <math><mi>x</mi></math> curve at this instant. Acceleration <math><mi>a</mi></math> is how
+      fast <math><mi>v</mi></math> is changing: the slope of the <math><mi>v</mi></math> curve.</p>
+    <math display="block">
+      <mrow><mi>v</mi><mo>=</mo><msup><mi>x</mi><mo>′</mo></msup><mo>=</mo><mfrac><mrow><mi>d</mi><mi>x</mi></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac>
+      <mspace width="2em"/>
+      <mi>a</mi><mo>=</mo><msup><mi>v</mi><mo>′</mo></msup><mo>=</mo><msup><mi>x</mi><mo>″</mo></msup><mo>=</mo><mfrac><mrow><msup><mi>d</mi><mn>2</mn></msup><mi>x</mi></mrow><mrow><mi>d</mi><msup><mi>t</mi><mn>2</mn></msup></mrow></mfrac></mrow>
+    </math>
+    <p>That is why the force sum is an equation about <math><msup><mi>x</mi><mo>″</mo></msup></math>:
+      Newton hands us the slope of the slope, and we want <math><mi>x</mi></math> itself.
+      Going from <math><mi>a</mi></math> back to <math><mi>v</mi></math>, and from
+      <math><mi>v</mi></math> back to <math><mi>x</mi></math>, is integration, and doing it
+      numerically is the whole of Part II.</p>
+    <p>This is one instant of the trajectory on the spine. Nudge <math><mi>t</mi></math> and
+      watch the tangent tilt: the slope you see on <math><mi>x</mi></math> is the value of
+      <math><mi>v</mi></math>, and the slope on <math><mi>v</mi></math> is the value of
+      <math><mi>a</mi></math>.</p>
+  </div>
+  <div class="viz"></div>
+</article>

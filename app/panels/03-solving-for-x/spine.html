@@ -1,0 +1,26 @@
+<article>
+  <h2>Solving for x</h2>
+  <div class="prose">
+    <p>Now that we have a rigid body and we have a description of all the forces acting on that
+      body, the next step is calculating the actual changes to position. The issue is that this
+      is a Hard Problem to solve explicitly.</p>
+    <p>In fact, these problems (depending on your forces) are likely “analytically intractable”,
+      meaning that calculating an exact solution is not possible. This is because what we’re
+      looking at is called an Ordinary Differential Equation (ODE). You can’t just multiply
+      through from forces described in terms of acceleration to get position. Instead, the
+      general approach is to iteratively calculate an <em>approximation</em> to the explicit
+      solution.</p>
+    <p>The blue line is the explicit solution for some trajectory. The red, segmented line is
+      the iterative approximation to it, calculated at small “steps” in time, called
+      <math><mi>dt</mi></math>. With a <math><mi>dt</mi></math> of 1/60th of a second, we
+      calculate when <math><mrow><mi>t</mi><mo>=</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>/</mo><mn>60</mn><mo>,</mo><mn>2</mn><mo>/</mo><mn>60</mn><mo>,</mo><mo>…</mo></mrow></math>
+      Most methods, in most cases, will be able to stay closer to the explicit solution with a
+      smaller <math><mi>dt</mi></math>. However, more steps lead to more time spent processing.</p>
+    <p>Now you can see one of the tensions inside of a physics engine. We want to stay “close
+      enough” to that blue line so that our physics engine doesn’t explode. At the same time,
+      we’d like to spend the least possible amount of computation doing it.</p>
+    <p>Scrub <math><mi>dt</mi></math> and the red polyline hugs or leaves the blue curve; touch
+      the curve to step back down to one instant.</p>
+  </div>
+  <div class="viz"></div>
+</article>
