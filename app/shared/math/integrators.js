@@ -16,12 +16,20 @@ export const METHOD_IDS = Object.freeze(Object.keys(METHODS));
  * A stepper holds (x, v, t) and advances by h per step().
  * Verlet keeps x_{n−1} internally, seeded with the exact x(−h); its v is the backward
  * difference (x_n − x_{n−1}) / h, an estimate, which is also what its drag term uses.
+ *
+ * setH(h) changes the step from here on (Verlet re-seeds x_{n−1} so its backward difference
+ * is preserved) and clone() returns an independent stepper at the same state; together they
+ * let the adaptive controller take trial steps of varying size (math/adaptive.js).
  */
 export function createStepper({ method, h, m, c, k, x0 = 1, v0 = 0 }) {
   if (!METHODS[method]) throw new Error(`unknown integrator: ${method}`);
+  const xPrev = method === 'verlet' ? exactSolution({ m, c, k, x0, v0 }).x(-h) : 0;
+  return makeStepper({ method, h, m, c, k }, { x: x0, v: v0, t: 0, xPrev });
+}
+
+function makeStepper({ method, h, m, c, k }, init) {
   const acc = acceleration(m, c, k);
-  let x = x0, v = v0, t = 0;
-  let xPrev = method === 'verlet' ? exactSolution({ m, c, k, x0, v0 }).x(-h) : 0;
+  let { x, v, t, xPrev } = init;
 
   const steps = {
     euler() {
@@ -62,7 +70,16 @@ export function createStepper({ method, h, m, c, k, x0 = 1, v0 = 0 }) {
     get x() { return x; },
     get v() { return v; },
     get t() { return t; },
+    get h() { return h; },
     step() { advance(); t += h; return this; },
+    /** Use `next` as the step from here on. Verlet keeps (x_n − x_{n−1}) / h unchanged. */
+    setH(next) {
+      if (method === 'verlet') xPrev = x - (x - xPrev) * (next / h);
+      h = next;
+      return this;
+    },
+    /** An independent copy at the same (x, v, t, x_{n−1}) and h, for trial steps. */
+    clone() { return makeStepper({ method, h, m, c, k }, { x, v, t, xPrev }); },
   };
 }
 
