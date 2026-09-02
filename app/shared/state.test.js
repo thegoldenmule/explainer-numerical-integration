@@ -30,3 +30,36 @@ test('store: reset and presets', () => {
   s.reset();
   assert.deepEqual(s.get(), DEFAULTS);
 });
+
+test('createStore with its own schema: limits clamp, validate cleans other keys, unknown keys throw', () => {
+  const s = createStore({ n: 1, name: 'a', list: [] }, {
+    limits: { n: [0, 10] },
+    validate: (key, value) => {
+      if (key === 'name') return String(value);
+      if (key === 'list') return Array.isArray(value) ? Object.freeze([...value]) : undefined;
+      throw new Error(`unknown: ${key}`);
+    },
+    presets: { big: { n: 9 } },
+  });
+  s.set({ n: 50, name: 42, list: 'not a list' });
+  assert.equal(s.get().n, 10);
+  assert.equal(s.get().name, '42');
+  assert.deepEqual(s.get().list, [], 'validate returning undefined skips the key');
+  assert.throws(() => s.set({ other: 1 }));
+  assert.throws(() => s.preset('nope'));
+  s.preset('big');
+  assert.equal(s.get().n, 9);
+  s.reset();
+  assert.deepEqual(s.get(), { n: 1, name: 'a', list: [] });
+  assert.deepEqual(s.limits, { n: [0, 10] });
+});
+
+test('the default store still is the tuple store', () => {
+  const s = createStore();
+  assert.deepEqual(s.get(), DEFAULTS);
+  assert.equal(s.limits.h[1], 0.5);
+  assert.throws(() => s.set({ method: 'nope' }), /unknown integrator/);
+  assert.throws(() => s.set({ bogus: 1 }), /unknown state key/);
+  s.set({ method: 'rk4' });
+  assert.equal(s.get().method, 'rk4');
+});
