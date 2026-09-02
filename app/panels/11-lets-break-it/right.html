@@ -9,7 +9,8 @@
       by the letter, wrong in fact. Outside, using a method outside of its region of stability
       causes solutions to stray, slowly near the edge and violently far from it. The row along
       the imaginary axis is the one that matters for springs; with explicit Euler every point
-      on it is out, and the other methods only push the crossing further up the axis.</p>
+      on it is out, RK4, semi-implicit Euler, and Verlet push the crossing further up the axis,
+      and implicit Euler never crosses it at all.</p>
     <p>The left pane is one of these with no method; the spine is one of these with the
       current system; this is all of them. It is also the picture the shader draws, sampled: the
       shaded region is this grid taken to every pixel.</p>
