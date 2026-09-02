@@ -15,8 +15,8 @@
     <p>Order 1 is the Euler disk. Order 2 is a slightly larger blob that still only touches the
       imaginary axis at the origin. Orders 3 and 4 are the first that reach across the axis and
       enclose a stretch of it, which is why RK4 survives the spring that broke Euler. The regions
-      do not simply nest: RK4’s has lobes that RK3’s lacks, and both give up some of the far
-      negative real axis. Shrinking the step size still scales every one of them toward the
+      do not simply nest: RK4’s has lobes that RK3’s lacks, and every one of them stops a short
+      way down the negative real axis. Shrinking the step size still scales every one of them toward the
       origin. And we can still see that there are issues with positive real values or extreme
       negative real values: no explicit order reaches the right half plane.</p>
     <p>Hover an order to highlight its region and its polynomial and dim the rest.</p>
