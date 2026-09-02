@@ -7,10 +7,15 @@
 // spring's natural units, (x, v/ω) per 1/ω seconds, where the same matrix reads
 // Â = [[0, 1], [−1, −2ζ]] with ζ = c / 2√(mk). Â is similar to A (a diagonal change of
 // units), so its eigenvectors are A's in those units and its eigenvalues are λ/ω; the
-// readout prints both. Per idea.md the panel starts from an overdamped preset: on every
-// resume (not mount: this spine is mounted off-screen beside 5 and 7), an underdamped tuple
-// gets c = 1.5 · 2√(mk), and the readout says so.
-// Lower c with the slider and the two directions converge and vanish at c = 2√(mk).
+// readout prints both.
+//
+// Per idea.md the panel wants an overdamped case to show real invariant directions, but the
+// tuple's own c is the demo's lightly-damped 0.1 and this panel must never write the tuple
+// (that write used to leak into every later panel — see the c slider on panels 7-13 landing
+// on an overdamped spring after a reader passed through here). So damping here is entirely
+// local to this pane: a `c` that defaults to an overdamped multiple of critical, recomputed
+// only when the tuple's m or k change, and otherwise left alone — including while the reader
+// drags it down through critical to watch the two directions converge and vanish.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -18,11 +23,11 @@ import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawTransformedGrid, drawArrow, drawPolyline, drawText, drawPoint } from 'shared/gfx/plot2d.js';
 import { systemMatrix, regime, naturalFrequency, dampingRatio } from 'shared/math/system.js';
 import { eigen, apply } from 'shared/math/matrix2.js';
-import { slider, readout, controls, row } from 'shared/ui/controls.js';
+import { readout, controls, row } from 'shared/ui/controls.js';
 
 const HALF_W = 2.6;
-const NEAR_DEG = 4;       // within this angle of an eigenvector, it lights up
-const PRESET_FACTOR = 1.5; // c = PRESET_FACTOR · 2√(mk) when the panel has to make its own overdamped case
+const NEAR_DEG = 4;        // within this angle of an eigenvector, it lights up
+const PRESET_FACTOR = 1.5; // this pane's own default: c = PRESET_FACTOR · 2√(mk), overdamped
 
 const deg = rad => rad * 180 / Math.PI;
 const angleBetweenLines = (u, v) => {
@@ -31,26 +36,48 @@ const angleBetweenLines = (u, v) => {
 };
 const fmtM = M => `[[${fmt(M[0][0], 2)}, ${fmt(M[0][1], 2)}], [${fmt(M[1][0], 2)}, ${fmt(M[1][1], 2)}]]`;
 
+/** A local slider for a number that lives outside the tuple (this pane's own damping). */
+function localSlider({ label, min, max, value, format = v => String(v), onInput, signal }) {
+  const input = el('input', { type: 'range', min, max, step: 'any', value });
+  const out = el('output', {}, format(value));
+  input.addEventListener('input', () => { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
+  const node = el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, label), out), input);
+  node.setValue = v => { input.value = v; out.textContent = format(v); };
+  node.setMax = v => { input.max = v; };
+  return node;
+}
+
 export function mount(root, ctx) {
   const { store, signal } = ctx;
   let vec = [1.2, 0.9];     // the dragged vector, in (x, v/ω) units
   let view = null;
-  let preset = null;        // what the overdamped preset did, for the readout
 
-  /** The dimensionless matrix and its decomposition for the current tuple. */
-  function matrices(s) {
-    const zeta = dampingRatio(s.m, s.c, s.k);
-    const omega = naturalFrequency(s.m, s.k);
-    const Ahat = [[0, 1], [-1, -2 * zeta]];
-    return { A: systemMatrix(s.m, s.c, s.k), Ahat, zeta, omega, e: eigen(Ahat), regime: regime(s.m, s.c, s.k) };
+  // This pane's own damping (never written to the tuple). Seeded from the tuple's current
+  // m, k; recomputed only when either changes, otherwise preserved while the pane stays
+  // mounted (dragging the slider below critical must not get overwritten on the next frame).
+  const s0 = store.get();
+  let mkKey = `${s0.m}/${s0.k}`;
+  let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
+  let cCtl = null;
+
+  function ensureLocalC(s) {
+    const key = `${s.m}/${s.k}`;
+    if (key === mkKey) return;
+    mkKey = key;
+    const critical = 2 * Math.sqrt(s.m * s.k);
+    localC = PRESET_FACTOR * critical;
+    cCtl?.setMax(Math.max(50, 3 * critical));
+    cCtl?.setValue(localC);
   }
 
-  function applyPreset() {
-    const s = store.get();
-    if (regime(s.m, s.c, s.k) !== 'underdamped') return;
-    const critical = 2 * Math.sqrt(s.m * s.k);
-    const next = store.set({ c: PRESET_FACTOR * critical });
-    preset = { from: s.c, to: next.c, critical, ok: regime(next.m, next.c, next.k) === 'overdamped' };
+  /** The dimensionless matrix and its decomposition for the current tuple (m, k) and this
+   *  pane's own local c. */
+  function matrices(s) {
+    ensureLocalC(s);
+    const zeta = dampingRatio(s.m, localC, s.k);
+    const omega = naturalFrequency(s.m, s.k);
+    const Ahat = [[0, 1], [-1, -2 * zeta]];
+    return { A: systemMatrix(s.m, localC, s.k), Ahat, zeta, omega, e: eigen(Ahat), regime: regime(s.m, localC, s.k) };
   }
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
@@ -102,8 +129,8 @@ export function mount(root, ctx) {
       lines.push(el('span', { class: 'unstable' }, 'no real invariant direction'), `: every v turns (this one by ${fmt(turnNorm, 1)}°); λ̂ = ${fmt(e.values[0][0], 3)} ± ${fmt(Math.abs(e.values[0][1]), 3)}i has gone complex\n`);
     }
     const lam = e.values.map(v => (e.real ? fmt(v[0], 3) : `${fmt(v[0], 3)} ${v[1] >= 0 ? '+' : '−'} ${fmt(Math.abs(v[1]), 3)}i`));
-    lines.push(`${r === 'critical' ? 'critically damped' : r}: ζ = ${fmt(zeta, 3)}, c = ${fmt(s.c, 2)} vs 2√(mk) = ${fmt(2 * Math.sqrt(s.m * s.k), 2)}   λ̂ = ${lam.join(', ')}  (λ = ω λ̂, ω = ${fmt(omega, 2)} /s)\n`);
-    lines.push(el('span', { class: 'label' }, `drawn: Â = ${fmtM(Ahat)}, which is A = ${fmtM(A)} in units (x, v/ω) per 1/ω s${preset ? `; started overdamped: c ${fmt(preset.from, 2)} → ${fmt(preset.to, 2)}${preset.ok ? '' : ' (clamped, still underdamped)'}` : ''}`));
+    lines.push(`${r === 'critical' ? 'critically damped' : r}: ζ = ${fmt(zeta, 3)}, this pane’s own c = ${fmt(localC, 2)} vs 2√(mk) = ${fmt(2 * Math.sqrt(s.m * s.k), 2)} (the spring’s actual c = ${fmt(s.c, 2)}, untouched)   λ̂ = ${lam.join(', ')}  (λ = ω λ̂, ω = ${fmt(omega, 2)} /s)\n`);
+    lines.push(el('span', { class: 'label' }, `drawn: Â = ${fmtM(Ahat)}, which is A = ${fmtM(A)} in units (x, v/ω) per 1/ω s; the damping above is this pane’s own, never written back to the spring’s c`));
     out.set(lines);
   });
 
@@ -119,16 +146,16 @@ export function mount(root, ctx) {
     },
   });
 
-  root.append(controls(row(
-    slider(store, 'c', { label: 'c (damping): lower it past 2√(mk)', min: 0, max: 50, format: v => fmt(v, 2), signal }),
-  )));
+  cCtl = localSlider({
+    label: 'this pane’s own c (damping): lower it past 2√(mk)',
+    min: 0, max: Math.max(50, 3 * 2 * Math.sqrt(s0.m * s0.k)), value: localC,
+    format: v => fmt(v, 2),
+    onInput: v => { localC = v; stage.invalidate(); },
+    signal,
+  });
+  root.append(controls(row(cCtl)));
   root.append(out.el);
 
-  // the preset is applied on resume only: this spine is also mounted off-screen beside
-  // panels 5 and 7, and writing the tuple's c from there would move their sliders
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
-  return {
-    resume() { applyPreset(); stage.invalidate(); },
-    destroy() { unsub(); },
-  };
+  return { destroy() { unsub(); } };
 }
