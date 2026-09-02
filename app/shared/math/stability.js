@@ -7,6 +7,7 @@
 import { ONE, cadd, csub, cmul, cscale, cinv, cabs } from './complex.js';
 import { systemMatrix, eigenvalues } from './system.js';
 import { METHODS } from './integrators.js';
+import { expPartialSumComplex } from './taylor.js';
 
 /** R(z) for z = hλ (complex). null for methods without a scalar amplification factor. */
 export function amplification(method, z) {
@@ -29,11 +30,7 @@ export function amplification(method, z) {
  * n = 1 is explicit Euler's R, n = 4 is RK4's; the RK1–RK3 regions of panel 12-right are the
  * degrees in between. n = 0 is the constant 1.
  */
-export function taylorAmplification(z, n) {
-  let a = [1, 0];
-  for (let i = Math.max(0, n | 0); i >= 1; i--) a = cadd(ONE, cscale(cmul(z, a), 1 / i));
-  return a;
-}
+export const taylorAmplification = (z, n) => expPartialSumComplex(z, n);
 
 /** |R(hλ)|, or NaN when the method has no scalar R. */
 export function ampFactor(method, z) {

@@ -1,8 +1,19 @@
-// Real-valued Taylor tools: partial sums of e^x, the expansion of 1/r² about an operating
-// point, and the local truncation error of one step as the next term of the series.
+// Taylor tools: partial sums of e^z (the one series Euler and RK4 are truncations of), the
+// expansion of 1/r² about an operating point, and the local truncation error of one step as
+// the next term of the series.
 //
-// Euler is the degree-1 partial sum of e^{hλ}, RK4 the degree-4 one; the complex version of
-// that sum for the stability region lives in stability.js. Everything here is real.
+// Euler is the degree-1 partial sum of e^{hλ}, RK4 the degree-4 one. The complex sum below
+// is the single implementation; stability.taylorAmplification and the region shader's
+// Taylor mode are that same Horner loop.
+
+import { ONE, cadd, cmul, cscale } from './complex.js';
+
+/** Σ_{i≤n} z^i / i!  for complex z = [re, im], by Horner. */
+export function expPartialSumComplex(z, n) {
+  let a = ONE;
+  for (let i = Math.max(0, n | 0); i >= 1; i--) a = cadd(ONE, cscale(cmul(z, a), 1 / i));
+  return a;
+}
 
 /** [1, 1, 1/2!, …, 1/n!] */
 export function expCoefficients(n) {
@@ -11,12 +22,8 @@ export function expCoefficients(n) {
   return c;
 }
 
-/** Σ_{i≤n} x^i / i!  by Horner. */
-export function expPartialSum(x, n) {
-  let s = 1;
-  for (let i = n; i >= 1; i--) s = 1 + x * s / i;
-  return s;
-}
+/** Σ_{i≤n} x^i / i!  on the real line. */
+export const expPartialSum = (x, n) => expPartialSumComplex([x, 0], n)[0];
 
 /** The terms x^i / i! for i = 0..n, so a pane can add them one at a time. */
 export function expTerms(x, n) {
