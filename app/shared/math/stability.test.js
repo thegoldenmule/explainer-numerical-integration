@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ampFactor, doublingTime, updateMatrix, spectralRadius, stabilityReport } from './stability.js';
+import { ampFactor, amplification, taylorAmplification, doublingTime, updateMatrix, spectralRadius, stabilityReport } from './stability.js';
 import { eigenvalues } from './system.js';
 import { cscale } from './complex.js';
 
@@ -66,4 +66,16 @@ test('stabilityReport bundles the verdict', () => {
   assert.equal(r.lambdas.length, 2);
   assert.ok(r.doublingTime < 1);
   assert.equal(stabilityReport('rk4', { m: 1, c: 0.1, k: 100, h: 1 / 30 }).stable, true);
+});
+
+test('taylorAmplification: degree 1 is explicit Euler, degree 4 is RK4, degree 0 is 1', () => {
+  for (const z of [[0.1, 0.3], [-3, 2], [-0.05 / 30, 10 / 30], [-1.9, 2.8]]) {
+    const e = amplification('euler', z), t1 = taylorAmplification(z, 1);
+    near(t1[0], e[0], 1e-12); near(t1[1], e[1], 1e-12);
+    const r = amplification('rk4', z), t4 = taylorAmplification(z, 4);
+    near(t4[0], r[0], 1e-12); near(t4[1], r[1], 1e-12);
+  }
+  assert.deepEqual(taylorAmplification([5, 5], 0), [1, 0]);
+  // degree 2 on the imaginary axis: |1 + iy − y²/2| > 1 for every y ≠ 0 (RK2 has no imaginary-axis stability)
+  assert.ok(Math.hypot(...taylorAmplification([0, 0.5], 2)) > 1);
 });

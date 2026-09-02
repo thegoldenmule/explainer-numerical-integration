@@ -24,6 +24,17 @@ export function amplification(method, z) {
   }
 }
 
+/**
+ * The degree-n Taylor partial sum of e^z, by Horner: 1 + z(1 + z/2(1 + … (1 + z/n))).
+ * n = 1 is explicit Euler's R, n = 4 is RK4's; the RK1–RK3 regions of panel 12-right are the
+ * degrees in between. n = 0 is the constant 1.
+ */
+export function taylorAmplification(z, n) {
+  let a = [1, 0];
+  for (let i = Math.max(0, n | 0); i >= 1; i--) a = cadd(ONE, cscale(cmul(z, a), 1 / i));
+  return a;
+}
+
 /** |R(hλ)|, or NaN when the method has no scalar R. */
 export function ampFactor(method, z) {
   const r = amplification(method, z);

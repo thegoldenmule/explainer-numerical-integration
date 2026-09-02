@@ -75,3 +75,19 @@ export function exactSolution({ m, c, k, x0 = 1, v0 = 0 }) {
     v: t => A * r1 * Math.exp(r1 * t) + B * r2 * Math.exp(r2 * t),
   };
 }
+
+/**
+ * Invert the eigenvalue: for a fixed m, the (c, k) whose characteristic polynomial has the
+ * root λ (and its conjugate). c = −2m·Re λ, k = m|λ|². Exact for a conjugate pair; a real λ
+ * gives the critically damped system with λ as a double root. This is how dragging λ on the
+ * plane still drives the tuple from (m, c, k).
+ */
+export function paramsFromEigenvalue(m, lambda) {
+  const [re, im] = lambda;
+  return { c: -2 * m * re, k: m * (re * re + im * im) };
+}
+
+/** The closed form for the system whose eigenvalue is λ (panel 11's no-method left pane). */
+export function exactFromEigenvalue({ m = 1, lambda, x0 = 1, v0 = 0 }) {
+  return exactSolution({ m, ...paramsFromEigenvalue(m, lambda), x0, v0 });
+}
