@@ -1,0 +1,84 @@
+// Real-valued Taylor tools: partial sums of e^x, the expansion of 1/r² about an operating
+// point, and the local truncation error of one step as the next term of the series.
+//
+// Euler is the degree-1 partial sum of e^{hλ}, RK4 the degree-4 one; the complex version of
+// that sum for the stability region lives in stability.js. Everything here is real.
+
+/** [1, 1, 1/2!, …, 1/n!] */
+export function expCoefficients(n) {
+  const c = [1];
+  for (let i = 1; i <= n; i++) c.push(c[i - 1] / i);
+  return c;
+}
+
+/** Σ_{i≤n} x^i / i!  by Horner. */
+export function expPartialSum(x, n) {
+  let s = 1;
+  for (let i = n; i >= 1; i--) s = 1 + x * s / i;
+  return s;
+}
+
+/** The terms x^i / i! for i = 0..n, so a pane can add them one at a time. */
+export function expTerms(x, n) {
+  const terms = [1];
+  for (let i = 1; i <= n; i++) terms.push(terms[i - 1] * x / i);
+  return terms;
+}
+
+/** The running partial sums S_0 … S_n of e^x. */
+export function expPartialSums(x, n) {
+  const terms = expTerms(x, n), sums = [];
+  let s = 0;
+  for (const term of terms) sums.push(s += term);
+  return sums;
+}
+
+/**
+ * 1/r² about r₀:  1/(r₀ + δ)² = Σ_{i≥0} (−1)^i (i + 1) δ^i / r₀^{i+2},  δ = r − r₀.
+ * Keeps n + 1 terms (degrees 0..n). Degree 0 is the constant the essay's `m g` keeps.
+ * Returns { r0, n, coefficients (of δ^i), terms(r), evaluate(r) }.
+ */
+export function inverseSquareExpansion(r0, n) {
+  const coefficients = [];
+  for (let i = 0; i <= n; i++) coefficients.push((i % 2 ? -1 : 1) * (i + 1) / r0 ** (i + 2));
+  const terms = r => {
+    const d = r - r0, out = [];
+    let p = 1;
+    for (let i = 0; i <= n; i++) { out.push(coefficients[i] * p); p *= d; }
+    return out;
+  };
+  return {
+    r0, n, coefficients, terms,
+    evaluate: r => terms(r).reduce((a, b) => a + b, 0),
+  };
+}
+
+/**
+ * Derivatives of x(t) at a state, [x, x', x'', …, x^{(n)}], from the equation itself:
+ * x'' = −(c x' + k x) / m, so every higher derivative follows by the same recursion.
+ * Exact for the linear system, in every regime, with no closed form needed.
+ */
+export function derivatives(m, c, k, x, v, n) {
+  const d = [x, v];
+  for (let i = 2; i <= n; i++) d.push(-(c * d[i - 1] + k * d[i - 2]) / m);
+  return d.slice(0, n + 1);
+}
+
+/** h^{p+1} / (p+1)! · |d|, the next Taylor term for a method of order p. */
+export function truncationTerm(order, h, derivative) {
+  let f = 1;
+  for (let i = 2; i <= order + 1; i++) f *= i;
+  return h ** (order + 1) / f * Math.abs(derivative);
+}
+
+/**
+ * Local truncation error estimate for one step of size h from (x, v) with a method of
+ * order p: the next Taylor term of x and of v (= the next-next term of x), as
+ * { x, v, max }. Euler (p = 1) gives h²/2 · |a| for x.
+ */
+export function localTruncationError({ m, c, k, x, v, h, order }) {
+  const d = derivatives(m, c, k, x, v, order + 2);
+  const ex = truncationTerm(order, h, d[order + 1]);
+  const ev = truncationTerm(order, h, d[order + 2]);
+  return { x: ex, v: ev, max: Math.max(ex, ev) };
+}
