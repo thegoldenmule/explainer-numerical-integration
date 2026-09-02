@@ -8,6 +8,7 @@ import { ONE, cadd, csub, cmul, cscale, cinv, cabs } from './complex.js';
 import { systemMatrix, eigenvalues } from './system.js';
 import { METHODS } from './integrators.js';
 import { expPartialSumComplex } from './taylor.js';
+import { I2, madd, msub, mscale, mmul, mdet, minv } from './matrix2.js';
 
 /** R(z) for z = hλ (complex). null for methods without a scalar amplification factor. */
 export function amplification(method, z) {
@@ -42,18 +43,6 @@ export function ampFactor(method, z) {
 export const doublingTime = (h, rho) => (rho > 1 ? h * Math.LN2 / Math.log(rho) : Infinity);
 /** Time for it to halve when rho < 1. */
 export const halvingTime = (h, rho) => (rho < 1 && rho > 0 ? h * Math.LN2 / -Math.log(rho) : Infinity);
-
-// ---- 2×2 matrices ----
-const I2 = [[1, 0], [0, 1]];
-const madd = (A, B) => [[A[0][0] + B[0][0], A[0][1] + B[0][1]], [A[1][0] + B[1][0], A[1][1] + B[1][1]]];
-const msub = (A, B) => [[A[0][0] - B[0][0], A[0][1] - B[0][1]], [A[1][0] - B[1][0], A[1][1] - B[1][1]]];
-const mscale = (A, s) => [[A[0][0] * s, A[0][1] * s], [A[1][0] * s, A[1][1] * s]];
-const mmul = (A, B) => [
-  [A[0][0] * B[0][0] + A[0][1] * B[1][0], A[0][0] * B[0][1] + A[0][1] * B[1][1]],
-  [A[1][0] * B[0][0] + A[1][1] * B[1][0], A[1][0] * B[0][1] + A[1][1] * B[1][1]],
-];
-const mdet = A => A[0][0] * A[1][1] - A[0][1] * A[1][0];
-const minv = A => mscale([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]], 1 / mdet(A));
 
 /**
  * The linear map one step applies to the state. For euler/rk4/implicit the state is (x, v);
