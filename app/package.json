@@ -1,0 +1,10 @@
+{
+  "name": "explainer-numerical-integration",
+  "private": true,
+  "type": "module",
+  "description": "Marker so `node --test` treats shared/ as ES modules. There is no build step.",
+  "scripts": {
+    "serve": "python3 -m http.server 8765 --bind 127.0.0.1",
+    "test": "node --test \"shared/**/*.test.js\""
+  }
+}

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stability Region POC</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #f6f6f4; color: #222; }
+  main { display: grid; grid-template-columns: minmax(0, 800px) 280px; gap: 24px; padding: 24px; max-width: 1140px; margin: 0 auto; }
+  #stage { position: relative; width: 100%; aspect-ratio: 1; background: #fff; border: 1px solid #ddd; }
+  #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  aside { display: flex; flex-direction: column; gap: 14px; }
+  label { display: flex; flex-direction: column; gap: 4px; }
+  label span { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; }
+  fieldset { border: 1px solid #ddd; padding: 8px 12px; }
+  fieldset label { flex-direction: row; gap: 8px; }
+  #readout { font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; background: #fff; border: 1px solid #ddd; padding: 8px; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <canvas id="ui"></canvas>
+  </div>
+  <aside>
+    <fieldset id="method">
+      <legend>Integrator</legend>
+      <label><input type="radio" name="method" value="0" checked> Explicit Euler &nbsp; |1 + hλ| ≤ 1</label>
+      <label><input type="radio" name="method" value="1"> RK4 &nbsp; |Σ (hλ)ⁿ/n!, n≤4| ≤ 1</label>
+      <label><input type="radio" name="method" value="2"> Implicit Euler &nbsp; |1 − hλ| ≥ 1</label>
+    </fieldset>
+    <label><span>h (step) <b id="hv"></b></span><input id="h" type="range" min="0.002" max="0.5" step="0.001" value="0.032"></label>
+    <label><span>mass m <b id="mv"></b></span><input id="m" type="range" min="0.1" max="50" step="0.1" value="10"></label>
+    <label><span>drag c <b id="cv"></b></span><input id="c" type="range" min="0" max="50" step="0.1" value="0.1"></label>
+    <label><span>spring k <b id="kv"></b></span><input id="k" type="range" min="0" max="2000" step="1" value="10"></label>
+    <label><span>plot half-range <b id="rv"></b></span><input id="r" type="range" min="2" max="200" step="1" value="100"></label>
+    <div id="readout"></div>
+  </aside>
+</main>
+
+<script>
+'use strict';
+// ---------- shader: fills |R(hλ)| <= 1 in the λ-plane, draws an AA boundary with fwidth ----------
+const VS = `#version 300 es
+in vec2 a; out vec2 v; void main(){ v = a; gl_Position = vec4(a, 0.0, 1.0); }`;
+
+const FS = `#version 300 es
+precision highp float;
+in vec2 v; out vec4 o;
+uniform float uH, uRange; uniform int uMethod; uniform vec3 uFill, uEdge;
+vec2 cmul(vec2 a, vec2 b){ return vec2(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x); }
+vec2 cinv(vec2 a){ return vec2(a.x, -a.y) / dot(a, a); }
+// amplification factor R(z), z = hλ
+vec2 R(vec2 z){
+  if (uMethod == 0) return vec2(1.0, 0.0) + z;
+  if (uMethod == 2) return cinv(vec2(1.0, 0.0) - z);
+  // RK4 via Horner: 1 + z(1 + z/2(1 + z/3(1 + z/4)))
+  vec2 a = vec2(1.0, 0.0) + z * 0.25;
+  a = vec2(1.0, 0.0) + cmul(z, a) / 3.0;
+  a = vec2(1.0, 0.0) + cmul(z, a) / 2.0;
+  return vec2(1.0, 0.0) + cmul(z, a);
+}
+void main(){
+  vec2 lambda = v * uRange;              // clip space -> λ-plane
+  float d = length(R(uH * lambda)) - 1.0; // signed: <0 inside stability region
+  float w = fwidth(d);
+  float inside = 1.0 - smoothstep(-w, w, d);
+  float edge = 1.0 - smoothstep(0.0, 2.0 * w, abs(d));
+  vec3 col = mix(vec3(1.0), uFill, inside * 0.55);
+  col = mix(col, uEdge, edge);
+  o = vec4(col, 1.0);
+}`;
+
+const glc = document.getElementById('gl');
+const gl = glc.getContext('webgl2', { antialias: false, preserveDrawingBuffer: false });
+window.__pocStatus = { webgl2: !!gl, linked: false, frames: 0 };
+let prog, loc = {};
+if (gl) {
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o);
+    if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  window.__pocStatus.linked = true;
+  gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const a = gl.getAttribLocation(prog, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+  for (const n of ['uH','uRange','uMethod','uFill','uEdge']) loc[n] = gl.getUniformLocation(prog, n);
+  gl.uniform3f(loc.uFill, 0.25, 0.47, 0.85); gl.uniform3f(loc.uEdge, 0.05, 0.2, 0.6);
+}
+
+// ---------- 2D overlay: axes, grid, labels, eigenvalue points ----------
+const ui = document.getElementById('ui'), ctx = ui.getContext('2d');
+const stage = document.getElementById('stage');
+const $ = id => document.getElementById(id);
+const params = () => ({ h: +$('h').value, m: +$('m').value, c: +$('c').value, k: +$('k').value, range: +$('r').value,
+  method: +document.querySelector('input[name=method]:checked').value });
+
+// Eigenvalues of m x'' + c x' + k x = 0 (hand-rolled complex; no library needed)
+function eigen(m, c, k) {
+  const disc = c*c - 4*m*k;
+  if (disc < 0) { const w = Math.sqrt(-disc) / (2*m), a = -c/(2*m); return [[a, w], [a, -w]]; }
+  const s = Math.sqrt(disc); return [[(-c + s)/(2*m), 0], [(-c - s)/(2*m), 0]];
+}
+function ampFactor(method, zr, zi) {           // |R(hλ)| on the CPU, for the readout
+  const mul = (a, b) => [a[0]*b[0] - a[1]*b[1], a[0]*b[1] + a[1]*b[0]];
+  if (method === 0) return Math.hypot(1 + zr, zi);
+  if (method === 2) return 1 / Math.hypot(1 - zr, -zi);
+  let a = [1 + zr/4, zi/4]; let t = mul([zr, zi], a); a = [1 + t[0]/3, t[1]/3];
+  t = mul([zr, zi], a); a = [1 + t[0]/2, t[1]/2]; t = mul([zr, zi], a); return Math.hypot(1 + t[0], t[1]);
+}
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), s = stage.clientWidth;
+  for (const cv of [glc, ui]) { cv.width = Math.round(s * dpr); cv.height = Math.round(s * dpr); }
+  if (gl) gl.viewport(0, 0, glc.width, glc.height);
+}
+
+function draw() {
+  const p = params();
+  $('hv').textContent = p.h.toFixed(3); $('mv').textContent = p.m; $('cv').textContent = p.c; $('kv').textContent = p.k; $('rv').textContent = '±' + p.range;
+  if (gl) {
+    gl.uniform1f(loc.uH, p.h); gl.uniform1f(loc.uRange, p.range); gl.uniform1i(loc.uMethod, p.method);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  // overlay
+  const W = ui.width, H = ui.height, sc = W / (2 * p.range);
+  const X = re => W/2 + re * sc, Y = im => H/2 - im * sc;
+  ctx.clearRect(0, 0, W, H);
+  ctx.save(); ctx.scale(1, 1);
+  const dpr = W / stage.clientWidth;
+  ctx.lineWidth = dpr; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.font = `${11*dpr}px system-ui`; ctx.fillStyle = '#555';
+  const step = niceStep(p.range);
+  for (let v = -Math.floor(p.range/step)*step; v <= p.range; v += step) {
+    if (Math.abs(v) < 1e-9) continue;
+    ctx.beginPath(); ctx.moveTo(X(v), 0); ctx.lineTo(X(v), H); ctx.moveTo(0, Y(v)); ctx.lineTo(W, Y(v)); ctx.stroke();
+    ctx.fillText(fmt(v), X(v) + 3*dpr, H/2 - 4*dpr); ctx.fillText(fmt(v), W/2 + 4*dpr, Y(v) - 3*dpr);
+  }
+  ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.fillStyle = '#222'; ctx.fillText('Re(λ)', W - 40*dpr, H/2 - 6*dpr); ctx.fillText('Im(λ)', W/2 + 6*dpr, 14*dpr);
+  // eigenvalues
+  const ev = eigen(p.m, p.c, p.k);
+  let lines = [];
+  for (const [re, im] of ev) {
+    const rho = ampFactor(p.method, p.h*re, p.h*im), ok = rho <= 1;
+    ctx.beginPath(); ctx.arc(X(re), Y(im), 6*dpr, 0, Math.PI*2);
+    ctx.fillStyle = ok ? '#1a9c4a' : '#d43a2f'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2*dpr; ctx.stroke();
+    const dbl = rho > 1 ? (p.h * Math.LN2 / Math.log(rho)) : Infinity;
+    lines.push(`λ = ${re.toFixed(4)} ${im >= 0 ? '+' : '-'} ${Math.abs(im).toFixed(4)}i  |R(hλ)| = ${rho.toFixed(6)} ${ok ? 'stable' : `UNSTABLE, doubles every ${dbl.toFixed(1)} s`}`);
+  }
+  ctx.restore();
+  const disc = p.c*p.c - 4*p.m*p.k;
+  $('readout').textContent = `${disc < 0 ? 'underdamped' : Math.abs(disc) < 1e-9 ? 'critically damped' : 'overdamped'}\n` + lines.join('\n');
+  window.__pocStatus.frames++;
+}
+function niceStep(r) { const raw = r / 5, p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / p; return (n < 2 ? 1 : n < 5 ? 2 : 5) * p; }
+function fmt(v) { return Math.abs(v) >= 1 ? String(Math.round(v)) : v.toFixed(1); }
+
+let pending = false;
+function schedule() { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; draw(); }); }
+// ?h=0.2&m=1&c=0.1&k=100&r=50&method=1 pre-seeds the controls (shareable state; also used for headless checks)
+const q = new URLSearchParams(location.search);
+for (const id of ['h','m','c','k','r']) if (q.has(id)) $(id).value = q.get(id);
+if (q.has('method')) document.querySelector(`input[name=method][value="${q.get('method')}"]`).checked = true;
+for (const el of document.querySelectorAll('input')) el.addEventListener('input', schedule);
+window.addEventListener('resize', () => { resize(); schedule(); });
+resize(); draw();
+if (!gl) $('readout').textContent = 'WebGL2 unavailable — swap in the canvas-2D pixel loop fallback.';
+</script>
+</body>
+</html>

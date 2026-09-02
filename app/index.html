@@ -1,0 +1,60 @@
+<!doctype html>
+<!--
+  Serve over HTTP; file:// cannot load ES modules, import maps, or fetch() pane prose.
+    cd app && python3 -m http.server 8765 --bind 127.0.0.1
+    open http://127.0.0.1:8765/
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Why physics engines blow up</title>
+
+<link rel="stylesheet" href="./styles/base.css">
+<link rel="stylesheet" href="./styles/layout.css">
+<link rel="stylesheet" href="./styles/controls.css">
+
+<!-- Bare-prefix imports for every module in the app. Panels import 'shared/...' and the
+     loader imports 'panels/<slug>/<pane>.js' on demand through this same map. -->
+<script type="importmap">
+{
+  "imports": {
+    "shared/": "./shared/",
+    "panels/": "./panels/"
+  }
+}
+</script>
+
+<!-- shared/ arrives with the page instead of in an import waterfall -->
+<link rel="modulepreload" href="./shared/main.js">
+<link rel="modulepreload" href="./shared/manifest.js">
+<link rel="modulepreload" href="./shared/state.js">
+<link rel="modulepreload" href="./shared/router.js">
+<link rel="modulepreload" href="./shared/loader.js">
+<link rel="modulepreload" href="./shared/dom.js">
+<link rel="modulepreload" href="./shared/math/complex.js">
+<link rel="modulepreload" href="./shared/math/system.js">
+<link rel="modulepreload" href="./shared/math/integrators.js">
+<link rel="modulepreload" href="./shared/math/stability.js">
+<link rel="modulepreload" href="./shared/gfx/plot2d.js">
+<link rel="modulepreload" href="./shared/gfx/region-gl.js">
+<link rel="modulepreload" href="./shared/gfx/loop.js">
+<link rel="modulepreload" href="./shared/ui/controls.js">
+</head>
+<body>
+<a class="skip" href="#spine">Skip to content</a>
+
+<!-- The spine: one full-viewport section per outline step, filled by shared/main.js -->
+<main id="spine" aria-label="Explainer"></main>
+
+<!-- The rail: one dot per panel, bound to the current route -->
+<nav id="rail" aria-label="Panels"></nav>
+
+<!-- The side pane: refresher (left) or drill-down (right) overlay, one deep -->
+<aside id="pane" aria-hidden="true" data-side="right"></aside>
+
+<noscript><p class="noscript">This explainer is interactive and needs JavaScript.</p></noscript>
+<script type="module" src="./shared/main.js"></script>
+</body>
+</html>

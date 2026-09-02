@@ -1,0 +1,98 @@
+/* base.css: design tokens, reset, typography. Light mode only. */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces and text */
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --fg: #1d1d1b;
+  --muted: #6b6b66;
+  --border: #dcdad3;
+  --border-strong: #b8b5ac;
+
+  /* accent (links, focus, active rail dot) */
+  --accent: #2455c8;
+  --accent-soft: #e4ebfa;
+
+  /* the two curves the whole piece is about */
+  --exact: #2455c8;     /* blue: closed-form solution */
+  --approx: #d43a2f;    /* red: the integrator's polyline */
+
+  /* verdicts */
+  --stable: #1a9c4a;
+  --unstable: #d43a2f;
+
+  /* the stability region (shader fill and edge) */
+  --region: #4079d9;
+  --region-edge: #0d3399;
+  --region-none: #e9e8e3;  /* methods with no scalar R(hλ) */
+
+  /* plot furniture */
+  --grid: rgba(0, 0, 0, 0.08);
+  --axis: #3a3a37;
+  --tick: #6b6b66;
+
+  /* type */
+  --font: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --measure: 38rem;
+
+  --radius: 6px;
+  --stage-max: calc(100dvh - 19rem);  /* room for panel chrome + a readout under a square stage */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font: 16px/1.55 var(--font);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body { margin: 0; }
+
+h1, h2, h3, h4 {
+  margin: 0 0 0.5em;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1rem; }
+
+p, ul, ol { margin: 0 0 1em; max-width: var(--measure); }
+li { margin-bottom: 0.25em; }
+
+a { color: var(--accent); text-underline-offset: 0.15em; }
+a:hover { text-decoration-thickness: 2px; }
+
+strong { font-weight: 600; }
+small, .muted { color: var(--muted); }
+
+code, kbd, .mono {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+code { background: var(--accent-soft); padding: 0.05em 0.3em; border-radius: 3px; }
+
+/* Native MathML. No typesetting library. */
+math { font-size: 1.05em; }
+math[display="block"] { display: block; margin: 0.75em 0; }
+
+button { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.skip {
+  position: absolute; left: -999px; top: 0.5rem;
+  background: var(--surface); padding: 0.5rem 0.75rem; border-radius: var(--radius); z-index: 100;
+}
+.skip:focus { left: 0.5rem; }
+
+.noscript { padding: 2rem; }

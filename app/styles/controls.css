@@ -1,0 +1,94 @@
+/* controls.css: the small vocabulary of inputs and stages every panel uses.
+   Panels do not ship their own CSS. Add to this file instead. */
+
+.controls { display: grid; gap: 0.75rem; }
+.controls-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; }
+.controls-row > * { flex: 1 1 8rem; }
+
+.control { display: grid; gap: 0.2rem; font-size: 0.9rem; }
+.control-label { display: flex; justify-content: space-between; gap: 1rem; }
+.control-label output {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); }
+
+fieldset.choice {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  font-size: 0.9rem;
+}
+fieldset.choice legend { padding: 0 0.3rem; color: var(--muted); font-size: 0.8rem; }
+fieldset.choice label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+fieldset.choice input { accent-color: var(--accent); margin: 0; }
+
+.readout {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.readout .label { color: var(--muted); }
+.readout .stable { color: var(--stable); font-weight: 600; }
+.readout .unstable { color: var(--unstable); font-weight: 600; }
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+.btn:hover { background: var(--accent-soft); }
+.btn[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* A stage is a positioned box holding one or more stacked canvases.
+   Square stages are capped by the viewport so a panel never scrolls internally. */
+.stage {
+  position: relative;
+  width: min(100%, var(--stage-max));
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  touch-action: none;
+}
+.stage.wide { aspect-ratio: 16 / 9; width: 100%; }
+.stage.strip { aspect-ratio: 3 / 1; width: 100%; }
+.stage > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.stage[data-grab] { cursor: grab; }
+.stage[data-grab="active"] { cursor: grabbing; }
+
+/* legend swatches for prose: <span class="swatch exact"></span> */
+.swatch {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 2px;
+  vertical-align: -0.05em;
+  margin-right: 0.3em;
+}
+.swatch.exact { background: var(--exact); }
+.swatch.approx { background: var(--approx); }
+.swatch.stable { background: var(--stable); }
+.swatch.unstable { background: var(--unstable); }
+.swatch.region { background: var(--region); opacity: 0.55; }
