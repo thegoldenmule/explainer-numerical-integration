@@ -1,0 +1,25 @@
+<article>
+  <h2>Matrices as transforms</h2>
+  <div class="prose">
+    <p>A 2×2 matrix is a rule for moving every point of the plane at once. It sends
+      <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>)</mo></mrow></math> to a new point
+      whose coordinates are mixtures of the old ones:</p>
+    <math display="block">
+      <mrow><mrow><mo>[</mo><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr><mtr><mtd><mi>c</mi></mtd><mtd><mi>d</mi></mtd></mtr></mtable><mo>]</mo></mrow>
+      <mrow><mo>[</mo><mtable><mtr><mtd><mi>x</mi></mtd></mtr><mtr><mtd><mi>y</mi></mtd></mtr></mtable><mo>]</mo></mrow>
+      <mo>=</mo>
+      <mrow><mo>[</mo><mtable><mtr><mtd><mrow><mi>a</mi><mi>x</mi><mo>+</mo><mi>b</mi><mi>y</mi></mrow></mtd></mtr><mtr><mtd><mrow><mi>c</mi><mi>x</mi><mo>+</mo><mi>d</mi><mi>y</mi></mrow></mtd></mtr></mtable><mo>]</mo></mrow></mrow>
+    </math>
+    <p>The columns are where the two unit arrows land: the first column is the image of
+      <math><mrow><mo>(</mo><mn>1</mn><mo>,</mo><mn>0</mn><mo>)</mo></mrow></math>, the second of
+      <math><mrow><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo></mrow></math>. Everything
+      else follows, because the map is linear: grid lines stay straight and parallel, and the
+      origin stays put.</p>
+    <p>Change the diagonal and the shape scales. Change the off-diagonal and it skews. Mix them
+      as <math><mrow><mo>(</mo><mi>cos</mi><mi>θ</mi><mo>,</mo><mi>sin</mi><mi>θ</mi><mo>)</mo></mrow></math>
+      columns and it rotates. No eigenvectors, no invariant directions yet: matrices as
+      transformations, nothing more.</p>
+    <p>Drag the four entries and watch the shape scale, skew, and rotate.</p>
+  </div>
+  <div class="viz"></div>
+</article>

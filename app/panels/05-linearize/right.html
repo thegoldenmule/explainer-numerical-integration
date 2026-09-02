@@ -1,0 +1,28 @@
+<article>
+  <h2>Taylor expansion and 1/r² gravity</h2>
+  <div class="prose">
+    <p>Any other forces (like perhaps magnetism or lift on an airfoil) can be linearized by using
+      something called a Taylor series expansion. This creates an infinite series, from which we
+      can take the lower-order terms and then simply discard the non-linear terms.</p>
+    <p>Around an operating distance <math><msub><mi>r</mi><mn>0</mn></msub></math>, with
+      <math><mrow><mi>δ</mi><mo>=</mo><mi>r</mi><mo>−</mo><msub><mi>r</mi><mn>0</mn></msub></mrow></math>:</p>
+    <math display="block">
+      <mrow><mfrac><mn>1</mn><msup><mi>r</mi><mn>2</mn></msup></mfrac><mo>=</mo>
+      <mfrac><mn>1</mn><msubsup><mi>r</mi><mn>0</mn><mn>2</mn></msubsup></mfrac>
+      <mo>−</mo><mfrac><mrow><mn>2</mn><mi>δ</mi></mrow><msubsup><mi>r</mi><mn>0</mn><mn>3</mn></msubsup></mfrac>
+      <mo>+</mo><mfrac><mrow><mn>3</mn><msup><mi>δ</mi><mn>2</mn></msup></mrow><msubsup><mi>r</mi><mn>0</mn><mn>4</mn></msubsup></mfrac>
+      <mo>−</mo><mo>…</mo></mrow>
+    </math>
+    <p>Keep the first term and gravity is a constant, <math><mrow><mi>m</mi><mi>g</mi></mrow></math>.
+      Keep two and it is linear in <math><mi>δ</mi></math>. Everything after that is what the
+      linear model throws away, and it is small only while <math><mi>δ</mi></math> is small.</p>
+    <p>Then the payoff: run the <em>nonlinear</em> simulation next to the <em>linearized</em>
+      stability verdict. Far from <math><msub><mi>r</mi><mn>0</mn></msub></math> you can find cases
+      where the prediction says stable and the simulation explodes. Those are the details that have
+      fallen through the cracks of the abstraction.</p>
+    <p>Slide the number of terms kept and watch the series close on the real curve; then push the
+      mass away from <math><msub><mi>r</mi><mn>0</mn></msub></math> until the verdict and the
+      simulation disagree.</p>
+  </div>
+  <div class="viz"></div>
+</article>

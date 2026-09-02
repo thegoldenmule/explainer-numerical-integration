@@ -1,0 +1,30 @@
+<article>
+  <h2>Stability analysis: linearize</h2>
+  <div class="prose">
+    <p>Like the name implies, LST requires that our system of equations is <em>linear</em>. This
+      means we can’t have any squared or higher power terms. Notice the squared term under
+      Newton’s gravitation,
+      <math><mrow><mi>G</mi><msub><mi>m</mi><mn>1</mn></msub><msub><mi>m</mi><mn>2</mn></msub><mo>/</mo><msup><mi>r</mi><mn>2</mn></msup></mrow></math>?
+      That makes this thing non-linear, which is bad news for LST. This is why physics engines
+      generally do not use the “real” Newtonian model. Instead, we simplify to a linear model that
+      doesn’t divide by distance at all: gravity is a constant <math><mi>g</mi></math> times mass,
+      drag is proportional to velocity, and a spring is proportional to the distance it is
+      stretched. Anything else is linearized with a Taylor series expansion.</p>
+    <p>Any combination of those models will sum to something that looks like this:</p>
+    <math display="block">
+      <mrow><mn data-var="m">1</mn><mo>·</mo><msup><mi>x</mi><mo>″</mo></msup>
+      <mo>+</mo><mn data-var="c">0.1</mn><mo>·</mo><msup><mi>x</mi><mo>′</mo></msup>
+      <mo>+</mo><mn data-var="k">100</mn><mo>·</mo><mi>x</mi><mo>=</mo><mn>0</mn></mrow>
+    </math>
+    <p>What we’re left with is a description of force that is proportional to position,
+      velocity, and acceleration. <math><mi>M</mi></math>, <math><mi>C</mi></math>, and
+      <math><mi>K</mi></math> in
+      <math><mrow><mi>M</mi><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo><mi>C</mi><msup><mi>x</mi><mo>′</mo></msup><mo>+</mo><mi>K</mi><mi>x</mi><mo>=</mo><mn>0</mn></mrow></math>
+      are constants derived from our specific force parameters; from here on they are the
+      <math><mi>m</mi></math>, <math><mi>c</mi></math>, <math><mi>k</mi></math> you drag. There
+      is also a constant term, but we can discard that as it will not affect stability.</p>
+    <p>Every number in a force’s equation is draggable, and each force has a switch between its
+      real model and its linear one; watch which parameters survive into the coefficients above.</p>
+  </div>
+  <div class="viz"></div>
+</article>

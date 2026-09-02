@@ -1,0 +1,29 @@
+<article>
+  <h2>What “linear” means</h2>
+  <div class="prose">
+    <p>A function is linear when the output of a sum is the sum of the outputs, and scaling the
+      input scales the output by the same amount:</p>
+    <math display="block">
+      <mrow><mi>f</mi><mo>(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>)</mo><mo>=</mo><mi>f</mi><mo>(</mo><mi>a</mi><mo>)</mo><mo>+</mo><mi>f</mi><mo>(</mo><mi>b</mi><mo>)</mo>
+      <mspace width="2em"/>
+      <mi>f</mi><mo>(</mo><mi>s</mi><mi>a</mi><mo>)</mo><mo>=</mo><mi>s</mi><mo>·</mo><mi>f</mi><mo>(</mo><mi>a</mi><mo>)</mo></mrow>
+    </math>
+    <p>A spring passes: <math><mrow><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><mi>k</mi><mi>x</mi></mrow></math>,
+      so stretching it twice as far pulls twice as hard, and two stretches add. So does drag,
+      <math><mrow><mi>c</mi><mi>v</mi></mrow></math>. A squared term fails the same check:</p>
+    <math display="block">
+      <mrow><msup><mrow><mo>(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>≠</mo>
+      <msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup>
+      <mtext>, because </mtext>
+      <msup><mrow><mo>(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>=</mo>
+      <msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup></mrow>
+    </math>
+    <p>That cross term is what makes <math><mrow><mn>1</mn><mo>/</mo><msup><mi>r</mi><mn>2</mn></msup></mrow></math>
+      gravity non-linear, and it is why the sum of forces on the spine can collapse to three
+      coefficients only after every force has been made linear. A sum of linear functions is
+      linear; add one squared term and the whole sum stops being so.</p>
+    <p>Pick two inputs and compare the two sides of the check for the spring, then for the
+      squared term.</p>
+  </div>
+  <div class="viz"></div>
+</article>

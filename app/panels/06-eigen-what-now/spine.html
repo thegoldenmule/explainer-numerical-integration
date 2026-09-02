@@ -1,0 +1,28 @@
+<article>
+  <h2>Eigen-what-now</h2>
+  <div class="prose">
+    <p>Forget all the physics for a second.</p>
+    <p>Say you have a matrix, <math><mi>A</mi></math>. If you were to multiply
+      <math><mi>A</mi></math> by some vector, you would end up with a transformed version of it.
+      An eigen<em>vector</em> (we’re not to eigen<em>values</em> yet) defines a direction that is
+      <em>invariant</em> under that transformation, <em>except for scaling</em>.</p>
+    <p>This means that, regardless of the crazy transformation that <math><mi>A</mi></math> might
+      apply (maybe it skews and rotates), an eigenvector gives you an arrow in space such that
+      <math><mi>A</mi></math> <em>only changes it in length</em>. It’s an arrow that only grows and
+      shrinks under the transformation.</p>
+    <math display="block">
+      <mrow><mi>A</mi><mi>v</mi><mo>=</mo><mi>λ</mi><mi>v</mi></mrow>
+    </math>
+    <p>An eigen<em>value</em> is the magnitude of that scaling transformation, like 3 or 12 or
+      <math><mi>π</mi></math>. It’s just a number that represents how far the matrix stretched or
+      squished that invariant vector.</p>
+    <p>The matrix here is the spring’s own, built from the current
+      <math><mi>m</mi></math>, <math><mi>c</mi></math>, <math><mi>k</mi></math>: it carries
+      <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>v</mi><mo>)</mo></mrow></math> to
+      <math><mrow><mo>(</mo><mi>v</mi><mo>,</mo><mi>a</mi><mo>)</mo></mrow></math>. Drag a vector
+      across the grid and it skews and rotates; the invariant directions light up when you land
+      on one. Heavily damped, there are two; lightly damped, none on this plane, and the
+      eigenvalues have gone complex. That is the next panel.</p>
+  </div>
+  <div class="viz"></div>
+</article>

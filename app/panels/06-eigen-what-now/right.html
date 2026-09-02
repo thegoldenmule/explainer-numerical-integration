@@ -1,0 +1,24 @@
+<article>
+  <h2>Explode the eigenvector over a sweep</h2>
+  <div class="prose">
+    <p>The spine shows one matrix and its invariant directions. Now sweep the matrix across a
+      range of one transformation and draw the eigenvectors for every value at once.</p>
+    <p>Along a scale sweep the picture is dull: the two eigenvectors stay where they are and only
+      their eigenvalues change. Along a rotation sweep something happens. Start from a pure
+      stretch, with two eigenvectors at right angles, and add rotation. The two invariant
+      directions lean toward each other, meet, and then vanish: past that angle no real arrow
+      comes back pointing the way it went.</p>
+    <p>They have not disappeared, they have gone complex. A rotation by
+      <math><mi>θ</mi></math> has eigenvalues</p>
+    <math display="block">
+      <mrow><mi>λ</mi><mo>=</mo><mi>cos</mi><mi>θ</mi><mo>±</mo><mi>i</mi><mo>·</mo><mi>sin</mi><mi>θ</mi></mrow>
+    </math>
+    <p>and a complex eigenvalue is exactly what a matrix has when it turns everything and holds
+      nothing fixed. Its modulus is still a scale factor; its angle is a turn per application.
+      That is the bridge to the complex plane, where the next panel puts the spring’s own
+      eigenvalues and they stay for the rest of the piece.</p>
+    <p>Mouse over a value in the range to highlight its eigenvectors and dim the rest; find the
+      angle where they meet.</p>
+  </div>
+  <div class="viz"></div>
+</article>

@@ -1,0 +1,24 @@
+<article>
+  <h2>Lyapunov vs asymptotic</h2>
+  <div class="prose">
+    <p>Sweep the starting state over the whole plane of
+      <math><mrow><mo>(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>,</mo><msub><mi>v</mi><mn>0</mn></msub><mo>)</mo></mrow></math>
+      and each point becomes an arrow: where the system carries that state next. The picture is
+      a phase portrait, and “stable” comes in three flavors, named for Lyapunov.</p>
+    <p><strong>Stable</strong> (in Lyapunov’s sense): for any tube of radius
+      <math><mi>ε</mi></math> there is a starting distance <math><mi>δ</mi></math> such that
+      neighbors starting within <math><mi>δ</mi></math> stay within <math><mi>ε</mi></math>.
+      The undamped spring, <math><mrow><mi>c</mi><mo>=</mo><mn>0</mn></mrow></math>, is this:
+      orbits circle the origin forever, never nearer and never farther.</p>
+    <p><strong>Asymptotically stable</strong>: stable, and the neighbors also converge to the
+      solution. The damped spring spirals in.</p>
+    <p><strong>Unstable</strong>: some neighbor leaves, however close it started. Negative
+      damping spirals out.</p>
+    <p>The essay’s definition is the first of these, and the eigenvalue test in panel 7 gives
+      the second: a strictly negative real part is asymptotic; a zero real part is the
+      borderline circling case.</p>
+    <p>The three portraits are side by side. Drag <math><mi>c</mi></math> through zero and watch
+      the spiral reverse.</p>
+  </div>
+  <div class="viz"></div>
+</article>
