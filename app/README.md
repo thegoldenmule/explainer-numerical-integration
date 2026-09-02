@@ -31,7 +31,7 @@ node --test "shared/**/*.test.js"
 
 ## Add a pane
 
-1. Create `panels/NN-slug/<pane>.html` and `<pane>.js` (copy `panels/01-rigid-bodies/`).
+1. Create `panels/NN-slug/<pane>.html` and `<pane>.js` (copy `panels/01-point-masses/`).
 2. Make sure the manifest entry lists the pane (`left` / `right` non-null).
 3. Reload. Nothing to register; the loader resolves the path from the manifest slug.
 

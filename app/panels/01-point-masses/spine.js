@@ -1,4 +1,5 @@
-// Panel 1, left: a point mass. Placeholder that proves the side-pane path.
+// Panel 1, spine: a point mass with (x, y) and m readouts. Placeholder that proves the
+// pane contract end to end.
 
 import { el, fmt } from 'shared/dom.js';
 import { fitCanvas, makeView, drawGrid, drawPoint, cssVar, observeResize } from 'shared/gfx/plot2d.js';

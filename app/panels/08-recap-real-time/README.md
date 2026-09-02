@@ -5,5 +5,6 @@ for the pane contract. Panes this directory will hold:
 
 - `spine.html` + `spine.js`: Recap: real time
 - `left.html` + `left.js`: refresher, Frame budget, ms per frame
+- `right.html` + `right.js`: drill-down, Explode h: all step sizes at once
 
 Each `.js` exports `mount(root, ctx)`; each `.html` is an `<article>` with a `.viz` slot.

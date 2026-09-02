@@ -1,4 +1,4 @@
-// Panel 1, spine: one rigid body with (x, y, θ) readouts. Placeholder interactive that proves
+// Panel 1, right: one rigid body with (x, y, θ) readouts. Placeholder interactive that proves
 // the pane contract: stage + canvas, plot2d view, pointer events on ctx.signal, store
 // subscription, clean destroy.
 
