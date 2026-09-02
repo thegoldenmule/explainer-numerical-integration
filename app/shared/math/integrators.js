@@ -72,9 +72,18 @@ function makeStepper({ method, h, m, c, k }, init) {
     get t() { return t; },
     get h() { return h; },
     step() { advance(); t += h; return this; },
-    /** Use `next` as the step from here on. Verlet keeps (x_n − x_{n−1}) / h unchanged. */
+    /**
+     * Use `next` as the step from here on. Verlet re-seeds x_{n−1}: its backward difference
+     * is the velocity at t − h/2, so v(t) ≈ (x − x_{n−1})/h + a h/2 and the new
+     * x_{n−1} = x − h' v(t) + h'² a / 2, which is the old x_{n−1} exactly when h' = h.
+     */
     setH(next) {
-      if (method === 'verlet') xPrev = x - (x - xPrev) * (next / h);
+      if (method === 'verlet') {
+        const vHalf = (x - xPrev) / h;
+        const a = acc(x, vHalf);
+        const vNow = vHalf + a * h / 2;
+        xPrev = x - next * vNow + next * next * a / 2;
+      }
       h = next;
       return this;
     },
