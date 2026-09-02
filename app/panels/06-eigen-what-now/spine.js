@@ -7,8 +7,9 @@
 // spring's natural units, (x, v/ω) per 1/ω seconds, where the same matrix reads
 // Â = [[0, 1], [−1, −2ζ]] with ζ = c / 2√(mk). Â is similar to A (a diagonal change of
 // units), so its eigenvectors are A's in those units and its eigenvalues are λ/ω; the
-// readout prints both. Per idea.md the panel starts from an overdamped preset: on mount and
-// on every resume, an underdamped tuple gets c = 1.5 · 2√(mk), and the readout says so.
+// readout prints both. Per idea.md the panel starts from an overdamped preset: on every
+// resume (not mount: this spine is mounted off-screen beside 5 and 7), an underdamped tuple
+// gets c = 1.5 · 2√(mk), and the readout says so.
 // Lower c with the slider and the two directions converge and vanish at c = 2√(mk).
 
 import { el, fmt } from 'shared/dom.js';
@@ -123,7 +124,8 @@ export function mount(root, ctx) {
   )));
   root.append(out.el);
 
-  applyPreset();
+  // the preset is applied on resume only: this spine is also mounted off-screen beside
+  // panels 5 and 7, and writing the tuple's c from there would move their sliders
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
   return {
     resume() { applyPreset(); stage.invalidate(); },
