@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ampFactor, amplification, taylorAmplification, doublingTime, updateMatrix, spectralRadius, stabilityReport } from './stability.js';
+import { ampFactor, amplification, taylorAmplification, doublingTime, updateMatrix, spectralRadius, stabilityReport, updateMatrixNormalized, spectralRadiusNormalized } from './stability.js';
 import { eigenvalues } from './system.js';
 import { cscale } from './complex.js';
 
@@ -78,4 +78,29 @@ test('taylorAmplification: degree 1 is explicit Euler, degree 4 is RK4, degree 0
   assert.deepEqual(taylorAmplification([5, 5], 0), [1, 0]);
   // degree 2 on the imaginary axis: |1 + iy − y²/2| > 1 for every y ≠ 0 (RK2 has no imaginary-axis stability)
   assert.ok(Math.hypot(...taylorAmplification([0, 0.5], 2)) > 1);
+});
+
+test('normalized (hω, ζ): ρ is a similarity invariant, so it matches every (m, c, k, h) with the same hω, ζ', () => {
+  const cases = [[1, 0.1, 100, 0.19], [10, 0.1, 10, 1 / 30], [2, 3, 5, 0.4], [0.5, 0.2, 40, 0.05], [1, 4, 4, 0.3]];
+  for (const [m, c, k, h] of cases) {
+    const hw = h * Math.sqrt(k / m), zeta = c / (2 * Math.sqrt(m * k));
+    for (const method of ['euler', 'rk4', 'implicit', 'semi', 'verlet']) {
+      const direct = spectralRadius(updateMatrix(method, { m, c, k, h }));
+      near(spectralRadiusNormalized(method, hw, zeta), direct, 1e-10 * Math.max(1, direct), `${method} ${[m, c, k, h]}`);
+    }
+  }
+});
+
+test('normalized: semi-implicit Euler and Verlet cross ρ = 1 at hω = 2 with ζ = 0', () => {
+  for (const method of ['semi', 'verlet']) {
+    near(spectralRadiusNormalized(method, 1.0, 0), 1, 1e-12, `${method} inside the wall`);
+    near(spectralRadiusNormalized(method, 1.99, 0), 1, 1e-12, `${method} just inside`);
+    assert.ok(spectralRadiusNormalized(method, 2.01, 0) > 1.05, `${method} just outside`);
+    assert.ok(spectralRadiusNormalized(method, 3, 0) > 2, `${method} well outside`);
+  }
+  // the h = 0.19 / 0.20 confirmation at k/m = 100 (ω = 10, ζ = 0.005) through the normalized form
+  near(spectralRadiusNormalized('semi', 1.9, 0.005), 0.990, 2e-3);
+  near(spectralRadiusNormalized('semi', 2.0, 0.005), 1.21, 2e-2);
+  const M = updateMatrixNormalized('verlet', 1.9, 0.005);
+  assert.equal(M.length, 2);
 });

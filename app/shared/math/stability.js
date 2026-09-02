@@ -98,3 +98,16 @@ export function stabilityReport(method, { m, c, k, h }) {
     doublingTime: doublingTime(h, rho),
   };
 }
+
+// ---- normalized coordinates (hω, ζ) ----
+// Every update matrix's eigenvalues depend on (m, c, k, h) only through hω = h√(k/m) and
+// ζ = c / (2√(mk)): scaling the state by diag(1, ω) is a similarity, and similar matrices
+// share a spectrum. So the heatmaps for semi-implicit Euler and Verlet (12-right-3, 11-right)
+// are drawn in this space, where their hω < 2 wall is a straight line. The mapping used is
+// m = 1, k = 1 (so ω = 1), c = 2ζ, h = hω.
+
+/** The update matrix of the unit-frequency system with damping ratio ζ at step hω. */
+export const updateMatrixNormalized = (method, hw, zeta) => updateMatrix(method, { m: 1, c: 2 * zeta, k: 1, h: hw });
+
+/** ρ of that matrix: the verdict for any (m, c, k, h) with the same hω and ζ. */
+export const spectralRadiusNormalized = (method, hw, zeta) => spectralRadius(updateMatrixNormalized(method, hw, zeta));
