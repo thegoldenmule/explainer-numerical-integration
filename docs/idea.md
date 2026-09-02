@@ -354,12 +354,19 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - *Right 3, step up (Verlet):* a different structure. Störmer–Verlet updates position from
   the two previous positions, `x_{i+1} = 2x_i − x_{i−1} + h² a_i`, and with a
   velocity-dependent force like drag the velocity it needs is the one it has not computed
-  yet, so it is solved implicitly or lagged (see Integrators). It is symplectic: it preserves
-  amplitude and drifts phase instead of decaying or exploding. There is no scalar `R(hλ)`,
-  so no region on the `λ`-plane; the honest picture is a heatmap of the spectral radius of
-  its 2×2 update over `(hω, ζ)`, with the `hω < 2` wall as a hard edge. Hover a cell to
-  see its trajectory against the exact curve. The three right panes together are the three
-  ways out of the Euler disk: more terms, solve backward, or change the structure.
+  yet, so it is solved implicitly or lagged (see Integrators). It is symplectic: undamped,
+  it preserves amplitude and drifts phase instead of decaying or exploding (with drag,
+  `ρ = √(1 − 2ζhω)`, a true decay). There is no scalar `R(hλ)`, so no region on the
+  `λ`-plane; the honest picture is a heatmap of the spectral radius of its 2×2 update over
+  `(hω, ζ)`, with the `hω = 2` wall as a hard edge at `ζ = 0`, bending left with damping
+  along `hω = 2(√(1 + ζ²) − ζ)`. Hover a cell to see its trajectory against the exact
+  curve. The three right panes together are the three ways out of the Euler disk: more
+  terms, solve backward, or change the structure. **Open question:** with the lagged-drag
+  velocity, Störmer–Verlet *is* semi-implicit Euler written in positions (identical trace
+  and determinant at every `(hω, ζ)`; see Integrators), so as built the pane's comparison
+  toggle shows the same map twice and "a different structure" is not yet earned. Either
+  drop semi-implicit from the piece and let this pane own the symplectic story, or make
+  Verlet a genuinely different update by solving the drag term implicitly.
 
 **13. Variable step sizes.** `h` becomes a function of `t`.
 - *Spine viz:* a target-error slider with `h(t)` plotted as its own trajectory under the
@@ -440,7 +447,11 @@ Closed form for `m x'' + c x' + k x = 0`, with `α = −c / 2m`:
   `x' = ((1 + hc/m) x + h v) / det`, `v' = (−hk/m · x + v) / det`.
 - Verlet: velocity Verlet with drag is not explicit (acceleration depends on `v_{n+1}`), so
   use the Störmer position form with `v_n ≈ (x_n − x_{n−1}) / h` in the drag term, seeded
-  with the exact `x_{−1}`.
+  with the exact `x_{−1}`. Caveat found while building 12-right-3: with that lag, writing
+  `v_n = (x_n − x_{n−1}) / h` turns the Störmer step into `v_{n+1} = v_n + h a(x_n, v_n)`,
+  `x_{n+1} = x_n + h v_{n+1}`, which is semi-implicit Euler exactly. Its 2×2 update has the
+  same trace `2 − (hω)² − 2ζhω` and determinant `1 − 2ζhω`, so every stability number below
+  for semi-implicit holds for this Verlet too.
 
 **Design caveat:** semi-implicit Euler and Verlet have no scalar `R(hλ)`, so there is no
 `λ`-plane region to shade for them. The honest indicator is the spectral radius of the 2×2
@@ -680,7 +691,10 @@ Scripts: `poc/numerics.mjs`, `poc/numerics2.mjs`.
   both parameter sets.
 - Implicit Euler is stable everywhere but artificially damps: `0.26` vs exact `0.71` at
   `t = 60` with the essay's parameters. That contrast is the teaching payload.
-- Semi-implicit Euler and Störmer–Verlet preserve amplitude and slowly drift phase.
+- Semi-implicit Euler and Störmer–Verlet (lagged drag) preserve amplitude and slowly drift
+  phase when undamped; they share one update matrix, so `ρ = 0.9905` at `(hω, ζ) =
+  (1.9, 0.005)` and `1.2102` at `(2.0, 0.005)` for both. Along `ζ = 0`, `ρ = 1` exactly
+  below `hω = 2` and `1.22` at `2.01`.
 - **Adaptive RK4 with the essay's parameters at a 0.01 bound** (`shared/math/adaptive.js`,
   step doubling): `h` peaks at `2.10 s`, median `1.81 s`, 70 steps for 120 s, no
   rejections, max global error `0.29`. With the essay's own recipe (next Taylor term, `x`
