@@ -438,6 +438,195 @@ update matrix (`poc/specrad.mjs`). At `k/m = 100`, semi-implicit is stable at `h
 has `|R| = 0.735`. So "switch integrators and the region redraws" works exactly for Euler,
 RK4, and implicit Euler. Grey out the region for the other two, or draw it in `(hω, ζ)` space.
 
+## Shared code
+
+What the 13 panels and their side panes need from `app/shared/`, beyond what is already
+there. `plan.md` has the directory layout and the pane contract; this section is the
+inventory: which shared pieces exist, which are missing, and which panels consume each one.
+The rule stays the same: a panel ships prose and one `mount()`, and everything two panels
+would otherwise both write lives in `shared/`.
+
+### What exists
+
+`shared/` already holds the skeleton and the whole numeric core: the store and its limits
+(`state.js`), the manifest, router, loader, and pane manager, the rAF loop, and the math
+(`complex.js`, `system.js` with eigenvalues, regime, and the closed form, `integrators.js`
+with the five steppers and `simulate()`, `stability.js` with `R(hλ)`, the 2×2 update
+matrices, spectral radius, and doubling time). Rendering has `plot2d.js` (DPR sizing, a
+plot view, grid, axes, polyline, point, arrow, text, CSS-variable colors) and the region
+shader (`region-gl.js`). `ui/controls.js` has a slider, a radio group, the integrator
+picker, preset buttons, and a monospace readout. Panel 1's two placeholder panes exercise
+all of it end to end. Everything below is what the outline asks for and that layer does
+not yet give.
+
+### State beyond the tuple
+
+- **A scene store for the 2D panels (1, 2, 5).** The tuple describes the 1D spring; panels
+  1, 2, and 5 draw a point mass on a plane with a set of force arrows (wind, gravity, drag,
+  spring), each with an on/off switch, draggable parameters, and a real-vs-linear switch.
+  Panel 2's left pane draws *the same arrows* the reviewer just dragged on the spine, and
+  the pane manager destroys and remounts side panes, so this state cannot live in a pane. It
+  needs a second store. The tuple store throws on unknown keys and hardcodes its limits, so
+  `createStore` grows an options argument (`{ limits, validate }`) and `shared/scene.js`
+  instantiates it with the scene schema. The tuple itself stays at eight entries.
+- **Per-panel knobs that must survive a remount.** Panel 4's perturbation size, panel 13's
+  target error, and the highlighted index of every sweep (below) belong in the same kind of
+  side store, one `shared/aux.js` with documented keys, not in the tuple and not in pane
+  closures.
+- **The bridge.** Panel 5 assembles `M`, `C`, `K` from the scene's linearized forces and
+  writes them into the tuple's `m`, `c`, `k`. That single `store.set()` is how Part I's
+  forces become Part II's eigenvalues; it is the one place the two stores touch.
+
+### Math
+
+- **Force models, `math/forces.js`** (2, 5, 2-right, 5-right). Each force as a pair of
+  functions, real and linearized, with its parameters: constant wind, gravitation
+  `G m₁ m₂ / r²` vs `m g`, drag `c v`, spring `k x`. `assemble(scene) → { M, C, K }` sums
+  the linear coefficients for panel 5. Torque and moment of inertia for 2-right ride on the
+  same shapes with a lever arm.
+- **Custom acceleration in `integrators.js`** (2, 5-right). `createStepper` is wired to the
+  linear `acceleration(m, c, k)`. Panel 2 integrates an arbitrary force sum and 5-right runs
+  the *nonlinear* simulation next to the linearized verdict, so the explicit steppers
+  (Euler, RK4, semi-implicit) take an optional `accel(x, v, t)`. Implicit Euler and Verlet
+  keep their linear closed forms; the picker restricts to explicit methods when a custom
+  force is in play. `simulate()` also returns the error series `|x − exact|` so panel 9 does
+  not recompute it.
+- **2×2 matrices, `math/matrix2.js`** (6, 6-left, 6-right, 9-right). The helpers now
+  private to `stability.js` (`madd`, `mmul`, `mdet`, `minv`) move here and are exported,
+  plus constructors for rotation, scale, and shear, and an eigen-decomposition of a real
+  2×2: real eigenvectors when the discriminant allows, the complex pair otherwise, which is
+  exactly the moment 6-right's sweep is built to show. `stability.js` imports from here.
+- **Modes, `math/modes.js`** (9-right, 10). Eigenvectors of the system matrix, projection
+  of `(x, v)` onto them, and the scalar modal simulation `x_{i+1} = R(hλ) x_i` in complex
+  arithmetic per method. This is the step from the 2×2 system to `x' = λx` that panel 10's
+  spine is built on.
+- **Taylor tools, `math/taylor.js`** (5-right, 12-left, 12-right, 13-left). Partial sums of
+  `e^z` to degree `n` (Euler is `n = 1`, RK4 is `n = 4`), `amplification` extended with a
+  `taylor(z, n)` case for RK1 through RK3, and the expansion of `1/r²` about an operating
+  point for 5-right. Panel 13-left's local truncation error is the next term of the same
+  series.
+- **Adaptive stepping, `math/adaptive.js`** (13, 13-right). A local error estimate per step
+  (step doubling or the embedded next Taylor term), a controller that grows or shrinks `h`
+  toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The essay's
+  16-second step is the number to reproduce.
+- **Inversion, in `system.js`** (11, 11-left). `paramsFromEigenvalue(m, λ)` giving
+  `c = −2m·Re λ`, `k = m|λ|²`, so dragging `λ` on the plane still drives the tuple, and an
+  `exactFromEigenvalue` for the no-method left pane.
+- **Normalized stability, in `stability.js`** (12-right-3, 11-right). `updateMatrix` in
+  `(hω, ζ)` coordinates so the Verlet and semi-implicit heatmaps are drawn in the space where
+  their `hω < 2` wall is a straight line.
+
+### Simulation
+
+- **A live player, `shared/player.js`** (8, 9, 11, 12, 12-right-2, 13). One object that
+  owns a stepper, advances it by wall-clock time at the tuple's `h` (several steps per frame
+  when `h` is small), writes `t` to the store `{ silent: true }`, exposes the growing
+  trajectory arrays and the exact curve sampled at the same times, and restarts when any
+  tuple entry other than `t` changes. It also reports per-frame compute cost (panel 8's
+  budget bar), the error series and its measured step-to-step ratio (panel 9), and can
+  run the adaptive controller instead of a fixed `h` (panel 13). Play, pause, reset, and
+  single-step are its verbs; `ui/transport.js` renders them.
+- **Sweeps, `math/sweep.js`** (6-right, 8-right, 10-right, 11-right, 12-right-2, 13-right).
+  `sweep(values, value => result)` with memoization keyed on the tuple, so exploding `h` or
+  the target error across a small range is one call and does not rerun on every frame.
+
+### Rendering
+
+- **A stage helper, `gfx/stage.js`** (every pane). Both panel-1 panes repeat the same
+  boilerplate: make a canvas, wrap it in `.stage`, fit it, observe resize, redraw on
+  subscribe. `createStage(root, { layers, aspect, signal })` returns the stacked canvases,
+  a coalesced `redraw()` that runs at most once per frame no matter how many store patches,
+  resizes, and player frames ask for it, and cleans itself up on `signal`.
+- **Trajectory plots, `gfx/trajectory.js`** (3, 3-left, 4, 8, 9, 11, 12, 13). Time on the
+  horizontal axis, the exact curve dashed underneath, the integrator's polyline on top with
+  optional step markers and tangent segments (10-left's follow-the-tangent), auto-ranged or
+  pinned `y`, and a log-`y` option in `makeView` because panel 9's error is exponential.
+  Nearest-sample hit testing for hover and for panel 3's touch-the-curve step down.
+- **Bundles with highlight, `gfx/bundle.js`** (4, 6-right, 8-right, 10-right, 11-right,
+  12-right-2, 13-right). Draw a list of series with one index highlighted and the rest
+  dimmed. This is the single most reused new piece; Victor's caution about pretty,
+  unreadable bundles is enforced here by a small cap on the count.
+- **The complex plane, `gfx/cplane.js`** (7, 7-left, 7-right, 10, 11, 11-left, 12). Axes
+  labeled Re and Im, the eigenvalue pair drawn green or red from `stabilityReport`, a
+  draggable `λ` handle that inverts to `(c, k)`, and the analytic circles for nested Euler
+  disks. It stays on screen from panel 7 to the end, so it is one module, not seven.
+- **Region shader, `region-gl.js`** (10, 10-right, 12, 12-right). Three changes. A `layers`
+  argument, `[{ method, h, alpha }]` with a highlighted index, so 10-right's nested disks
+  and 12-right's RK1–RK4 overlay are one draw. A degree-`n` Taylor mode (`uOrder`) to match
+  `math/taylor.js`. And one shared WebGL2 canvas that renders and blits into ordinary 2D
+  canvases: the pane manager keeps up to five panes mounted, panel 12's spine alone wants
+  three regions, and browsers cap live contexts around sixteen, so one context that draws
+  into many stages is safer than one context per stage.
+- **Small helpers in `plot2d.js`.** A filled band between two curves (panel 4's ε-tube), a
+  vector field (4-right's flow), a transformed grid and shape (6, 6-left), a heatmap over a
+  view with a diverging colormap centered on `ρ = 1` (12-right-3, 11-right), a grid layout
+  for small multiples (11-right, 12), and `gfx/color.js` for alpha and mixing of the CSS
+  palette.
+- **Drag handles, `gfx/drag.js`** (1, 2, 2-left, 5, 6, 7, 11). Pointer capture, hit test
+  against a list of handles, and move/end callbacks on `ctx.signal`. Panel 1's spine hand-
+  rolls this today; the arrows of panel 2 and the vector of panel 6 want the same thing.
+
+### UI
+
+- **Live MathML, `ui/livemath.js`** (5, 7, 7-left, 10-left, 12-left). Prose fragments mark
+  `<mn data-var="m">` slots; `bind(root, store, derive)` fills them from the tuple and from
+  computed values (the discriminant, `|1 + hλ|`, the Taylor sum). Native MathML only.
+- **Scrubbable numbers, `ui/scrub.js`** (5, 7). A number in a formula you drag left or right
+  to change, bound to a store key with the store's limits. This is what makes panel 5's
+  "every parameter is a draggable number" true.
+- **Additions to `ui/controls.js`.** A `log` option on `slider` for `h` and `k`, a toggle
+  switch for on/off and real-vs-linear (2, 5), `ui/transport.js` for the player (8, 9, 11,
+  12, 13), and `ui/sweep.js`: a range strip whose hover or drag sets the highlighted index
+  that `gfx/bundle.js` reads (every explode pane).
+
+### Shell
+
+- **Chained right panes** (12). The router accepts `#/N/right`, the manifest holds one
+  `right` entry, the loader checks `entry[pane]`, and `main.js` stamps one cell per side.
+  Panel 12's `#/12/right/2` and `#/12/right/3` need the route regex to carry a depth, the
+  manifest's `right` to be a list, the row to hold as many cells as panes, the bottom rail
+  to show them, and files named `right.js`, `right-2.js`, `right-3.js`.
+- **Manifest sync.** The manifest predates this outline: panel 1's spine and left are the
+  reverse of the entry above, and the right-pane titles for 6, 10, 11, and 12 do not match.
+  It is the source of truth for the shell, so it is corrected when those panels are built.
+
+### Who uses what
+
+| Panel | Existing | New |
+|---|---|---|
+| 1 | plot2d, readout | scene store, drag handles, stage |
+| 2 | drawArrow, store | scene store, forces, custom accel, drag handles, toggle |
+| 3 | simulate, exactSolution | trajectory plot, stage, hit testing |
+| 4 | simulate, exactSolution | bundle, band fill, vector field, aux (ε) |
+| 5 | store, MathML | scene store, forces, assemble → tuple, live math, scrub, Taylor |
+| 6 | systemMatrix | matrix2 + eigenvectors, transformed grid, drag handles, sweep, bundle |
+| 7 | eigenvalues, regime, cfmt | cplane, live math, scrub |
+| 8 | store, loop | player, transport, trajectory, sweep, bundle |
+| 9 | doublingTime, amplification | player (error series, ratio), log-y, modes |
+| 10 | region-gl, stabilityReport | cplane, modes, layers in the shader, live math, trajectory |
+| 11 | region-gl, PRESETS | cplane with λ drag, inversion, player, small multiples, heatmap |
+| 12 | region-gl, METHODS, updateMatrix | shared GL canvas, Taylor mode, taylor.js, bundle, heatmap, chained right panes |
+| 13 | simulate | adaptive, player, trajectory (h(t)), aux (target error), sweep, bundle |
+
+### Tests
+
+`node --test` covers the math and nothing that touches the DOM. New modules with tests:
+`matrix2` (eigenvectors reconstruct the matrix; the rotation sweep goes complex at the
+predicted angle), `forces` (assembling the linearized drag and spring reproduces the
+tuple's `c` and `k`), `taylor` (the degree-4 sum equals `amplification('rk4')`), `modes`
+(projection and reconstruction round-trip), `adaptive` (RK4 with the essay parameters at a
+0.01 bound grows `h` past one second; the 16-second figure is recorded once it is
+reproduced), and the measured error ratio in `simulate` matching `|1 + hλ|` for Euler in
+the unstable regime. Any number those tests pin is added to the confirmations below.
+
+### Order
+
+Follow `plan.md`'s panel order and let it pull the shared code in: `cplane`, `stage`,
+`livemath`, and the shader's layers first (panels 7, 10, 11, 12), then `player`,
+`trajectory`, `bundle`, `sweep`, and `adaptive` (panels 3, 8, 9, 13), then the scene store,
+`forces`, `matrix2`, and drag handles (panels 1, 2, 4, 5, 6). Nothing in the third group
+blocks the payload.
+
 ## Numeric confirmations, and one correction to Part II
 
 Scripts: `poc/numerics.mjs`, `poc/numerics2.mjs`.
