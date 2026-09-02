@@ -68,6 +68,9 @@ body { overflow: hidden; }
 .pane-body > article {
   display: grid;
   grid-template-columns: minmax(18rem, var(--measure)) minmax(0, 1fr);
+  /* the heading row is its own height; the content row takes the rest. Two auto rows
+     would split the leftover height between them and open a gap under a short pane's h2. */
+  grid-template-rows: auto 1fr;
   gap: 1rem 3rem;   /* the row gap sits under the h2, which has its own margin */
   height: 100%;
   align-items: start;
