@@ -33,9 +33,10 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps 
 
   for (const node of nodes) {
     const key = node.dataset.scrub;
-    const [lo, hi] = limits[key] ?? store.limits?.[key] ?? [-Infinity, Infinity];
+    let [lo, hi] = limits[key] ?? store.limits?.[key] ?? [-Infinity, Infinity];
     const bounded = Number.isFinite(lo) && Number.isFinite(hi);
-    const log = node.hasAttribute('data-log') && lo > 0 && bounded;
+    const log = node.hasAttribute('data-log') && bounded && hi > 0;
+    if (log && lo <= 0) lo = hi / 1000;   // same floor rule as slider({ log })
     const d = node.dataset.digits != null ? Number(node.dataset.digits) : digits;
     const ownsText = !node.hasAttribute('data-var');
     const clamp = v => Math.min(hi, Math.max(lo, v));
