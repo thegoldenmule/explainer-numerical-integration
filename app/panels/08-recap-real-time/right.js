@@ -12,7 +12,8 @@ import { simulate } from 'shared/math/integrators.js';
 import { sweep, sweepRange, sweepKey } from 'shared/math/sweep.js';
 import { LIMITS } from 'shared/state.js';
 import { readout, controls } from 'shared/ui/controls.js';
-import { benchmarkStep, fmtMs } from './cost.js';
+import { stepCost } from 'shared/player.js';
+import { fmtMs } from './cost.js';
 
 const SPAN = 6;     // seconds simulated
 const COUNT = 9;    // step sizes in the bundle; the middle one is the spine's h
@@ -53,7 +54,7 @@ export function mount(root, ctx) {
     const r = results[highlight];
     let err = 0;
     for (let i = 0; i < r.result.n; i++) { const e = Math.abs(r.result.x[i] - r.result.exact[i]); err = Number.isFinite(e) ? Math.max(err, e) : Infinity; }
-    const perStep = benchmarkStep(state);
+    const perStep = stepCost(state).perStep;
     label.textContent = `h = ${fmt(r.value, 4)} s${highlight === (COUNT - 1) / 2 ? ' (the spine’s h)' : ''}`;
     out.set([
       `cost: ${fmt(1 / r.value, 1)} steps per simulated second = ${fmtMs(perStep / r.value)} of compute per second\n`,

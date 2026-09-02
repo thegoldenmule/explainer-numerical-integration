@@ -8,7 +8,7 @@ import { cssVar } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
 import { slider, readout, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { benchmarkStep, stepsPerFrame, fmtMs } from './cost.js';
+import { stepsPerFrame, fmtMs } from './cost.js';
 
 const MAX_BOXES = 60;   // steps drawn individually in the magnified band
 
@@ -17,7 +17,7 @@ export function mount(root, ctx) {
   let fps = 60;   // local: which display we are budgeting for
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  // a player so the pane also reports what the live run's own timer says
+  // the player supplies the calibrated per-step cost (and, for honesty, its raw frame timer)
   const player = createPlayer({ store, loop, signal });
   const out = readout({ label: 'this frame' });
 
@@ -28,7 +28,8 @@ export function mount(root, ctx) {
     g.font = `${11 * dpr}px ${cssVar('--font') || 'system-ui'}`;
 
     const frameMs = 1000 / fps;
-    const perStep = benchmarkStep(state);
+    const m = player.cost;
+    const perStep = m.perStep;
     const steps = stepsPerFrame(state.h, frameMs);
     const slice = perStep * steps;
     const pad = 10 * dpr, x0 = pad, bw = w - 2 * pad;
@@ -87,11 +88,10 @@ export function mount(root, ctx) {
       g.fillText(`one step covers ${fmt(1 / steps, 1)} frames of simulated time`, x0 + boxW * steps + 8 * dpr, y2 + h2 / 2 + 4 * dpr);
     }
 
-    const m = player.cost;
     out.set([
       `${fmtMs(perStep)} per step × ${fmt(steps, 2)} steps = ${fmtMs(slice)}, ${(100 * slice / frameMs).toPrecision(2)}% of the frame\n`,
       `a millisecond here is ${(1 / perStep).toExponential(1).replace('e+', 'e')} steps of this integrator\n`,
-      el('span', { class: 'label' }, `player timer: ${fmtMs(m.perStep)} per step (0.1 ms resolution)`),
+      el('span', { class: 'label' }, `benchmark: ${m.benchmark.steps} steps in ${fmtMs(m.benchmark.ms)}; frame timer: ${fmtMs(m.timer.perStep)} per step (${m.timer.resolution} ms resolution)`),
     ]);
   });
   player.onChange(stage.invalidate);

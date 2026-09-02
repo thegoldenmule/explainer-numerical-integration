@@ -15,6 +15,46 @@ import { doublingTime } from './math/stability.js';
 
 const TUPLE = ['method', 'h', 'm', 'c', 'k', 'x0', 'v0'];
 
+/** Resolution of performance.now() on a page that is not cross-origin isolated, in ms. */
+export const TIMER_RESOLUTION_MS = 0.1;
+
+/**
+ * benchmarkStep(state, { now, minMs = 4, warmup = 20000, batch = 5000, maxSteps = 4e6 })
+ *   → { perStep, steps, ms }
+ * ms per step of state.method at state.h, from a fresh stepper (the live one may have blown
+ * up, and NaN arithmetic does not time like a step): `warmup` steps untimed for the JIT, then
+ * batches of `batch` steps until at least `minMs` have elapsed (40 × the 0.1 ms resolution
+ * by default) or `maxSteps` were taken. `now` is injectable for tests.
+ */
+export function benchmarkStep(state, { now = () => performance.now(), minMs = 4, warmup = 20000, batch = 5000, maxSteps = 4e6 } = {}) {
+  const s = createStepper(state);
+  for (let i = 0; i < warmup; i++) s.step();
+  let steps = 0, ms = 0;
+  const t0 = now();
+  while (ms < minMs && steps < maxSteps) {
+    for (let i = 0; i < batch; i++) s.step();
+    steps += batch;
+    ms = now() - t0;
+  }
+  return { perStep: steps > 0 ? ms / steps : 0, steps, ms };
+}
+
+const costKey = state => `${state.method}/${state.h}`;
+const costCache = new Map();
+const COST_CACHE_CAPACITY = 16;
+
+/** The memoized benchmark, keyed on method and h: the number every pane on the page shares. */
+export function stepCost(state) {
+  const key = costKey(state);
+  let hit = costCache.get(key);
+  if (hit) { costCache.delete(key); costCache.set(key, hit); return hit; }
+  hit = benchmarkStep(state);
+  costCache.set(key, hit);
+  while (costCache.size > COST_CACHE_CAPACITY) costCache.delete(costCache.keys().next().value);
+  return hit;
+}
+export const clearStepCosts = () => costCache.clear();
+
 function growable(capacity = 4096) {
   let buf = new Float64Array(capacity), n = 0;
   return {
@@ -31,20 +71,23 @@ function growable(capacity = 4096) {
 
 /**
  * createPlayer({ store, loop, signal, autoplay = true, speed = 1, maxStepsPerFrame = 400,
- *                maxSamples = 250000, ratioWindow = 1 })
+ *                maxSamples = 250000, ratioWindow = 1, benchmark = stepCost })
  *   ratioWindow: seconds of run over which the error growth is measured
+ *   benchmark:   state → { perStep, steps, ms }, run when method or h changed (tests stub it)
  */
 export function createPlayer({
   store, loop, signal, autoplay = true, speed = 1, maxStepsPerFrame = 400, maxSamples = 250000, ratioWindow = 1,
+  benchmark = stepCost,
 } = {}) {
   const T = growable(), X = growable(), V = growable(), E = growable(), ERR = growable();
   const listeners = new Set();
   let stepper = null, exact = null, h = 0;
   let playing = autoplay, ended = false, dead = false;
   let acc = 0;            // wall-clock seconds not yet turned into steps
-  let cost = 0;           // ms spent stepping per frame, smoothed
-  let costPerStep = 0;    // ms per step, smoothed
+  let timerFrame = 0;     // ms spent stepping per frame by performance.now(), smoothed
+  let timerStep = 0;      // the same per step, smoothed
   let lastSteps = 0;
+  let bench = null, benchKey = '';   // the calibrated cost, measured on the first read after method or h changed
 
   const notify = () => { for (const fn of listeners) fn(api); };
 
@@ -61,6 +104,7 @@ export function createPlayer({
     T.clear(); X.clear(); V.clear(); E.clear(); ERR.clear();
     push();
     acc = 0; ended = false; lastSteps = 0;
+    if (costKey(state) !== benchKey) { benchKey = costKey(state); bench = null; }
     store.set({ t: 0 }, { silent: true });
     notify();
   }
@@ -81,8 +125,8 @@ export function createPlayer({
     const t0 = performance.now();
     for (let i = 0; i < steps && !ended; i++) stepOnce();
     const ms = performance.now() - t0;
-    cost += (ms - cost) * 0.2;
-    if (steps > 0) costPerStep += (ms / steps - costPerStep) * 0.2;
+    timerFrame += (ms - timerFrame) * 0.2;
+    if (steps > 0) timerStep += (ms / steps - timerStep) * 0.2;
     lastSteps = steps;
     store.set({ t: stepper.t }, { silent: true });
   }
@@ -125,8 +169,21 @@ export function createPlayer({
       const i = T.n - 1;
       return { t: T.at(i), x: X.at(i), v: V.at(i), exact: E.at(i), err: ERR.at(i) };
     },
-    /** ms per frame spent stepping (smoothed), ms per step, and steps taken last frame */
-    get cost() { return { perFrame: cost, perStep: costPerStep, steps: lastSteps }; },
+    /**
+     * The compute cost, in ms: perStep from the calibrated benchmark, perFrame = perStep ×
+     * the steps taken last frame, `steps` that count, `benchmark` the batch it was measured
+     * on ({ steps, ms }), and `timer`, the raw performance.now() timing of the frame
+     * (smoothed) which is quantized to TIMER_RESOLUTION_MS on this page and reads 0 or
+     * 0.1 ms for a spring: shown for honesty, never used for sizing.
+     */
+    get cost() {
+      if (!bench) bench = benchmark(store.get());
+      return {
+        perStep: bench.perStep, perFrame: bench.perStep * lastSteps, steps: lastSteps,
+        benchmark: { steps: bench.steps, ms: bench.ms },
+        timer: { perFrame: timerFrame, perStep: timerStep, resolution: TIMER_RESOLUTION_MS },
+      };
+    },
     /**
      * Measured growth of the error: the ratio per step between the peak error over the
      * last `ratioWindow` seconds and over the window before it, so an oscillating error's

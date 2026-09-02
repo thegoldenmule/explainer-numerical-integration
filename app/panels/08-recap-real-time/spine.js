@@ -9,7 +9,7 @@ import { createPlayer } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
 import { slider, readout, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { FRAME_MS, benchmarkStep, stepsPerFrame, fmtMs, drawBudgetBar } from './cost.js';
+import { FRAME_MS, stepsPerFrame, fmtMs, drawBudgetBar } from './cost.js';
 
 const SPAN = 6;   // seconds of run visible
 
@@ -28,7 +28,8 @@ export function mount(root, ctx) {
 
     // the budget bar across the top
     const barTop = 22 * dpr, barH = 18 * dpr, pad = 8 * dpr;
-    const perStep = benchmarkStep(state);
+    const measured = player.cost;
+    const perStep = measured.perStep;
     const steps = stepsPerFrame(state.h);
     const cost = perStep * steps;
     drawBudgetBar(g, { x: pad, y: barTop, w: w - 2 * pad, h: barH, dpr }, { cost });
@@ -45,10 +46,9 @@ export function mount(root, ctx) {
     // error: the current gap and the largest so far
     for (; scanned < s.n; scanned++) { const e = s.err[scanned]; if (e > maxErr || !Number.isFinite(e)) maxErr = e; }
     const cur = player.current;
-    const measured = player.cost;
     out.set([
       `cost: ${steps >= 1 ? fmt(steps, 1) + ' steps' : 'one step per ' + fmt(1 / steps, 1) + ' frames'} × ${fmtMs(perStep)} = ${fmtMs(cost)} of ${fmtMs(FRAME_MS)}`,
-      el('span', { class: 'label' }, `  (player timer: ${fmtMs(measured.perFrame)}, 0.1 ms resolution)\n`),
+      el('span', { class: 'label' }, `  (frame timer: ${fmtMs(measured.timer.perFrame)} for ${measured.steps} steps, ${measured.timer.resolution} ms resolution)\n`),
       `error: |x − exact| = ${fmt(cur.err, 4)} at t = ${fmt(cur.t, 2)} s, largest so far ${fmt(maxErr, 4)}`,
     ]);
   });
