@@ -34,7 +34,9 @@ use, kill the stale process: `pkill -f "user-data-dir=/Users/benjaminjordan/.cac
 
 **The page is a 2D scroll-snap grid driven by a hash route.** `#spine` scrolls vertically
 between 13 panels (rows). Each row scrolls horizontally between its cells: `[left] [spine]
-[right]`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`. Every input
+[right] [right-2] …`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`, and
+`#/N/right/D` for a chain of right panes (panel 12 has three); an out-of-range depth clamps
+down. Every input
 (touchpad swipe, arrow keys, rail dots, deep link) ends as a route the router applies in
 `shared/main.js`'s `onRoute`; IntersectionObservers map user scrolling back to routes, with
 `navigating` flags so programmatic scrolls are ignored. While a side cell is showing, the spine
@@ -42,8 +44,11 @@ gets `overflow-y: hidden`. Cell scroll targets are computed from cell index × r
 `offsetLeft` (it shifts with the row's own scroll offset).
 
 **Source of truth is `shared/manifest.js`**, not the file system: it lists each panel's slug,
-title, and which side panes exist. Adding a pane means the manifest entry says it exists and the
-files `panels/<slug>/<pane>.{html,js}` are present; nothing is registered anywhere else. A pane
+title, and which side panes exist (`left` is an object or null; `right` is null or an array of
+`{ title }`, one per chain step). Adding a pane means the manifest entry says it exists and the
+files `panels/<slug>/<pane>.{html,js}` are present (`right`, `right-2`, `right-3` for a chain);
+nothing is registered anywhere else. `docs/idea.md` is authoritative for what each panel and
+pane is; the manifest follows it. A pane
 whose files are missing renders a "not built yet" placeholder and logs a 404, which is expected
 while panels are unbuilt.
 
