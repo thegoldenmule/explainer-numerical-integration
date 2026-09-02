@@ -7,9 +7,7 @@
       This is where <em>local truncation error</em> comes in.</p>
     <p>Euler and RK4 are both the first few terms of an infinite Taylor series. This is good
       news, because it means we can simply take the next term in the Taylor expansion as our
-      error estimate: for Euler that is the <math><msup><mi>h</mi><mn>2</mn></msup></math> term,
-      for RK4 the <math><msup><mi>h</mi><mn>5</mn></msup></math> term. These are both easily
-      calculable in real-time. What this allows us to do is not just measure error, but work
+      error estimate. What this allows us to do is not just measure error, but work
       backward and instead <em>describe a target error threshold</em>.</p>
     <p>For example, we could specify a target local truncation error of 0.01. If local error is
       less than 0.01, then we can increase <math><mi>h</mi></math> until we hit that bound. If
@@ -20,7 +18,9 @@
       attempted to set the step size as great as 16 seconds! This resulted in a frame rate of
       1/16 frames per second.</p></blockquote>
     <p>Set the target error to 0.01 with RK4 and watch <math><mrow><mi>h</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>,
-      plotted as its own trajectory, head for the 16-second step.</p>
+      plotted as its own trajectory, climb to about 2 s on this spring; switch to a constant
+      force only and, with no higher derivatives left to estimate, it runs straight to the
+      16-second cap.</p>
   </div>
   <div class="viz"></div>
 </article>
