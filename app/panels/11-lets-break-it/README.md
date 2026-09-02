@@ -1,6 +1,6 @@
 # Panel 11: Let’s break it
 
-Not built yet. See `docs/idea.md` (section "11. Let’s break it") for the beat, and `docs/plan.md`
+`spine.html` + `spine.js` are built as a proof of the shared modules (placeholder prose); the side panes are not. See `docs/idea.md` (section "11. Let’s break it") for the beat, and `docs/plan.md`
 for the pane contract. Panes this directory will hold:
 
 - `spine.html` + `spine.js`: Let’s break it

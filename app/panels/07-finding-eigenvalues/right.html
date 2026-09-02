@@ -1,0 +1,33 @@
+<article>
+  <h2>Under-, critically, and overdamped</h2>
+  <div class="prose">
+    <p>Sweep the damping and the discriminant
+      <math><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>−</mo><mn>4</mn><mi>m</mi><mi>k</mi></mrow></math>
+      passes through zero. The two roots slide along the real axis, collide at
+      <math><mrow><mo>−</mo><mi>c</mi><mo>/</mo><mn>2</mn><mi>m</mi></mrow></math>, and split up
+      and down into the plane. Beside them the closed-form solution changes shape.</p>
+    <p><strong>Overdamped</strong>, <math><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>&gt;</mo><mn>4</mn><mi>m</mi><mi>k</mi></mrow></math>:
+      two real roots <math><msub><mi>r</mi><mn>1</mn></msub></math>, <math><msub><mi>r</mi><mn>2</mn></msub></math>,
+      and the mass creeps home without crossing zero,
+      <math><mrow><mi>x</mi><mo>=</mo><mi>A</mi><msup><mi>e</mi><mrow><msub><mi>r</mi><mn>1</mn></msub><mi>t</mi></mrow></msup><mo>+</mo><mi>B</mi><msup><mi>e</mi><mrow><msub><mi>r</mi><mn>2</mn></msub><mi>t</mi></mrow></msup></mrow></math>.</p>
+    <p><strong>Critically damped</strong>, <math><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>=</mo><mn>4</mn><mi>m</mi><mi>k</mi></mrow></math>:
+      one repeated root, the fastest return with no overshoot.</p>
+    <p><strong>Underdamped</strong>, <math><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>&lt;</mo><mn>4</mn><mi>m</mi><mi>k</mi></mrow></math>:
+      a conjugate pair <math><mrow><mi>α</mi><mo>±</mo><mi>i</mi><mi>ω</mi></mrow></math>, and the
+      mass rings inside a decaying envelope:</p>
+    <math display="block">
+      <mrow><mi>x</mi><mo>=</mo><msup><mi>e</mi><mrow><mi>α</mi><mi>t</mi></mrow></msup>
+      <mo>(</mo><msub><mi>x</mi><mn>0</mn></msub><mi>cos</mi><mi>ω</mi><mi>t</mi><mo>+</mo>
+      <mfrac><mrow><msub><mi>v</mi><mn>0</mn></msub><mo>−</mo><mi>α</mi><msub><mi>x</mi><mn>0</mn></msub></mrow><mi>ω</mi></mfrac>
+      <mi>sin</mi><mi>ω</mi><mi>t</mi><mo>)</mo></mrow>
+    </math>
+    <p>with <math><mrow><mi>α</mi><mo>=</mo><mo>−</mo><mi>c</mi><mo>/</mo><mn>2</mn><mi>m</mi></mrow></math>.
+      The real part of <math><mi>λ</mi></math> is the decay rate; the imaginary part is the
+      ring frequency. Both games and springs live here: the demo spring has
+      <math><mrow><mi>c</mi><mo>=</mo><mn>0.1</mn></mrow></math> against a critical
+      <math><mrow><mn>2</mn><msqrt><mrow><mi>m</mi><mi>k</mi></mrow></msqrt><mo>=</mo><mn>20</mn></mrow></math>.</p>
+    <p>Drag <math><mi>c</mi></math> across the critical value and watch the roots collide and
+      the curve stop ringing.</p>
+  </div>
+  <div class="viz"></div>
+</article>

@@ -1,0 +1,37 @@
+<article>
+  <h2>Finding eigenvalues</h2>
+  <div class="prose">
+    <p class="muted">Placeholder prose. This spine pane is a proof of the shared modules
+      (stage, complex plane, live MathML); the essay text arrives with the panel build.</p>
+    <p>The characteristic polynomial of
+      <math><mrow><mi>m</mi><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo><mi>c</mi><msup><mi>x</mi><mo>′</mo></msup><mo>+</mo><mi>k</mi><mi>x</mi><mo>=</mo><mn>0</mn></mrow></math>
+      is a quadratic, so its roots come from the formula you already know. With the current
+      sliders:</p>
+    <math display="block">
+      <mrow>
+        <mi>λ</mi><mo>=</mo>
+        <mfrac>
+          <mrow>
+            <mo>−</mo><mn data-var="c" data-digits="2">0.10</mn>
+            <mo>±</mo>
+            <msqrt><mrow>
+              <msup><mn data-var="c" data-digits="2">0.10</mn><mn>2</mn></msup>
+              <mo>−</mo><mn>4</mn><mo>·</mo><mn data-var="m" data-digits="2">1.00</mn><mo>·</mo><mn data-var="k" data-digits="1">100.0</mn>
+            </mrow></msqrt>
+          </mrow>
+          <mrow><mn>2</mn><mo>·</mo><mn data-var="m" data-digits="2">1.00</mn></mrow>
+        </mfrac>
+      </mrow>
+    </math>
+    <p>The discriminant
+      <math><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>−</mo><mn>4</mn><mi>m</mi><mi>k</mi><mo>=</mo><mn data-var="disc" data-digits="2">−399.99</mn></mrow></math>
+      is <span data-var="sign">negative</span>, so the system is
+      <strong data-var="regime">underdamped</strong> and the roots are
+      <math><mrow><msub><mi>λ</mi><mn>1</mn></msub><mo>=</mo><mi data-var="l1">…</mi></mrow></math>,
+      <math><mrow><msub><mi>λ</mi><mn>2</mn></msub><mo>=</mo><mi data-var="l2">…</mi></mrow></math>.
+      Both have real part
+      <math><mrow><mo>−</mo><mfrac><mi>c</mi><mrow><mn>2</mn><mi>m</mi></mrow></mfrac><mo>=</mo><mn data-var="alpha" data-digits="3">−0.050</mn></mrow></math>,
+      which is <span data-var="verdict">negative: the spring settles</span>.</p>
+  </div>
+  <div class="viz"></div>
+</article>
