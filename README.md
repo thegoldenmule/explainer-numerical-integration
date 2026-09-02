@@ -1,10 +1,6 @@
 # Why physics engines blow up
 
-An interactive, in-browser explainer of physical and numerical stability: a damped
-mass-spring, three integrators, and one complex plane, where you drag the system's
-eigenvalues across the stability boundary and watch the spring go from decaying to ringing
-to exploding. No build step, no dependencies; the concept is in `docs/idea.md` and the
-application plan in `docs/plan.md`.
+An interactive, in-browser explainer of physical and numerical stability.
 
 ## Quickstart
 
