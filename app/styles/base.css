@@ -39,7 +39,9 @@
   --measure: 38rem;
 
   --radius: 6px;
-  --stage-max: calc(100dvh - 19rem);  /* room for panel chrome + a readout under a square stage */
+  /* room for panel chrome (padding, meta, h2, gaps ≈ 13rem) + a four-line readout under a
+     square stage (≈ 8rem), so a pane with one stage and one readout never scrolls */
+  --stage-max: calc(100dvh - 21rem);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
