@@ -67,9 +67,9 @@ export function createPlayer({
 
   // ---- SEAM: adaptive stepping (panel 13) ----------------------------------------------
   // The controller plugs in here. It would look at the last step's local error estimate
-  // (the next Taylor term, or step doubling) and choose the next h before advancing, which
-  // means the stepper needs a settable h (createStepper fixes it at construction) and the
-  // series gains an h(t) array. Until it exists, every step is the store's fixed h.
+  // (math/adaptive.js) and choose the next h before advancing, via stepper.setH(next), and
+  // the series would gain an h(t) array. Until it is wired in, every step is the store's
+  // fixed h.
   function stepOnce() {
     stepper.step();
     push();
