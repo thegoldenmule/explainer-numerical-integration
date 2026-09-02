@@ -68,6 +68,8 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 }
 .stage.wide { aspect-ratio: 16 / 9; width: 100%; }
 .stage.strip { aspect-ratio: 3 / 1; width: 100%; }
+/* a square that leaves room for a strip stage and controls under it (panel 11, 12) */
+.stage.half { width: min(100%, calc(var(--stage-max) * 0.62)); }
 .stage > canvas {
   position: absolute;
   inset: 0;
