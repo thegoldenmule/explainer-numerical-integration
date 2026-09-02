@@ -1,19 +1,29 @@
 <article>
   <h2>Let’s break it</h2>
   <div class="prose">
-    <p class="muted">Placeholder prose. This spine pane is a proof of the shared modules
-      (region blit, complex plane with the λ drag, player, trajectory, transport); the essay
-      text arrives with the panel build.</p>
-    <p>The spring runs against its exact solution while its eigenvalues sit on the region
-      for the current integrator and step. With the demo parameters explicit Euler puts
-      <math><mrow><mi>λ</mi><mo>=</mo><mo>−</mo><mn>0.05</mn><mo>±</mo><mn>10</mn><mi>i</mi></mrow></math>
-      just outside the disk, and the run grows without bound within seconds.</p>
-    <p>Drag the upper root across the boundary: for the current
-      <math><mi>m</mi></math>, it sets
+    <p>For a real demonstration, we can see the results of this numerical instability with only
+      two forces: fluid drag and a spring. If we pick our mass to be 10, drag coefficient to be
+      0.1, and spring constant to be 10, the linear system is</p>
+    <math display="block">
+      <mrow><mn>10</mn><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo><mn>0.1</mn><msup><mi>x</mi><mo>′</mo></msup><mo>+</mo><mn>10</mn><mi>x</mi><mo>=</mo><mn>0</mn></mrow>
+    </math>
+    <p>which, via the quadratic formula, gives us eigenvalues
+      <math><mrow><mi>λ</mi><mo>=</mo><mo>−</mo><mn>0.005</mn><mo>±</mo><mn>0.99999</mn><mi>i</mi></mrow></math>.
+      Since the imaginary component of <math><mi>λ</mi></math> is so large, and the real part
+      so small, the eigenvalues are not within the region of stability. Plugging this model into
+      a simple solver, the position drifts off, then grows without bound: using a method outside
+      of its region of stability causes solutions to stray.</p>
+    <p>In this particular example, decreasing <math><mi>h</mi></math> is enough to make the
+      solutions stable for <em>some time</em>, but not indefinitely. With a 1/60 second step the
+      region of stability scales, so it does include eigenvalues for which it would previously
+      have been unstable; but it still does not account well for oscillation. (The essay’s spring
+      doubles its amplitude only every 59 s at 1/30 s; the demo preset, <math><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow></math>,
+      <math><mrow><mi>k</mi><mo>=</mo><mn>100</mn></mrow></math>, blows up in seconds.)</p>
+    <p>Drag the upper root across the boundary: for the current <math><mi>m</mi></math> it sets
       <math><mrow><mi>c</mi><mo>=</mo><mo>−</mo><mn>2</mn><mi>m</mi><mo>·</mo><mi>Re</mi><mi>λ</mi></mrow></math>
-      and
-      <math><mrow><mi>k</mi><mo>=</mo><mi>m</mi><msup><mrow><mo>|</mo><mi>λ</mi><mo>|</mo></mrow><mn>2</mn></msup></mrow></math>.
-      Drag <math><mi>h</mi></math> and the region rescales around the fixed eigenvalues.</p>
+      and <math><mrow><mi>k</mi><mo>=</mo><mi>m</mi><msup><mrow><mo>|</mo><mi>λ</mi><mo>|</mo></mrow><mn>2</mn></msup></mrow></math>,
+      and the spring goes from decaying to ringing to exploding. Drag <math><mi>h</mi></math>
+      and the region rescales around the fixed eigenvalues.</p>
   </div>
   <div class="viz"></div>
 </article>
