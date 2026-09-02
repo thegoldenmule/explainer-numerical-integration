@@ -22,10 +22,14 @@ const COUNT = 7;      // targets in the bundle; the middle one is the reader's a
 const SPREAD = 10;    // tol/SPREAD … tol·SPREAD
 const CENTER = (COUNT - 1) / 2;
 
-/** The sweep's targets, a log range around the reader's tol clipped to the aux limits. */
+/**
+ * The sweep's targets: a log range around the reader's tol, the spread shrunk symmetrically
+ * where the aux limits would clip it so the middle value is always tol itself.
+ */
 function targets(tol) {
   const [lo, hi] = AUX_LIMITS.tol;
-  return sweepRange(Math.max(lo, tol / SPREAD), Math.min(hi, tol * SPREAD), COUNT, { log: true });
+  const s = Math.max(1, Math.min(SPREAD, hi / tol, tol / lo));
+  return sweepRange(tol / s, tol * s, COUNT, { log: true });
 }
 /** aux.highlight is shared by every sweep: clamp to this one, and −1 means the reader's own target. */
 const highlightIndex = () => { const i = aux.get().highlight; return i < 0 ? CENTER : Math.min(COUNT - 1, i); };
