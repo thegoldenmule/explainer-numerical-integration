@@ -228,9 +228,10 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - *Spine viz:* each force is shown as its equation with default values, and every parameter
   in it is a draggable number. Gravitation reads `G m₁ m₂ / r²`; drag `G`, `m₁`, `m₂`, or
   `r` and the force arrow, the resulting `a`, and the trajectory update in real time. Drag
-  and spring get the same treatment with `c` and `k`. Each force also has a switch between
-  its real model and its linear one (`G m₁m₂/r²` vs `m g`, and so on), so the reviewer can
-  see which of the dragged parameters survive the linearization and where. Below, the
+  and spring get the same treatment with `c` and `k`. Gravitation has a switch between its
+  real model and its linear one (`G m₁m₂/r²` vs `m g`); drag and spring are already linear,
+  so they have none. The switch shows which of the dragged parameters survive the
+  linearization and where. Below, the
   coefficients `M`, `C`, `K` assemble live into `M x'' + C x' + K x = 0` and move with the
   same drags.
 - *Left, step down (one function):* what linear means. One function, two inputs, the sum of
@@ -244,9 +245,13 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 **6. Eigen-what-now.** Concrete matrix from the current `(m, c, k)`.
 - *Spine viz:* the 2×2 system matrix acting on a grid. Drag a vector; it skews and rotates.
   The invariant directions light up when the dragged vector lands on one; the scale factor
-  along each is the eigenvalue. Caveat: at the underdamped defaults the eigenvalues are
-  complex and there is no real invariant direction to land on, so the panel starts from an
-  overdamped preset and lets the reviewer lower `c` until the directions vanish.
+  along each is the eigenvalue. Two caveats. At `k/m = 100` the raw matrix sends a unit
+  vector to length ~100, so the grid shows the similar matrix `Â = [[0, 1], [−1, −2ζ]]` in
+  units `(x, v/ω)`: same invariant directions, eigenvalues `λ/ω`, both printed. And at the
+  underdamped defaults the eigenvalues are complex with no real direction to land on, so
+  the panel uses its *own* damping, defaulting above critical, with a local slider to lower
+  it until the directions vanish; it never writes the tuple, because a write here would
+  leave every later panel overdamped and kill the Euler blow-up.
 - *Left, step down (one matrix, no invariant):* transformations only. A shape on a plane and
   the matrix that moves it; drag the matrix entries and the shape scales, skews, and rotates.
   No eigenvectors, no invariant directions. Matrices as transformations, nothing more.

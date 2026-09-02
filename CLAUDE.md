@@ -94,6 +94,10 @@ CSS custom properties so canvases match the stylesheet.
   blits from one shared context; `createRegionRenderer` is only for a dedicated canvas.
 - The player owns `t` and restarts on any non-`t` patch; panes never write `t` or reset a
   run themselves.
+- Panes are mounted off-screen (current ±1), so a store write in `mount()` fires while the
+  reader is elsewhere; anything with side effects belongs in `resume()`. A pane must not
+  leave the tuple changed as a side effect of being visited: a "what if" case (negative
+  `c`, an overdamped view, a constant-force run) is computed locally, never written.
 - Live numbers in prose are `<mn data-var="…" data-digits="…">` slots filled by
   `bindMath(article, store, derive)`; pass the `<article>`, not `.viz`.
 - `--stage-max` budgets one square stage plus a readout. A pane with a square and a strip
