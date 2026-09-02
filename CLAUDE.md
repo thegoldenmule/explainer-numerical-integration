@@ -86,3 +86,13 @@ CSS custom properties so canvases match the stylesheet.
 - Light mode only; no theme toggle, no `prefers-color-scheme` branch.
 - Math is typeset with native MathML; no KaTeX/MathJax.
 - Latest desktop browsers only; no polyfills, no fallbacks for WebGL2.
+- Draw through `createStage` and call `stage.invalidate()`; never call a draw function
+  directly (draws are coalesced to one per frame).
+- Never open a WebGL2 context per stage. Regions go through `drawRegion(ctx2d, opts)`, which
+  blits from one shared context; `createRegionRenderer` is only for a dedicated canvas.
+- The player owns `t` and restarts on any non-`t` patch; panes never write `t` or reset a
+  run themselves.
+- Live numbers in prose are `<mn data-var="…" data-digits="…">` slots filled by
+  `bindMath(article, store, derive)`; pass the `<article>`, not `.viz`.
+- `--stage-max` budgets one square stage plus a readout. A pane with a square and a strip
+  uses `.stage.half` inside `.viz-row`, whose first column must stay definite.

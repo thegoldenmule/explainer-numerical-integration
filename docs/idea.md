@@ -242,7 +242,9 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 **6. Eigen-what-now.** Concrete matrix from the current `(m, c, k)`.
 - *Spine viz:* the 2×2 system matrix acting on a grid. Drag a vector; it skews and rotates.
   The invariant directions light up when the dragged vector lands on one; the scale factor
-  along each is the eigenvalue.
+  along each is the eigenvalue. Caveat: at the underdamped defaults the eigenvalues are
+  complex and there is no real invariant direction to land on, so the panel starts from an
+  overdamped preset and lets the reviewer lower `c` until the directions vanish.
 - *Left, step down (one matrix, no invariant):* transformations only. A shape on a plane and
   the matrix that moves it; drag the matrix entries and the shape scales, skews, and rotates.
   No eigenvectors, no invariant directions. Matrices as transformations, nothing more.
@@ -451,16 +453,23 @@ would otherwise both write lives in `shared/`.
 
 ### What exists
 
-`shared/` already holds the skeleton and the whole numeric core: the store and its limits
-(`state.js`), the manifest, router, loader, and pane manager, the rAF loop, and the math
-(`complex.js`, `system.js` with eigenvalues, regime, and the closed form, `integrators.js`
-with the five steppers and `simulate()`, `stability.js` with `R(hλ)`, the 2×2 update
-matrices, spectral radius, and doubling time). Rendering has `plot2d.js` (DPR sizing, a
-plot view, grid, axes, polyline, point, arrow, text, CSS-variable colors) and the region
-shader (`region-gl.js`). `ui/controls.js` has a slider, a radio group, the integrator
-picker, preset buttons, and a monospace readout. Panel 1's two placeholder panes exercise
-the loader path end to end. Everything below is what the outline asks for and that layer
-does not yet give.
+`shared/` holds the skeleton and the numeric core: the store and its limits (`state.js`),
+the manifest, router (with chained right panes), loader, and pane manager, the rAF loop,
+and the math (`complex.js`; `system.js` with eigenvalues, regime, the closed form, and the
+inversion from `λ` back to `(c, k)`; `integrators.js` with the five steppers, `setH`, and
+`simulate()`; `stability.js` with `R(hλ)`, the Taylor partial sum, the 2×2 update
+matrices, spectral radius, and doubling time; `forces.js`, `modes.js`, `taylor.js`,
+`adaptive.js`, `sweep.js`). Rendering has `plot2d.js` (DPR sizing, a plot view with log
+`y`, grid, axes, polyline, point, arrow, text, CSS-variable colors), the region shader with
+layers, a Taylor mode, and one shared context behind `drawRegion`, `stage.js`,
+`trajectory.js`, `cplane.js`, `bundle.js`, and `drag.js`. `player.js` runs the live
+simulation; `ui/` has the store-bound controls, `transport`, and `livemath`. Panels 7 and
+11 have spines that prove those modules, and every other pane has its prose with a stub
+`mount()`. The entries below are the spec each module was or will be built to; still to
+write are the scene and aux stores, `matrix2.js`, custom acceleration in the steppers,
+normalized `(hω, ζ)` stability, the small `plot2d` helpers (band, vector field,
+transformed grid, heatmap, small-multiple layout, color), `scrub.js`, the toggle and log
+slider, and the sweep strip.
 
 ### State beyond the tuple
 
@@ -492,8 +501,8 @@ does not yet give.
   the *nonlinear* simulation next to the linearized verdict, so the explicit steppers
   (Euler, RK4, semi-implicit) take an optional `accel(x, v, t)`. Implicit Euler and Verlet
   keep their linear closed forms; the picker restricts to explicit methods when a custom
-  force is in play. `simulate()` also returns the error series `|x − exact|` so panel 9 does
-  not recompute it.
+  force is in play. The error series `|x − exact|` and its measured ratio come from the
+  player, so panel 9 does not recompute them.
 - **2×2 matrices, `math/matrix2.js`** (6, 6-left, 6-right, 9-right). The helpers now
   private to `stability.js` (`madd`, `mmul`, `mdet`, `minv`) move here and are exported,
   plus constructors for rotation, scale, and shear, and an eigen-decomposition of a real
@@ -503,11 +512,12 @@ does not yet give.
   of `(x, v)` onto them, and the scalar modal simulation `x_{i+1} = R(hλ) x_i` in complex
   arithmetic per method. This is the step from the 2×2 system to `x' = λx` that panel 10's
   spine is built on.
-- **Taylor tools, `math/taylor.js`** (5-right, 12-left, 12-right, 13-left). Partial sums of
-  `e^z` to degree `n` (Euler is `n = 1`, RK4 is `n = 4`), `amplification` extended with a
-  `taylor(z, n)` case for RK1 through RK3, and the expansion of `1/r²` about an operating
-  point for 5-right. Panel 13-left's local truncation error is the next term of the same
-  series.
+- **Taylor tools, `math/taylor.js`** (5-right, 12-left, 12-right, 13-left). One complex
+  partial sum of `e^z` to degree `n` (Euler is `n = 1`, RK4 is `n = 4`; `stability.js`'s
+  `taylorAmplification` and the shader's `order` mode are the same Horner loop), the real
+  terms and running sums for adding one term at a time, the expansion of `1/r²` about an
+  operating point for 5-right, and the derivatives of `x(t)` from the equation itself so
+  panel 13-left's local truncation error is the next term of the same series.
 - **Adaptive stepping, `math/adaptive.js`** (13, 13-right). A local error estimate per step
   (step doubling or the embedded next Taylor term), a controller that grows or shrinks `h`
   toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The stepper
@@ -538,8 +548,9 @@ does not yet give.
 - **A stage helper, `gfx/stage.js`** (every pane). Both panel-1 panes repeat the same
   boilerplate: make a canvas, wrap it in `.stage`, fit it, observe resize, redraw on
   subscribe. `createStage(root, { layers, aspect, signal })` returns the stacked canvases,
-  a coalesced `redraw()` that runs at most once per frame no matter how many store patches,
-  resizes, and player frames ask for it, and cleans itself up on `signal`.
+  `onDraw(fn)`, and an `invalidate()` that coalesces to one draw per frame no matter how
+  many store patches, resizes, and player frames ask for it, and cleans itself up on
+  `signal`. Panes call `invalidate()`, never their draw function.
 - **Trajectory plots, `gfx/trajectory.js`** (3, 3-left, 4, 8, 9, 11, 12, 13). Time on the
   horizontal axis, the exact curve dashed underneath, the integrator's polyline on top with
   optional step markers and tangent segments (10-left's follow-the-tangent), auto-ranged or
@@ -554,12 +565,13 @@ does not yet give.
   draggable `λ` handle that inverts to `(c, k)`, and the analytic circles for nested Euler
   disks. It stays on screen from panel 7 to the end, so it is one module, not seven.
 - **Region shader, `region-gl.js`** (10, 10-right, 12, 12-right). Three changes. A `layers`
-  argument, `[{ method, h, alpha }]` with a highlighted index, so 10-right's nested disks
-  and 12-right's RK1–RK4 overlay are one draw. A degree-`n` Taylor mode (`uOrder`) to match
-  `math/taylor.js`. And one shared WebGL2 canvas that renders and blits into ordinary 2D
-  canvases: the pane manager keeps up to five panes mounted, panel 12's spine alone wants
-  three regions, and browsers cap live contexts around sixteen, so one context that draws
-  into many stages is safer than one context per stage.
+  argument, `[{ method, h, alpha, order }]` with a highlighted index, so 10-right's nested
+  disks and 12-right's RK1–RK4 overlay are one draw. A degree-`n` Taylor mode (`order`) to
+  match `math/taylor.js`. And one shared WebGL2 canvas behind `drawRegion(ctx2d, opts)`
+  that renders and blits into ordinary 2D canvases: the pane manager keeps up to five panes
+  mounted, panel 12's spine alone wants three regions, and browsers cap live contexts
+  around sixteen, so one context that draws into many stages is safer than one per stage.
+  `createRegionRenderer` remains only for a dedicated canvas.
 - **Small helpers in `plot2d.js`.** A filled band between two curves (panel 4's ε-tube), a
   vector field (4-right's flow), a transformed grid and shape (6, 6-left), a heatmap over a
   view with a diverging colormap centered on `ρ = 1` (12-right-3, 11-right), a grid layout
@@ -572,8 +584,9 @@ does not yet give.
 ### UI
 
 - **Live MathML, `ui/livemath.js`** (5, 7, 7-left, 10-left, 12-left). Prose fragments mark
-  `<mn data-var="m">` slots; `bind(root, store, derive)` fills them from the tuple and from
-  computed values (the discriminant, `|1 + hλ|`, the Taylor sum). Native MathML only.
+  `<mn data-var="m">` slots (with `data-digits`); `bindMath(article, store, derive)` fills
+  them from the tuple and from computed values (the discriminant, `|1 + hλ|`, the Taylor
+  sum). Native MathML only.
 - **Scrubbable numbers, `ui/scrub.js`** (5, 7). A number in a formula you drag left or right
   to change, bound to a store key with the store's limits. This is what makes panel 5's
   "every parameter is a draggable number" true.
@@ -619,9 +632,9 @@ does not yet give.
 predicted angle), `forces` (assembling the linearized drag and spring reproduces the
 tuple's `c` and `k`), `taylor` (the degree-4 sum equals `amplification('rk4')`), `modes`
 (projection and reconstruction round-trip), `adaptive` (RK4 with the essay parameters at a
-0.01 bound peaks near `h = 2.1 s`; with `k = c = 0` it runs to the cap), and the measured
-error ratio in `simulate` matching `|1 + hλ|` for Euler in the unstable regime. Any number
-those tests pin is added to the confirmations below.
+0.01 bound peaks near `h = 2.1 s`; with `k = c = 0` it runs to the cap), and the player's
+measured error ratio matching `|1 + hλ|` for Euler in the unstable regime, driven by a fake
+loop. Any number those tests pin is added to the confirmations below.
 
 ### Order
 
@@ -642,7 +655,7 @@ Scripts: `poc/numerics.mjs`, `poc/numerics2.mjs`.
   Universe" magnitude in the essay's screenshot is **not reproducible** from this linear
   system at this step. Whatever solver produced it had something else going on.
 - **Demo defaults:** use `m=1, c=0.1, k=100` (`λ = −0.05 ± 10i`). `|1 + hλ| = 1.0525`,
-  doubling every 0.5 s, `|x| ≈ 1e8` by `t = 12`. Visible in seconds.
+  doubling every 0.45 s, `|x| ≈ 1e8` by `t = 12`. Visible in seconds.
 - RK4 at `h = 1/30` tracks the exact solution to three significant figures through 600 s in
   both parameter sets.
 - Implicit Euler is stable everywhere but artificially damps: `0.26` vs exact `0.71` at
