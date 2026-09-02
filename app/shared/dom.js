@@ -27,5 +27,5 @@ export function fmt(v, digits = 3) {
   if (!Number.isFinite(v)) return v > 0 ? '∞' : v < 0 ? '−∞' : 'NaN';
   const abs = Math.abs(v);
   const s = abs !== 0 && (abs >= 1e5 || abs < 1e-3) ? v.toExponential(digits - 1) : v.toFixed(digits);
-  return s.replace('-', '−');
+  return s.replace(/-/g, '−');   // every hyphen: an exponent's too, so −6.41e-8 reads −6.41e−8
 }
