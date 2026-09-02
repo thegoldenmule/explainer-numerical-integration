@@ -456,8 +456,8 @@ matrices, spectral radius, and doubling time). Rendering has `plot2d.js` (DPR si
 plot view, grid, axes, polyline, point, arrow, text, CSS-variable colors) and the region
 shader (`region-gl.js`). `ui/controls.js` has a slider, a radio group, the integrator
 picker, preset buttons, and a monospace readout. Panel 1's two placeholder panes exercise
-all of it end to end. Everything below is what the outline asks for and that layer does
-not yet give.
+the loader path end to end. Everything below is what the outline asks for and that layer
+does not yet give.
 
 ### State beyond the tuple
 
@@ -587,8 +587,9 @@ not yet give.
   manifest's `right` to be a list, the row to hold as many cells as panes, the bottom rail
   to show them, and files named `right.js`, `right-2.js`, `right-3.js`.
 - **Manifest sync.** The manifest predates this outline: panel 1's spine and left are the
-  reverse of the entry above, and the right-pane titles for 6, 10, 11, and 12 do not match.
-  It is the source of truth for the shell, so it is corrected when those panels are built.
+  reverse of the entry above, panel 8 has no right pane where the outline explodes `h`, and
+  the right-pane titles for 6, 10, 11, and 12 do not match. It is the source of truth for
+  the shell, so it is corrected when those panels are built.
 
 ### Who uses what
 
@@ -622,10 +623,10 @@ the unstable regime. Any number those tests pin is added to the confirmations be
 ### Order
 
 Follow `plan.md`'s panel order and let it pull the shared code in: `cplane`, `stage`,
-`livemath`, and the shader's layers first (panels 7, 10, 11, 12), then `player`,
-`trajectory`, `bundle`, `sweep`, and `adaptive` (panels 3, 8, 9, 13), then the scene store,
-`forces`, `matrix2`, and drag handles (panels 1, 2, 4, 5, 6). Nothing in the third group
-blocks the payload.
+`livemath`, `player`, `trajectory`, and the shader's layers first (panels 7, 10, 11, 12
+all draw the plane, and 11 and 12 run the spring against the exact curve), then `bundle`,
+`sweep`, and `adaptive` (panels 3, 8, 9, 13), then the scene store, `forces`, `matrix2`,
+and drag handles (panels 1, 2, 4, 5, 6). Nothing in the third group blocks the payload.
 
 ## Numeric confirmations, and one correction to Part II
 
