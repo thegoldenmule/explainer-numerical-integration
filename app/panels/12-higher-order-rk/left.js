@@ -1,9 +1,12 @@
 // Panel 12, left: Taylor series, one term at a time. The partial sums S₀…Sₙ of e^x on the
 // real axis against the exponential, the highest drawn bright and the rest dimmed, and the
 // modulus of the degree-n sum at the current hλ next to the exact |e^{hλ}|. Euler is n = 1,
-// RK4 is n = 4. The term count is a local slider: no store key or aux store carries it yet.
+// RK4 is n = 4. The term count is the sweep strip's index, kept in aux.highlight so it
+// survives a remount (the key is shared by every sweep, so it is clamped on read).
 
-import { el, fmt } from 'shared/dom.js';
+import { el, fmt, clamp } from 'shared/dom.js';
+import { aux } from 'shared/aux.js';
+import { sweepStrip } from 'shared/ui/sweep.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawBundle } from 'shared/gfx/bundle.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
@@ -16,11 +19,14 @@ import { handleIndex } from 'shared/gfx/cplane.js';
 import { cabs, cscale } from 'shared/math/complex.js';
 
 const MAX_N = 8;
+const DEFAULT_N = 4;   // RK4's degree, before any sweep has been touched (aux.highlight = −1)
+const NS = Array.from({ length: MAX_N + 1 }, (_, i) => i);
+const termsOf = h => (h < 0 ? DEFAULT_N : clamp(h, 0, MAX_N));
 const X_MIN = -5, X_MAX = 2, Y_MIN = -6, Y_MAX = 8;
 const SAMPLES = 400;
 export function mount(root, ctx) {
   const { store, signal } = ctx;
-  let n = 4;
+  let n = termsOf(aux.get().highlight);
   const upper = s => { const ls = eigenvalues(s.m, s.c, s.k); return ls[handleIndex(ls)]; };
 
   // the partial sums sampled once; each degree is one series of the bundle
@@ -44,15 +50,17 @@ export function mount(root, ctx) {
       { color: cssVar('--approx'), size: 11, align: 'right', dx: -6, dy: 46 });
   });
 
-  const input = el('input', { type: 'range', min: 0, max: MAX_N, step: 1, value: n });
-  const value = el('output');
+  const strip = sweepStrip({
+    values: NS, label: 'terms kept', initial: n, signal,
+    format: d => `${d + 1} term${d === 0 ? '' : 's'}, degree ${d}`,
+    onSelect: i => aux.set({ highlight: i }),
+  });
   const out = readout();
   function update() {
     const s = store.get();
     const z = cscale(upper(s), s.h);
     const sum = cabs(taylorAmplification(z, n));
     const ex = Math.exp(z[0]);
-    value.textContent = `${n + 1} term${n === 0 ? '' : 's'}, degree ${n}`;
     const name = n === 1 ? ' (Euler)' : n === 4 ? ' (RK4)' : '';
     out.set([
       `S${n}(z) = ${polynomialText(n)}${name}\n`,
@@ -61,12 +69,13 @@ export function mount(root, ctx) {
     ]);
     stage.invalidate();
   }
-  input.addEventListener('input', () => { n = Number(input.value); update(); }, { signal });
-  root.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'terms kept'), value), input),
-    out.el,
-  ));
+  root.append(controls(strip.el, out.el));
   const unsubscribe = store.subscribe(update);
+  const unsubscribeAux = aux.subscribe(a => {
+    n = termsOf(a.highlight);
+    strip.select(n, { notify: false });
+    update();
+  }, { immediate: false });
 
   bindMath(root.closest('article') ?? root, store, s => {
     const z = cscale(upper(s), s.h);
@@ -77,5 +86,5 @@ export function mount(root, ctx) {
     };
   }, { signal, digits: 4 });
 
-  return { destroy() { unsubscribe(); } };
+  return { destroy() { unsubscribe(); unsubscribeAux(); } };
 }
