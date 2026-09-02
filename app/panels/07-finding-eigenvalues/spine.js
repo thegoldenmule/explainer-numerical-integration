@@ -1,5 +1,5 @@
 // Panel 7, spine: the quadratic formula with live numbers and the two roots on the complex
-// plane, colored by the physical verdict (no integrator exists yet).
+// plane, colored by the physical verdict (no integrator exists yet: cplane's 'physical' verdict).
 
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
@@ -7,16 +7,6 @@ import { bindMath } from 'shared/ui/livemath.js';
 import { slider, controls } from 'shared/ui/controls.js';
 import { discriminant, regime, eigenvalues } from 'shared/math/system.js';
 import { cfmt } from 'shared/math/complex.js';
-import { cssVar, drawPoint } from 'shared/gfx/plot2d.js';
-
-// Panel 7 predates any integrator, so the roots are colored by the physical verdict
-// (Re λ < 0) rather than cplane's numerical one for the store's method, which is what its
-// built-in dots show. Drawn over them; a cplane `verdict` option would make this go away.
-function drawPhysicalRoots(g, view, s) {
-  for (const l of eigenvalues(s.m, s.c, s.k)) {
-    drawPoint(g, view, l[0], l[1], { r: 6, fill: cssVar(l[0] < 0 ? '--stable' : '--unstable') });
-  }
-}
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
@@ -25,8 +15,7 @@ export function mount(root, ctx) {
     stage, store, signal,
     // keep both roots comfortably inside the frame as k and c sweep
     halfRange: s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
-    labels: false,
-    onDraw: drawPhysicalRoots,
+    verdict: 'physical',
   });
   root.append(controls(
     slider(store, 'm', { label: 'm (mass)', min: 0.1, max: 20, signal }),

@@ -7,7 +7,7 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawBundle } from 'shared/gfx/bundle.js';
-import { cssVar, makeView, drawGrid, drawPolyline, drawPoint } from 'shared/gfx/plot2d.js';
+import { cssVar, makeView, drawGrid, drawPolyline } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { controls, readout } from 'shared/ui/controls.js';
 import { eigenvalues, exactSolution, naturalFrequency } from 'shared/math/system.js';
@@ -33,15 +33,10 @@ export function mount(root, ctx) {
   const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
   createComplexPlane({
     stage: planeStage, store, signal, labels: false,
+    // implicit Euler's region and verdict, whatever the store's method is
     region: s => ({ method: 'implicit', h: s.h }),
+    verdict: 'implicit',
     halfRange: s => Math.max(3, 1.3 * Math.max(2 / s.h, ...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
-    onDraw(g, view, s) {
-      // implicit Euler's verdict on the roots, over cplane's dots (which follow the store's method)
-      for (const l of eigenvalues(s.m, s.c, s.k)) {
-        const f = ampFactor('implicit', cscale(l, s.h));
-        drawPoint(g, view, l[0], l[1], { r: 6, fill: cssVar(f <= 1 ? '--stable' : '--unstable') });
-      }
-    },
   });
 
   const input = el('input', { type: 'range', min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });

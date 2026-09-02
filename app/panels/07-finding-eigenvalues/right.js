@@ -6,22 +6,13 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
-import { cssVar, drawText, drawPoint } from 'shared/gfx/plot2d.js';
+import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { slider, controls, readout } from 'shared/ui/controls.js';
 import { discriminant, regime, eigenvalues, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { cfmt } from 'shared/math/complex.js';
 
 const SAMPLES = 800;
 const REGIME_LABEL = { underdamped: 'underdamped', critical: 'critically damped', overdamped: 'overdamped' };
-
-// Panel 7 predates any integrator, so the roots are colored by the physical verdict
-// (Re λ < 0) rather than cplane's numerical one for the store's method, which is what its
-// built-in dots show. Drawn over them; a cplane `verdict` option would make this go away.
-function drawPhysicalRoots(g, view, s) {
-  for (const l of eigenvalues(s.m, s.c, s.k)) {
-    drawPoint(g, view, l[0], l[1], { r: 6, fill: cssVar(l[0] < 0 ? '--stable' : '--unstable') });
-  }
-}
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
@@ -30,10 +21,9 @@ export function mount(root, ctx) {
   root.append(top);
   const planeStage = createStage(top, { layers: ['plane'], aspect: 'half', signal });
   createComplexPlane({
-    stage: planeStage, store, signal, labels: false,
+    stage: planeStage, store, signal, verdict: 'physical',
     halfRange: s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
     onDraw(g, view, s) {
-      drawPhysicalRoots(g, view, s);
       // the collision point −c/2m, and the critical c for this m, k
       const alpha = -s.c / (2 * s.m);
       drawText(g, view, `−c/2m = ${fmt(alpha, 2)}`, alpha, 0, { color: cssVar('--muted'), size: 11, align: 'center', dy: 16 });

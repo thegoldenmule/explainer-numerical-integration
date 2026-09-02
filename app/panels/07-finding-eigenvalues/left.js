@@ -5,20 +5,11 @@
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane, handleIndex } from 'shared/gfx/cplane.js';
-import { cssVar, makeView, drawText, drawPolyline, drawPoint } from 'shared/gfx/plot2d.js';
+import { cssVar, makeView, drawText, drawPolyline } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { slider, controls } from 'shared/ui/controls.js';
 import { discriminant, regime, eigenvalues } from 'shared/math/system.js';
 import { cabs } from 'shared/math/complex.js';
-
-// Panel 7 predates any integrator, so the roots are colored by the physical verdict
-// (Re λ < 0) rather than cplane's numerical one for the store's method, which is what its
-// built-in dots show. Drawn over them; a cplane `verdict` option would make this go away.
-function drawPhysicalRoots(g, view, s) {
-  for (const l of eigenvalues(s.m, s.c, s.k)) {
-    drawPoint(g, view, l[0], l[1], { r: 6, fill: cssVar(l[0] < 0 ? '--stable' : '--unstable') });
-  }
-}
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
@@ -99,10 +90,9 @@ export function mount(root, ctx) {
   root.append(row);
   const planeStage = createStage(row, { layers: ['plane'], aspect: 'half', signal, grab: true });
   const plane = createComplexPlane({
-    stage: planeStage, store, signal, drag: true, labels: false,
+    stage: planeStage, store, signal, drag: true, verdict: 'physical',
     halfRange: s => Math.max(3, 1.35 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
     onDraw(g, view, s) {
-      drawPhysicalRoots(g, view, s);
       const ls = eigenvalues(s.m, s.c, s.k);
       const l = ls[handleIndex(ls)];
       const [a, b] = l;

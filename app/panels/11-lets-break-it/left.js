@@ -7,7 +7,7 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane, handleIndex } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
-import { cssVar, drawPoint } from 'shared/gfx/plot2d.js';
+import { cssVar } from 'shared/gfx/plot2d.js';
 import { controls, row, readout } from 'shared/ui/controls.js';
 import { eigenvalues, exactFromEigenvalue, paramsFromEigenvalue } from 'shared/math/system.js';
 import { cfmt } from 'shared/math/complex.js';
@@ -34,15 +34,8 @@ export function mount(root, ctx) {
   const top = el('div', { class: 'viz-row' });
   root.append(top);
   const planeStage = createStage(top, { layers: ['plane'], aspect: 'half', signal, grab: true });
-  createComplexPlane({
-    stage: planeStage, store, signal, drag: true, labels: false, halfRange: HALF,
-    // no method here: the roots are colored by the physical verdict, over cplane's dots
-    onDraw(g, view, s) {
-      for (const l of eigenvalues(s.m, s.c, s.k)) {
-        drawPoint(g, view, l[0], l[1], { r: 6, fill: cssVar(l[0] <= 0 ? '--stable' : '--unstable') });
-      }
-    },
-  });
+  // no method here: the roots are colored by the physical verdict
+  createComplexPlane({ stage: planeStage, store, signal, drag: true, halfRange: HALF, verdict: 'physical' });
 
   const out = readout({ label: 'λ' });
   top.append(controls(

@@ -1,12 +1,13 @@
 // Panel 10, spine: the first shaded region, |1 + hλ| ≤ 1, filling the plane, with the
 // eigenvalues from panel 7 sitting on it in green or red and Rhodes' reading in the margins.
 // The panel is about explicit Euler, so the region and the verdict are Euler's whatever
-// integrator the store currently holds; the store's method is not written here.
+// integrator the store currently holds (cplane's verdict is pinned to 'euler'); the store's
+// method is not written here.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
-import { cssVar, drawPoint, drawText } from 'shared/gfx/plot2d.js';
+import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { slider, controls, readout } from 'shared/ui/controls.js';
 import { eigenvalues } from 'shared/math/system.js';
@@ -28,25 +29,18 @@ export function mount(root, ctx) {
   root.append(top);
   const stage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
   createComplexPlane({
-    stage, store, signal, labels: false,
+    stage, store, signal,
+    verdict: 'euler',
+    labels: factor => `|1 + hλ| = ${fmt(factor, 4)}`,
     region: s => ({ method: 'euler', h: s.h }),
     halfRange: s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
-    onDraw(g, view, s) {
+    onDraw(g, view) {
       // Rhodes' reading in the margins: real axis is growth or decay, imaginary is oscillation
       const c = cssVar('--muted');
       drawText(g, view, '← decay', view.xMin, 0, { color: c, size: 11, align: 'left', dx: 6, dy: 16 });
       drawText(g, view, 'growth →', view.xMax, 0, { color: c, size: 11, align: 'right', dx: -6, dy: 16 });
       drawText(g, view, 'oscillation ↑', 0, view.yMax, { color: c, size: 11, align: 'right', dx: -8, dy: 30 });
       drawText(g, view, 'oscillation ↓', 0, view.yMin, { color: c, size: 11, align: 'right', dx: -8, dy: -8 });
-      // Euler's verdict on the roots, drawn over cplane's dots (which follow the store's method)
-      for (const { lambda, factor, stable } of eulerVerdicts(s)) {
-        const color = cssVar(stable ? '--stable' : '--unstable');
-        drawPoint(g, view, lambda[0], lambda[1], { r: 6, fill: color });
-        const X = view.X(lambda[0]), right = X < view.w - 110 * view.dpr;
-        drawText(g, view, `|1 + hλ| = ${fmt(factor, 4)}`, lambda[0], lambda[1], {
-          color, size: 11, align: right ? 'left' : 'right', dx: right ? 12 : -12, dy: 17,
-        });
-      }
     },
   });
 
