@@ -111,7 +111,9 @@ export function createComplexPlane({
       drawPoint(g, view, l[0], l[1], { r: 5.5, fill: color });
       if (labels) {
         const text = Number.isNaN(factor) ? `ρ = ${fmt(report.rho, 3)}` : `|R| = ${fmt(factor, 3)}`;
-        const right = view.X(l[0]) < w - 90 * dpr;
+        // to the right of the point, unless that runs into the frame edge or the Im axis's tick labels
+        const X = view.X(l[0]), X0 = view.X(0);
+        const right = X < w - 90 * dpr && !(X < X0 + 4 * dpr && X > X0 - 40 * dpr);
         drawText(g, view, text, l[0], l[1], { color, size: 11, align: right ? 'left' : 'right', dx: right ? 10 : -10, dy: l[1] >= 0 ? -6 : 14 });
       }
     });

@@ -10,7 +10,7 @@ import { cfmt } from 'shared/math/complex.js';
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
-  const stage = createStage(root, { layers: ['plane'], signal });
+  const stage = createStage(root, { layers: ['plane'], aspect: 'half', signal });
   createComplexPlane({
     stage, store, signal,
     // keep both roots comfortably inside the frame as k and c sweep

@@ -8,7 +8,7 @@ import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { createPlayer } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { slider, methodPicker, presets, readout, controls, row } from 'shared/ui/controls.js';
+import { slider, methodPicker, presets, readout, controls } from 'shared/ui/controls.js';
 
 const SPAN = 6;   // seconds of run visible in the trajectory strip
 
@@ -16,7 +16,9 @@ export function mount(root, ctx) {
   const { store, signal, loop } = ctx;
 
   // the plane, with the region blitted underneath and the λ handle
-  const planeStage = createStage(root, { layers: ['region', 'plane'], aspect: 'half', signal, grab: true });
+  const top = el('div', { class: 'viz-row' });
+  root.append(top);
+  const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal, grab: true });
   const plane = createComplexPlane({ stage: planeStage, store, signal, halfRange: 15, region: true, drag: true });
 
   // the run
@@ -39,16 +41,13 @@ export function mount(root, ctx) {
   });
   player.onChange(runStage.invalidate);
 
-  root.append(
-    controls(
-      row(
-        slider(store, 'h', { label: 'h (step)', min: 0.005, max: 0.25, format: v => v.toFixed(3), signal }),
-        methodPicker(store, { signal }),
-      ),
-      row(presets(store, { demo: 'Demo (m=1, c=0.1, k=100)', essay: 'Essay (m=10, c=0.1, k=10)' }), transport(player, { signal })),
-      out.el,
-    ),
-  );
+  top.append(controls(
+    slider(store, 'h', { label: 'h (step)', min: 0.005, max: 0.25, format: v => v.toFixed(3), signal }),
+    methodPicker(store, { signal }),
+    presets(store, { demo: 'Demo (m=1, c=0.1, k=100)', essay: 'Essay (m=10, c=0.1, k=10)' }),
+    transport(player, { signal }),
+  ));
+  root.append(out.el);
 
   return { destroy() {} };
 }

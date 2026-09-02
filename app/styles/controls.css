@@ -2,6 +2,8 @@
    Panels do not ship their own CSS. Add to this file instead. */
 
 .controls { display: grid; gap: 0.75rem; }
+/* a stage beside its controls, so a square stage and a strip stage fit one pane */
+.viz-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 .controls-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; }
 .controls-row > * { flex: 1 1 8rem; }
 
