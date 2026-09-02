@@ -3,7 +3,13 @@
 
 .controls { display: grid; gap: 0.75rem; }
 /* a stage beside its controls, so a square stage and a strip stage fit one pane */
-.viz-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.viz-row {
+  display: grid;
+  grid-template-columns: min(48%, calc(var(--stage-max) * 0.62)) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.viz-row > .stage { width: 100%; }   /* the column is definite; the stage fills it */
 .controls-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; }
 .controls-row > * { flex: 1 1 8rem; }
 
