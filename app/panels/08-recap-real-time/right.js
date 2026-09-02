@@ -1,8 +1,7 @@
 // Panel 8, right: explode h. The same simulation across a small spread of step sizes
-// around the spine's h, one trajectory per h against the exact curve, one highlighted by a
-// slider along the range with its cost (steps per simulated second) and max error called
-// out. The highlight index is local to the pane (a stand-in for the aux store's sweep
-// highlight and the shared sweep strip).
+// around the spine's h, one trajectory per h against the exact curve, one highlighted by
+// the sweep strip (aux.highlight, clamped to this sweep on read; −1 means the spine's h in
+// the middle) with its cost (steps per simulated second) and max error called out.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -11,22 +10,25 @@ import { cssVar, makeView, drawGrid, drawPolyline } from 'shared/gfx/plot2d.js';
 import { simulate } from 'shared/math/integrators.js';
 import { sweep, sweepRange, sweepKey } from 'shared/math/sweep.js';
 import { LIMITS } from 'shared/state.js';
+import { aux } from 'shared/aux.js';
 import { readout, controls } from 'shared/ui/controls.js';
+import { sweepStrip } from 'shared/ui/sweep.js';
 import { stepCost } from 'shared/player.js';
 import { fmtMs } from './cost.js';
 
 const SPAN = 6;     // seconds simulated
 const COUNT = 9;    // step sizes in the bundle; the middle one is the spine's h
 const SPREAD = 4;   // h/SPREAD … h·SPREAD
+const CENTER = (COUNT - 1) / 2;
+
+/** aux.highlight is shared by every sweep: clamp to this one, and −1 means the spine's h. */
+const highlightIndex = () => { const i = aux.get().highlight; return i < 0 ? CENTER : Math.min(COUNT - 1, i); };
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
-  let highlight = (COUNT - 1) / 2;
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
   const out = readout({ label: 'highlighted run' });
-  const input = el('input', { type: 'range', min: 0, max: COUNT - 1, step: 1, value: highlight });
-  const label = el('output');
 
   const values = state => {
     const [lo, hi] = LIMITS.h;
@@ -38,6 +40,7 @@ export function mount(root, ctx) {
   stage.onDraw(({ w, h, dpr }) => {
     const state = store.get();
     const results = runs(state);
+    const highlight = highlightIndex();
     const g = stage.ctx('plot');
     g.clearRect(0, 0, w, h);
 
@@ -55,7 +58,6 @@ export function mount(root, ctx) {
     let err = 0;
     for (let i = 0; i < r.result.n; i++) { const e = Math.abs(r.result.x[i] - r.result.exact[i]); err = Number.isFinite(e) ? Math.max(err, e) : Infinity; }
     const perStep = stepCost(state).perStep;
-    label.textContent = `h = ${fmt(r.value, 4)} s${highlight === (COUNT - 1) / 2 ? ' (the spine’s h)' : ''}`;
     out.set([
       `cost: ${fmt(1 / r.value, 1)} steps per simulated second = ${fmtMs(perStep / r.value)} of compute per second\n`,
       `error: max |x − exact| over ${SPAN} s = ${fmt(err, 4)}`,
@@ -63,12 +65,29 @@ export function mount(root, ctx) {
     ]);
   });
 
-  input.addEventListener('input', () => { highlight = Number(input.value); stage.invalidate(); }, { signal });
-  root.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'highlight one h along the range'), label), input),
-  ));
+  // the strip's values are fixed at construction, and the spine's h slider can move while
+  // this pane is mounted off-screen, so rebuild the strip when the center changes
+  const box = el('div');
+  let strip = null, stripH = NaN;
+  function buildStrip(state) {
+    if (state.h === stripH) return;
+    stripH = state.h;
+    const hs = values(state);
+    const next = sweepStrip({
+      values: hs, label: 'highlight one h along the range', signal, initial: highlightIndex(),
+      format: v => `h = ${fmt(v, 4)} s${v === hs[CENTER] ? ' (the spine’s h)' : ''}`,
+      onSelect: i => aux.set({ highlight: i }),
+    });
+    strip ? strip.el.replaceWith(next.el) : box.append(next.el);
+    strip = next;
+  }
+  buildStrip(store.get());
+  root.append(controls(box));
   root.append(out.el);
 
-  const unsub = store.subscribe(stage.invalidate, { immediate: false });
-  return { destroy() { unsub(); } };
+  const unsub = store.subscribe((state, patch) => { if ('h' in patch) buildStrip(state); stage.invalidate(); }, { immediate: false });
+  const unsubAux = aux.subscribe((s, patch) => {
+    if ('highlight' in patch) { strip.select(highlightIndex(), { notify: false }); stage.invalidate(); }
+  }, { immediate: false });
+  return { destroy() { unsub(); unsubAux(); } };
 }
