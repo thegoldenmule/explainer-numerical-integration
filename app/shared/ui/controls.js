@@ -11,15 +11,32 @@ function bind(store, signal, fn) {
   return off;
 }
 
-/** slider(store, 'h', { label, min, max, step, format, signal }) */
-export function slider(store, key, { label = key, min, max, step = 'any', format = v => String(+v.toPrecision(3)), signal } = {}) {
-  const [lo, hi] = LIMITS[key] ?? [0, 1];
-  const input = el('input', { type: 'range', min: min ?? lo, max: max ?? hi, step, value: store.get()[key], name: key });
+/** The range a control uses for a key: the store's own limits first, then the tuple's. */
+export const limitsOf = (store, key) => store.limits?.[key] ?? LIMITS[key] ?? [0, 1];
+
+/**
+ * slider(store, 'h', { label, min, max, step, format, signal, log })
+ * With `log: true` the input runs in log space and the store gets the real value (use it
+ * for h and k). A log axis needs a positive floor: a non-positive min is raised to
+ * max / 1000, so slider(store, 'k', { log: true }) spans 2..2000 without a `min`.
+ */
+export function slider(store, key, { label = key, min, max, step = 'any', format = v => String(+v.toPrecision(3)), signal, log = false } = {}) {
+  const [lo0, hi0] = limitsOf(store, key);
+  const hi = max ?? hi0;
+  let lo = min ?? lo0;
+  if (log && lo <= 0) lo = hi / 1000;
+  const toInput = log ? v => Math.log(Math.max(v, lo)) : v => v;
+  const fromInput = log ? v => Math.exp(v) : v => v;
+  const input = el('input', {
+    type: 'range', min: toInput(lo), max: toInput(hi), step: log ? 'any' : step, value: toInput(store.get()[key]),
+    name: key, 'data-log': log ? '' : null,
+  });
   const out = el('output');
-  input.addEventListener('input', () => store.set({ [key]: Number(input.value) }));
+  input.addEventListener('input', () => store.set({ [key]: fromInput(Number(input.value)) }));
   bind(store, signal, (s, patch) => {
     if (!(key in patch)) return;
-    if (Number(input.value) !== s[key]) input.value = s[key];
+    const want = toInput(s[key]);
+    if (Math.abs(Number(input.value) - want) > 1e-9 * Math.max(1, Math.abs(want))) input.value = want;
     out.textContent = format(s[key]);
   });
   return el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, label), out), input);
@@ -49,6 +66,38 @@ export function presets(store, labels) {
   return el('div', { class: 'controls-row' },
     Object.entries(labels).map(([name, label]) =>
       el('button', { class: 'btn', type: 'button', onclick: () => store.preset(name) }, label)));
+}
+
+/**
+ * A switch bound to a store key (booleans, or any two values with { on, off }):
+ *   toggle(scene, 'linear', { label: 'Linear model', signal })
+ */
+export function toggle(store, key, { label = key, signal, on = true, off = false } = {}) {
+  const input = el('input', { type: 'checkbox', name: key });
+  input.addEventListener('change', () => store.set({ [key]: input.checked ? on : off }));
+  bind(store, signal, (s, patch) => { if (key in patch) input.checked = s[key] === on; });
+  return el('label', { class: 'toggle' }, input, el('span', { class: 'toggle-track' }), el('span', { class: 'toggle-label' }, label));
+}
+
+/**
+ * The same switch for a value that is not a plain store key: get() reads it, set(bool)
+ * writes it, and an optional subscribe(fn) → off keeps the switch current (a store's
+ * subscribe works as is). Real vs linear through the scene store's own setter:
+ *   toggleFn({ label: 'Linear model', get: () => scene.get().linear, set: v => scene.setLinear(v), subscribe: scene.subscribe, signal })
+ * The element carries sync() to re-read get() when there is nothing to subscribe to.
+ */
+export function toggleFn({ label = '', get, set, subscribe, signal } = {}) {
+  const input = el('input', { type: 'checkbox' });
+  const sync = () => { input.checked = Boolean(get()); };
+  input.addEventListener('change', () => { set(input.checked); sync(); });
+  sync();
+  if (subscribe) {
+    const off = subscribe(sync);
+    if (typeof off === 'function') signal?.addEventListener('abort', off, { once: true });
+  }
+  const node = el('label', { class: 'toggle' }, input, el('span', { class: 'toggle-track' }), el('span', { class: 'toggle-label' }, label));
+  node.sync = sync;
+  return node;
 }
 
 /** A monospace readout. set(text | Node[]) */
