@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { simulate, createStepper, METHOD_IDS } from './integrators.js';
+import { simulate, createStepper, METHOD_IDS, EXPLICIT_METHODS } from './integrators.js';
 import { exactSolution } from './system.js';
 
 const essay = { m: 10, c: 0.1, k: 10, x0: 1, v0: 0 };
@@ -63,4 +63,43 @@ test('Verlet is seeded with the exact x(−h) and converges faster than first or
   assert.ok(errAt(0.01) < 5e-3, `error at h=0.01: ${errAt(0.01)}`);
   const ratio = errAt(0.02) / errAt(0.01);
   assert.ok(ratio > 2.5, `halving h cut the error by only ${ratio.toFixed(2)}×`);
+});
+
+test('a custom accel equal to the linear one reproduces the default run exactly', () => {
+  const { m, c, k } = demo;
+  const linear = (x, v) => -(c * v + k * x) / m;
+  for (const method of ['euler', 'rk4', 'semi']) {
+    const a = simulate({ ...demo, method, h: 1 / 30 }, 3);
+    const b = simulate({ ...demo, method, h: 1 / 30, accel: linear }, 3);
+    assert.equal(a.n, b.n);
+    for (let i = 0; i < a.n; i++) {
+      assert.equal(b.x[i], a.x[i], `${method} x[${i}]`);
+      assert.equal(b.v[i], a.v[i], `${method} v[${i}]`);
+    }
+    assert.equal(a.hasExact, true);
+    assert.equal(b.hasExact, false);
+    assert.ok(Number.isNaN(b.exact[0]) && Number.isNaN(b.exact[b.n - 1]), 'exact is NaN with a custom accel');
+    assert.equal(b.exact.length, b.n);
+  }
+});
+
+test('a custom accel sees t (rk4 stage times) and survives clone and setH', () => {
+  const seen = [];
+  const s = createStepper({ method: 'rk4', h: 0.1, m: 1, c: 0, k: 0, accel: (x, v, t) => { seen.push(t); return 0; } });
+  s.step();
+  assert.deepEqual(seen.map(t => +t.toFixed(12)), [0, 0.05, 0.05, 0.1]);
+  const forced = createStepper({ method: 'euler', h: 0.5, m: 1, c: 0, k: 0, accel: () => 2 });
+  forced.step().step();
+  assert.equal(forced.v, 2, 'v = a t with a = 2, t = 1');
+  const copy = forced.clone().setH(0.25).step();
+  assert.equal(copy.v, 2.5, 'the clone keeps the custom accel');
+  assert.equal(forced.v, 2);
+});
+
+test('implicit Euler and Verlet refuse a custom accel', () => {
+  for (const method of ['implicit', 'verlet']) {
+    assert.throws(() => createStepper({ ...demo, method, h: 0.01, accel: () => 0 }), /linear system only/);
+    assert.throws(() => simulate({ ...demo, method, h: 0.01, accel: () => 0 }, 1), /linear system only/);
+  }
+  assert.deepEqual(EXPLICIT_METHODS, ['euler', 'rk4', 'semi']);
 });

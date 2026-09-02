@@ -20,28 +20,39 @@ export const METHOD_IDS = Object.freeze(Object.keys(METHODS));
  * setH(h) changes the step from here on (Verlet rebuilds x_{n−1} so its velocity at t is
  * preserved) and clone() returns an independent stepper at the same state; together they
  * let the adaptive controller take trial steps of varying size (math/adaptive.js).
+ *
+ * `accel(x, v, t)` replaces the linear acceleration for the explicit methods (euler, rk4,
+ * semi), which is how panel 2 integrates an arbitrary force sum and 5-right runs the
+ * nonlinear model. Implicit Euler and Verlet keep their linear closed forms and throw if
+ * one is passed; restrict the method picker to EXPLICIT_METHODS when a custom force is in
+ * play.
  */
-export function createStepper({ method, h, m, c, k, x0 = 1, v0 = 0 }) {
+export const EXPLICIT_METHODS = Object.freeze(['euler', 'rk4', 'semi']);
+
+export function createStepper({ method, h, m, c, k, x0 = 1, v0 = 0, accel = null }) {
   if (!METHODS[method]) throw new Error(`unknown integrator: ${method}`);
+  if (accel && !EXPLICIT_METHODS.includes(method)) {
+    throw new Error(`${METHODS[method].label} integrates the linear system only; a custom accel needs one of ${EXPLICIT_METHODS.join(', ')}`);
+  }
   const xPrev = method === 'verlet' ? exactSolution({ m, c, k, x0, v0 }).x(-h) : 0;
-  return makeStepper({ method, h, m, c, k }, { x: x0, v: v0, t: 0, xPrev });
+  return makeStepper({ method, h, m, c, k, accel }, { x: x0, v: v0, t: 0, xPrev });
 }
 
-function makeStepper({ method, h, m, c, k }, init) {
-  const acc = acceleration(m, c, k);
+function makeStepper({ method, h, m, c, k, accel }, init) {
+  const acc = accel ?? acceleration(m, c, k);
   let { x, v, t, xPrev } = init;
 
   const steps = {
     euler() {
-      const a = acc(x, v);
+      const a = acc(x, v, t);
       x += h * v;
       v += h * a;
     },
     rk4() {
-      const k1v = v,                 k1a = acc(x, v);
-      const k2v = v + h / 2 * k1a,   k2a = acc(x + h / 2 * k1v, k2v);
-      const k3v = v + h / 2 * k2a,   k3a = acc(x + h / 2 * k2v, k3v);
-      const k4v = v + h * k3a,       k4a = acc(x + h * k3v, k4v);
+      const k1v = v,                 k1a = acc(x, v, t);
+      const k2v = v + h / 2 * k1a,   k2a = acc(x + h / 2 * k1v, k2v, t + h / 2);
+      const k3v = v + h / 2 * k2a,   k3a = acc(x + h / 2 * k2v, k3v, t + h / 2);
+      const k4v = v + h * k3a,       k4a = acc(x + h * k3v, k4v, t + h);
       x += h / 6 * (k1v + 2 * k2v + 2 * k3v + k4v);
       v += h / 6 * (k1a + 2 * k2a + 2 * k3a + k4a);
     },
@@ -54,7 +65,7 @@ function makeStepper({ method, h, m, c, k }, init) {
       x = xn; v = vn;
     },
     semi() {
-      v += h * acc(x, v);
+      v += h * acc(x, v, t);
       x += h * v;
     },
     verlet() {
@@ -88,24 +99,29 @@ function makeStepper({ method, h, m, c, k }, init) {
       return this;
     },
     /** An independent copy at the same (x, v, t, x_{n−1}) and h, for trial steps. */
-    clone() { return makeStepper({ method, h, m, c, k }, { x, v, t, xPrev }); },
+    clone() { return makeStepper({ method, h, m, c, k, accel }, { x, v, t, xPrev }); },
   };
 }
 
 /**
  * Run from t = 0 to tEnd (inclusive of the last step that fits).
  * Returns { t, x, v } as Float64Arrays plus `exact`, the closed form sampled at the same t.
+ * With a custom `accel` there is no closed form to compare against: `exact` is still an
+ * array of the right length, filled with NaN, so plots that draw it simply draw nothing
+ * (plot2d and trajectory skip non-finite samples), and `hasExact` is false.
  */
 export function simulate(params, tEnd) {
   const s = createStepper(params);
   const n = Math.max(0, Math.floor(tEnd / params.h + 1e-9));
   const t = new Float64Array(n + 1), x = new Float64Array(n + 1), v = new Float64Array(n + 1);
-  const sol = exactSolution(params);
+  const sol = params.accel ? null : exactSolution(params);
   const exact = new Float64Array(n + 1);
+  if (!sol) exact.fill(NaN);
   for (let i = 0; ; i++) {
-    t[i] = s.t; x[i] = s.x; v[i] = s.v; exact[i] = sol.x(s.t);
+    t[i] = s.t; x[i] = s.x; v[i] = s.v;
+    if (sol) exact[i] = sol.x(s.t);
     if (i === n) break;
     s.step();
   }
-  return { t, x, v, exact, n: n + 1 };
+  return { t, x, v, exact, n: n + 1, hasExact: Boolean(sol) };
 }
