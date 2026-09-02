@@ -10,8 +10,8 @@ import { cssVar, drawPoint } from 'shared/gfx/plot2d.js';
 import { controls, readout } from 'shared/ui/controls.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { taylorAmplification } from 'shared/math/stability.js';
+import { polynomialText } from 'shared/math/taylor.js';
 import { cabs, cscale } from 'shared/math/complex.js';
-import { polynomialText } from './left.js';
 
 const ORDERS = [1, 2, 3, 4];
 const NAMES = { 1: 'RK1 (Euler)', 2: 'RK2', 3: 'RK3', 4: 'RK4' };

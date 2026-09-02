@@ -32,6 +32,17 @@ export function expTerms(x, n) {
   return terms;
 }
 
+const SUPERSCRIPT = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+const sup = n => String(n).split('').map(d => SUPERSCRIPT[d]).join('');
+
+/** "1 + z + z²/2 + z³/6 + …" up to degree n, the partial sum of e^z as text; `sep` joins the terms. */
+export function polynomialText(n, sep = ' + ') {
+  const terms = ['1'];
+  let f = 1;
+  for (let i = 1; i <= n; i++) { f *= i; terms.push(i === 1 ? 'z' : `z${sup(i)}/${f}`); }
+  return terms.join(sep);
+}
+
 /** The running partial sums S_0 … S_n of e^x. */
 export function expPartialSums(x, n) {
   const terms = expTerms(x, n), sums = [];

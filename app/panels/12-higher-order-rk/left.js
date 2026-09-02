@@ -9,7 +9,7 @@ import { drawBundle } from 'shared/gfx/bundle.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { controls, readout } from 'shared/ui/controls.js';
-import { expPartialSums } from 'shared/math/taylor.js';
+import { expPartialSums, polynomialText } from 'shared/math/taylor.js';
 import { taylorAmplification } from 'shared/math/stability.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { handleIndex } from 'shared/gfx/cplane.js';
@@ -18,16 +18,6 @@ import { cabs, cscale } from 'shared/math/complex.js';
 const MAX_N = 8;
 const X_MIN = -5, X_MAX = 2, Y_MIN = -6, Y_MAX = 8;
 const SAMPLES = 400;
-const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸'];
-const FACT = [1, 1, 2, 6, 24, 120, 720, 5040, 40320];
-
-/** "1 + z + z²/2 + z³/6 + …" up to degree n; `sep` joins the terms */
-export function polynomialText(n, sep = ' + ') {
-  const terms = ['1'];
-  for (let i = 1; i <= n; i++) terms.push(i === 1 ? 'z' : `z${SUP[i]}/${FACT[i]}`);
-  return terms.join(sep);
-}
-
 export function mount(root, ctx) {
   const { store, signal } = ctx;
   let n = 4;

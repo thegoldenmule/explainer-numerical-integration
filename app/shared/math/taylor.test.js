@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { expCoefficients, expPartialSum, expTerms, expPartialSums, inverseSquareExpansion, derivatives, truncationTerm, localTruncationError } from './taylor.js';
+import { expCoefficients, expPartialSum, expTerms, expPartialSums, polynomialText, inverseSquareExpansion, derivatives, truncationTerm, localTruncationError } from './taylor.js';
 import { amplification } from './stability.js';
 import { exactSolution } from './system.js';
 
@@ -22,6 +22,14 @@ test('partial sums of e^x converge to Math.exp', () => {
     near(expTerms(x, 6).reduce((a, b) => a + b), sums[6], 1e-14);
   }
   near(expPartialSum(0.1, 1), 1.1, 1e-15); // Euler
+});
+
+test('polynomialText spells the partial sum with unicode superscripts and factorials', () => {
+  assert.equal(polynomialText(0), '1');
+  assert.equal(polynomialText(1), '1 + z');
+  assert.equal(polynomialText(4), '1 + z + z²/2 + z³/6 + z⁴/24');
+  assert.equal(polynomialText(2, '+'), '1+z+z²/2');
+  assert.equal(polynomialText(10).split(' + ').pop(), 'z¹⁰/3628800');
 });
 
 test('the degree-1 and degree-4 sums are Euler and RK4 amplification on the real axis', () => {
