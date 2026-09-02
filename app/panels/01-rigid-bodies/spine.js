@@ -57,11 +57,7 @@ export function mount(root, ctx) {
     draw();
   }, { signal });
   canvas.addEventListener('pointerup', () => { drag = null; stage.dataset.grab = ''; }, { signal });
-  canvas.addEventListener('wheel', e => {
-    e.preventDefault();
-    body.theta += e.deltaY * 0.004;
-    draw();
-  }, { signal, passive: false });
+  // No wheel handler: wheel events are the page's swipe gesture and must never be cancelled.
 
   const stopResize = observeResize(stage, draw);
   const unsubscribe = ctx.store.subscribe(draw);

@@ -102,7 +102,7 @@ the concept from the essay, then the interactive beat that carries it. Part I se
 The page is a grid of full-viewport panels. The **spine** runs vertically: each of the 13
 outline steps is one panel, and scrolling down advances to the next concept. Each panel holds
 its interactive visualization and its explainer text. From any panel you can move sideways,
-never more than one pane:
+never more than one pane (panel 12 is the one exception; see Navigation rules):
 
 - **Left = refresher.** A prerequisite you may have forgotten. Lighter, faster, assumes less.
 - **Right = drill-down.** A deeper concept the panel gestures at but does not need. Assumes
@@ -168,7 +168,7 @@ unreadable fast. Keep sweeps small and let linked highlighting carry the compari
                                |
    [exact solution, no method]<- 11  Let's break it  ------> [explode the plane: a grid of λ]
                                |
-   [Taylor series] <--------- 12  Higher-order RK  -------> [explode order: RK1–RK4 regions]
+   [Taylor series] <--------- 12  Higher-order RK  -------> [explode order] -> [implicit Euler] -> [Verlet]
                                |
    [local vs global error] <- 13  Variable step sizes  ---> [adaptive step controllers]
 ```
@@ -325,10 +325,8 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - *Spine viz:* switch integrator and the region redraws; small multiples of Euler, RK4, and
   implicit Euler pinned to the same `λ`, which falls inside one and outside another. The
   teaching contrast: implicit Euler never explodes, but its spring is visibly over-damped
-  against the exact curve. Margin note on implicit Euler: it is hard in general, a solve
-  per step, but the linear case has a 2×2 closed form (see Integrators below), and its
-  region `|1 − hλ| ≥ 1` is the outside of a disk. Semi-implicit Euler and Verlet have no
-  scalar `R(hλ)` and are kept out of the flow; see the design caveat under Integrators.
+  against the exact curve. The spine only shows that; the second and third right panes
+  explain it.
 - *Left, step down (one term at a time):* Taylor series. Add terms to the expansion one by
   one and watch the approximation of `e^{hλ}` improve; Euler is the first two, RK4 the first
   five.
@@ -337,6 +335,22 @@ wildcards), then the left pane as a step down and the right pane as a step up.
   polynomial of `e^{hλ}` has modulus at most 1. Hover an order to highlight its region and
   its polynomial and dim the rest. The left is one `λ` term by term; this is every `λ`
   order by order.
+- *Right 2, step up (implicit Euler):* the same one step, but solved for the *next* state:
+  `x_{i+1} = x_i + h f(t, x_{i+1})`. Why that is hard in general, a solve per step, and the
+  2×2 closed form that makes it cheap for the linear system (see Integrators below). Apply
+  it to the modal equation and the root is `z = 1 / (1 − hλ)`, so the region is
+  `|1 − hλ| ≥ 1`: the outside of a disk, stable almost everywhere. Explode `h` on the
+  implicit spring, a small bundle of runs against the exact curve; drag `h` to highlight
+  one and watch the over-damping grow with the step. Never explodes, always lies.
+- *Right 3, step up (Verlet):* a different structure. Störmer–Verlet updates position from
+  the two previous positions, `x_{i+1} = 2x_i − x_{i−1} + h² a_i`, and with a
+  velocity-dependent force like drag the velocity it needs is the one it has not computed
+  yet, so it is solved implicitly or lagged (see Integrators). It is symplectic: it preserves
+  amplitude and drifts phase instead of decaying or exploding. There is no scalar `R(hλ)`,
+  so no region on the `λ`-plane; the honest picture is a heatmap of the spectral radius of
+  its 2×2 update over `(hω, ζ)`, with the `hω < 2` wall as a hard edge. Hover a cell to
+  see its trajectory against the exact curve. The three right panes together are the three
+  ways out of the Euler disk: more terms, solve backward, or change the structure.
 
 **13. Variable step sizes.** `h` becomes a function of `t`.
 - *Spine viz:* a target-error slider with `h(t)` plotted as its own trajectory under the
@@ -356,8 +370,11 @@ wildcards), then the left pane as a step down and the right pane as a step up.
   refresher on vectors uses the same force arrows the reviewer just dragged.
 - Leaving a side pane returns to the exact spine panel it came from; the spine never scrolls
   while a side pane is open.
-- Side panes are one deep. A right pane has no right pane of its own.
-- Deep links: `#/7`, `#/7/left`, `#/7/right`. The whole grid is addressable.
+- Side panes are one deep, with one exception: panel 12 has three right panes in a row
+  (explode order, implicit Euler, Verlet), each reached by another rightward move, and
+  leaving any of them returns to panel 12.
+- Deep links: `#/7`, `#/7/left`, `#/7/right`, and `#/12/right/2`, `#/12/right/3` for the
+  chain. The whole grid is addressable.
 
 ## Rendering research: how to run the Mathematica math in a browser
 

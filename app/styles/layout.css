@@ -1,32 +1,57 @@
-/* layout.css: the spine, the rail, the side pane. Nothing about the content inside them. */
+/* layout.css: the 2D grid. Vertical scroll snap between panels, horizontal scroll snap
+   within a panel between its left pane, spine pane, and right pane. Two rails of dots. */
 
 html, body { height: 100%; }
 body { overflow: hidden; }
 
-/* ---- spine: vertical scroll snap, one panel per viewport ---- */
+/* ---- spine: vertical scroll snap, one row per panel ---- */
 
 #spine {
   position: relative;
   height: 100dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
   scroll-behavior: smooth;
+  scrollbar-width: none;
 }
-#spine[inert] { overflow: hidden; }
+#spine::-webkit-scrollbar { display: none; }
+/* a side pane is open: the spine does not scroll until you come back to the center */
+#spine.side-open { overflow-y: hidden; }
+
+/* ---- row: horizontal scroll snap between panes ---- */
 
 .panel {
   position: relative;
   height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;   /* no browser back/forward swipe */
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.panel::-webkit-scrollbar { display: none; }
+
+/* ---- pane: one viewport-sized cell ---- */
+
+.pane {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 1rem;
-  padding: 2rem 4.5rem 1.5rem 4rem;
+  padding: 2rem 4.5rem 3rem 4rem;
 }
 
-.panel-meta {
+.pane-meta {
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
@@ -34,6 +59,7 @@ body { overflow: hidden; }
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+.pane-meta .kind { color: var(--accent); }
 
 /* ---- pane body: prose column + interactive column ---- */
 
@@ -59,37 +85,18 @@ body { overflow: hidden; }
 }
 .pane-missing code { background: none; padding: 0; }
 
-/* ---- panel footer: sideways moves ---- */
+/* ---- rails: identical dots on the right edge (panels) and bottom edge (panes) ---- */
 
-.panel-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: 0.9rem;
-}
-.panel-nav a {
-  text-decoration: none;
-  color: var(--muted);
-  padding: 0.4rem 0.6rem;
-  border-radius: var(--radius);
-}
-.panel-nav a:hover { color: var(--fg); background: var(--accent-soft); }
-.panel-nav a b { color: var(--fg); font-weight: 600; }
-.panel-nav .spacer { flex: 1; }
-
-/* ---- rail ---- */
-
-#rail {
+.rail {
   position: fixed;
-  right: 1.1rem;
-  top: 50%;
-  translate: 0 -50%;
   display: flex;
-  flex-direction: column;
   gap: 0.55rem;
   z-index: 5;
 }
-#rail a {
+#rail  { right: 1.1rem; top: 50%; translate: 0 -50%; flex-direction: column; }
+#hrail { bottom: 1.1rem; left: 50%; translate: -50% 0; flex-direction: row; }
+
+.rail a {
   display: block;
   width: 0.6rem;
   height: 0.6rem;
@@ -97,45 +104,7 @@ body { overflow: hidden; }
   background: var(--border-strong);
   transition: background 0.15s, scale 0.15s;
 }
-#rail a:hover { background: var(--muted); }
-#rail a[aria-current="true"] { background: var(--accent); scale: 1.35; }
+.rail a:hover { background: var(--muted); }
+.rail a[aria-current="true"] { background: var(--accent); scale: 1.35; }
+.rail a[hidden] { display: block; visibility: hidden; }  /* keeps the center dot centered */
 #rail a.part-break { margin-top: 0.6rem; }
-
-/* ---- side pane overlay ---- */
-
-#pane {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  background: var(--bg);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 1rem;
-  padding: 2rem 4.5rem 1.5rem 4rem;
-  visibility: hidden;
-  transition: translate 0.28s cubic-bezier(0.2, 0.7, 0.2, 1), visibility 0s 0.28s;
-}
-#pane[data-side="left"]  { translate: -100% 0; }
-#pane[data-side="right"] { translate: 100% 0; }
-#pane.open { translate: 0 0; visibility: visible; transition-delay: 0s, 0s; }  /* visible at once on open; delayed on close */
-
-.pane-header {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.pane-header .back {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 0.3rem 0.7rem;
-  cursor: pointer;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 0.9rem;
-}
-.pane-header .back:hover { background: var(--accent-soft); }

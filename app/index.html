@@ -45,14 +45,14 @@
 <body>
 <a class="skip" href="#spine">Skip to content</a>
 
-<!-- The spine: one full-viewport section per outline step, filled by shared/main.js -->
+<!-- The spine: one full-viewport row per outline step, filled by shared/main.js. Each row
+     scroll-snaps horizontally between its left pane, spine pane, and right pane. -->
 <main id="spine" aria-label="Explainer"></main>
 
-<!-- The rail: one dot per panel, bound to the current route -->
-<nav id="rail" aria-label="Panels"></nav>
-
-<!-- The side pane: refresher (left) or drill-down (right) overlay, one deep -->
-<aside id="pane" aria-hidden="true" data-side="right"></aside>
+<!-- Rails: one dot per panel on the right edge (up/down), one dot per pane on the bottom
+     edge (left/right). Same dots, same meaning: filled is where you are. -->
+<nav id="rail" class="rail" aria-label="Panels"></nav>
+<nav id="hrail" class="rail" aria-label="Panes"></nav>
 
 <noscript><p class="noscript">This explainer is interactive and needs JavaScript.</p></noscript>
 <script type="module" src="./shared/main.js"></script>

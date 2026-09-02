@@ -36,7 +36,8 @@ export function createRouter({ count, canOpen = () => true, onRoute }) {
     const route = normalize({ index, side });
     const hash = formatRoute(route);
     if (hash === location.hash) {
-      if (source !== 'go') apply(route, source);
+      const same = route.index === current.index && route.side === current.side;
+      if (source !== 'go' && !same) apply(route, source);
       return;
     }
     if (replace) {

@@ -76,24 +76,35 @@ export async function mountPane({ store, entry, pane, container }) {
 const noop = { pause() {}, resume() {}, destroy() {} };
 
 /**
- * Keeps the spine warm around the current panel:
- *   mounted:   current ± 1
- *   paused:    everything mounted that is not current
- *   destroyed: anything farther than ± 2 (state lives in the store, so remounting is free)
+ * Keeps the grid warm around the current position.
+ *   mounted:   the spine panes of current ± 1, and the current panel's side panes
+ *   resumed:   the one pane on screen
+ *   paused:    everything else that is mounted
+ *   destroyed: spine panes farther than ± 2, side panes of other panels
+ * State lives in the store, so remounting a pane is free.
  */
-export function createSpineLoader({ store, manifest, containerFor }) {
-  const mounted = new Map(); // index → Promise<handle>
+export function createPaneManager({ store, manifest, containerFor }) {
+  const mounted = new Map(); // "index/pane" → Promise<handle>
+  const key = (index, pane) => `${index}/${pane}`;
 
-  function ensure(index) {
-    if (index < 1 || index > manifest.length || mounted.has(index)) return;
-    mounted.set(index, mountPane({ store, entry: manifest[index - 1], pane: 'spine', container: containerFor(index) }));
+  function ensure(index, pane) {
+    if (index < 1 || index > manifest.length) return;
+    const entry = manifest[index - 1];
+    if (pane !== 'spine' && !entry[pane]) return;
+    const k = key(index, pane);
+    if (mounted.has(k)) return;
+    mounted.set(k, mountPane({ store, entry, pane, container: containerFor(index, pane) }));
   }
 
-  async function activate(current) {
-    for (const i of [current, current + 1, current - 1]) ensure(i);
-    for (const [i, p] of mounted) {
-      if (Math.abs(i - current) > 2) { mounted.delete(i); p.then(h => h.destroy()); }
-      else p.then(h => (i === current ? h.resume() : h.pause()));
+  function activate(index, side = null) {
+    ensure(index, 'spine'); ensure(index + 1, 'spine'); ensure(index - 1, 'spine');
+    ensure(index, 'left'); ensure(index, 'right');
+    const active = key(index, side ?? 'spine');
+    for (const [k, p] of mounted) {
+      const [i, pane] = k.split('/');
+      const far = pane === 'spine' ? Math.abs(i - index) > 2 : Number(i) !== index;
+      if (far) { mounted.delete(k); p.then(h => h.destroy()); }
+      else p.then(h => (k === active ? h.resume() : h.pause()));
     }
   }
 

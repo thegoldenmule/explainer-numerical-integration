@@ -100,15 +100,17 @@ system.
 3. `<script type="module" src="shared/main.js">` boots. `main.js` reads the manifest, stamps
    out 13 empty `<section class="panel">` elements and the rail, then hands off to the router.
 
-4. The router reads `location.hash`. For `#/7/left` it scrolls the spine to panel 7 and asks
-   the loader for panel 7's `spine` and `left` panes. The loader also warms panels 6 and 8
-   so a scroll in either direction is instant. Nothing else is fetched.
+4. The router reads `location.hash`. For `#/7/left` it scrolls the spine to panel 7, scrolls
+   that row to its left cell, and asks the pane manager for panel 7's panes. The manager
+   mounts the spine panes of 6, 7, and 8 and both side panes of 7, so a swipe in any
+   direction reveals content that is already there. Nothing else is fetched.
 
 5. Scrolling the spine fires an `IntersectionObserver`; when a new panel is most visible the
    router updates the hash (without triggering its own scroll handler) and repeats step 4.
 
-Every pane costs two requests the first time it is shown, one `.js` and one `.html`, and
-zero afterwards. The whole app is addressable by URL and nothing is loaded that is not on
+Every pane costs two requests the first time it is mounted, one `.js` and one `.html`, and
+zero afterwards. Side panes of other panels are destroyed when you move on; state lives in
+the store, so remounting is free. The whole app is addressable by URL and nothing is loaded that is not on
 or next to the screen.
 
 ## The pane contract
@@ -176,15 +178,27 @@ animate call `ctx.loop.onFrame(cb)`.
 
 ## Router and layout
 
-- The spine is a vertical `scroll-snap-type: y mandatory` container filling the viewport;
-  each panel is `100dvh` and `scroll-snap-align: start`.
-- The rail is a fixed column of 13 dots on the right edge, bound to the current panel.
-- A side pane is a full-viewport overlay that slides in from its edge. While it is open the
-  spine container is `inert` and `overflow: hidden`, so the spine cannot scroll and cannot
-  take focus. Escape or the back arrow closes it; the hash returns to `#/N`.
+The page is a real 2D scroll-snap grid, so a touchpad swipe in any direction is the primary
+gesture and every other input (arrow keys, rail dots, deep links) lands on the same route.
+
+- The spine is a vertical `scroll-snap-type: y mandatory` container filling the viewport.
+  Each panel is a row: a `100dvh` horizontal `scroll-snap-type: x mandatory` container whose
+  children are the panel's cells, `[left] [spine] [right]`, each `100%` wide. Rows without a
+  side pane simply have fewer cells. Every row starts scrolled to its spine cell.
+- Two rails of identical dots. The right edge shows one dot per panel; the bottom edge shows
+  one dot per pane of the current panel (three slots, a missing pane is an invisible slot so
+  the center dot stays centered). Filled is where you are, hollow is where you can go.
+- While a side pane is showing the spine gets `overflow-y: hidden`, so vertical scrolling is
+  locked until you come back to the center. `overscroll-behavior-x: contain` on rows keeps
+  the browser's back/forward swipe from firing.
+- Only the visible cell of the current row is interactive; the others are `inert`.
 - Deep links: `#/7`, `#/7/left`, `#/7/right`. Anything else redirects to `#/1`.
-- Scroll to hash and hash to scroll both exist, so the router keeps a `navigating` flag and
-  ignores observer events while it is the one doing the scrolling.
+- Two `IntersectionObserver`s map scroll to route: one on the spine watching rows (ignored
+  while a side pane is open), one per row watching its cells. Programmatic scrolls set a
+  `navigating` flag cleared on `scrollend` (or a timeout) so the observers ignore them.
+  Leaving a panel whose side pane was open snaps that row back to its spine cell.
+- Cell targets are computed from the cell's index times the row width, not `offsetLeft`,
+  which shifts with the row's own scroll offset.
 
 ## Rendering
 
