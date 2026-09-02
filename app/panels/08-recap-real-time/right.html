@@ -1,0 +1,19 @@
+<article>
+  <h2>Explode h: all step sizes at once</h2>
+  <div class="prose">
+    <p>The spine runs one step size. Here the same simulation runs across a small spread of step
+      sizes at once, one trajectory per <math><mi>h</mi></math>, all against the same exact
+      curve.</p>
+    <p>Read it as a bundle. The small steps lie on the blue curve and cost the most; the large
+      steps peel away first, and some never come back. Between them is the step this spring can
+      afford. The spine’s single <math><mi>h</mi></math> is one line in this bundle, and the
+      trial-and-error developer from the spine is walking this range one guess at a time.</p>
+    <p>Two numbers are called out for the highlighted run: its compute cost, the steps it takes
+      per second of simulated time, and its error, how far it has drifted from the exact
+      solution. As <math><mi>h</mi></math> grows, one falls and the other rises, and the panels
+      after this one are about proving where that trade stops being safe.</p>
+    <p>Drag the <math><mi>h</mi></math> marker along the range to highlight the trajectory it
+      lands on and dim the rest.</p>
+  </div>
+  <div class="viz"></div>
+</article>

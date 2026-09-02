@@ -1,0 +1,20 @@
+<article>
+  <h2>Frame budget, ms per frame</h2>
+  <div class="prose">
+    <p>A display refreshing 60 times a second gives each frame
+      <math><mrow><mn>1</mn><mo>/</mo><mn>60</mn><mtext> s</mtext><mo>≈</mo><mn>16.7</mn><mtext> ms</mtext></mrow></math>.
+      At 30 fps it is 33.3 ms. A millisecond is a thousandth of a second; a modern CPU does a
+      few million simple operations in one.</p>
+    <p>Here is a single frame as a timeline. Everything the game does that frame has to fit:
+      reading input, running the physics step, updating the world, drawing it. The physics slice
+      is what this piece is about. If the slice grows past the frame, the frame is late and the
+      display shows the previous one again: a stutter.</p>
+    <p>The physics step and the frame are different clocks. The step size
+      <math><mi>h</mi></math> is how much <em>simulated</em> time one step advances; the slice is
+      how much <em>wall-clock</em> time computing it costs. Advancing simulated time by one frame
+      at a small <math><mi>h</mi></math> takes several steps, and several slices. That is why a
+      larger step is cheaper, and why panel 8 wants the largest one that stays close.</p>
+    <p>Drag <math><mi>h</mi></math> and count the steps that fit inside the one frame.</p>
+  </div>
+  <div class="viz"></div>
+</article>

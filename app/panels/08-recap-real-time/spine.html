@@ -1,0 +1,23 @@
+<article>
+  <h2>Recap: real time</h2>
+  <div class="prose">
+    <p>Numerical methods operate <em>iteratively</em>: given the current state of a system, a
+      method approximates a future state. They are generally given small time steps like 1/60th
+      or 1/30th of a second, where the smaller the time step, the closer the approximation will
+      be to the actual solution.</p>
+    <p>Games are particularly fascinating bits of software because they need to operate in
+      <em>realtime</em>. They need to do work many times a second, usually linked in some way to
+      the refresh rate of a display. This means that, for a game trying to run at 60 fps, each
+      frame we only have 1/60th of a second (probably less) to do processing. Because of this,
+      it behooves a physics engine to maximize that time step without letting the difference
+      between the approximation and the explicit solution grow.</p>
+    <p>Many game developers just use trial and error here. They set a time step, or simpler
+      still just use the default, and then they play the game to see if there are issues. The
+      problem with this method is that adequately testing a sandbox is logically impossible. A
+      tester can’t possibly test every physical situation. Instead, you need something
+      <em>provable</em>.</p>
+    <p>This is the tension from panel 3 with a clock on it. Raise <math><mi>h</mi></math> and the
+      compute cost per frame falls while the error against the exact curve rises.</p>
+  </div>
+  <div class="viz"></div>
+</article>

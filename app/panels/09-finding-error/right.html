@@ -1,0 +1,27 @@
+<article>
+  <h2>The modal equation</h2>
+  <div class="prose">
+    <p>First, we need to start with a construction called the <strong>modal equation</strong>.
+      Modal equations define independent behaviors of a system of equations: different “modes”
+      of a system. This is, conceptually, very similar to what an eigenvalue describes about a
+      square matrix: the magnitude of an independent scaling transformation. This is a clue to
+      why eigenvalues will show up here.</p>
+    <p>The modal equation is given by the following, for a state <math><mi>x</mi></math> and
+      eigenvalue <math><mi>λ</mi></math>:</p>
+    <math display="block">
+      <mrow><msup><mi>x</mi><mo>′</mo></msup><mo>=</mo><mi>λ</mi><mi>x</mi></mrow>
+    </math>
+    <p>The spring is a 2D system in <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>v</mi><mo>)</mo></mrow></math>.
+      Along each eigenvector it is one dimensional: the state just scales by
+      <math><msup><mi>e</mi><mrow><mi>λ</mi><mi>t</mi></mrow></msup></math>, with that direction’s
+      own <math><mi>λ</mi></math>. Split the state onto the eigenvectors and the two modes evolve
+      independently, each a copy of the scalar equation above. So the system is abstracted away
+      and one scalar problem is left, with <math><mi>λ</mi></math> as its only parameter.</p>
+    <p>What we need to do is take our numerical method and apply it to the modal equation. Each
+      mode then gets its own error ratio, and the system is safe only if every mode is. One
+      caveat for this spring: its two eigenvalues are a conjugate pair, so both modes share the
+      same ratio and the split is not very visible here.</p>
+    <p>Drag the state and watch it decompose onto the two modes, each scaling on its own.</p>
+  </div>
+  <div class="viz"></div>
+</article>

@@ -1,0 +1,26 @@
+<article>
+  <h2>Finding error</h2>
+  <div class="prose">
+    <p>To find this optimal time step, LST relies on error calculation. Intuitively speaking,
+      LST is looking for a threshold where our simulation has accumulated “too much error”, in
+      which case it kerplodes.</p>
+    <p>The main idea of this type of analysis is that we want to calculate the ratio of future
+      to present error, usually denoted by <math><mi>z</mi></math>. If we can explicitly
+      calculate this ratio, then we know whether error is growing or shrinking. This means that
+      what we’re going to be looking to do is pick parameters of our system and our numerical
+      methods <em>such that this ratio is less than one</em>. If we can do that, then we’ve
+      proved that our error is shrinking.</p>
+    <p>Here the ratio is <em>measured</em>, not derived: the error at step
+      <math><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></math> divided by the error at step
+      <math><mi>i</mi></math>, and from it the time the error takes to double,
+      <math><mrow><mi>h</mi><mo>·</mo><mi>ln</mi><mn>2</mn><mo>/</mo><mi>ln</mi><mi>z</mi></mrow></math>.
+      No integrator has been introduced yet, so there is no formula for
+      <math><mi>z</mi></math> here; the next panel derives one.</p>
+    <p>Before any method can be analyzed, the system has to be reduced to one number: the
+      <strong>modal equation</strong>, to the right, does that, and panel 10 is built on it. Read
+      it before going on.</p>
+    <p>Watch the error curve next to the simulation and its ratio settle to one number; change
+      <math><mi>h</mi></math> and see it cross one.</p>
+  </div>
+  <div class="viz"></div>
+</article>
