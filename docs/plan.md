@@ -1,9 +1,10 @@
 # Plan for `app/`
 
-The build-free, single-page application that carries the explainer in `idea.md`. This
-document is the working plan: directory layout, the module contracts every panel follows,
-how panels are loaded lazily, and what to do next. Read `idea.md` first for *what* the
-piece says; this file is *how* the page is put together.
+How the page in `idea.md` is put together. `idea.md` is authoritative: the outline, the
+panel-by-panel beats, the navigation rules, the rendering approach, the shared-code
+inventory, the build order, and the numeric confirmations all live there and are not
+repeated here. This file holds only the mechanics: directory layout, the load sequence, the
+pane contract, the store API, the router internals, and the stylesheet split.
 
 ## Ground rules
 
@@ -17,8 +18,7 @@ piece says; this file is *how* the page is put together.
   fetched with dynamic `import()` the first time it is needed.
 - **Light mode, and only light mode.** One stylesheet, no theme toggle, no
   `prefers-color-scheme` branch.
-- **Math is typeset with native MathML.** No KaTeX or MathJax. All current desktop browsers
-  render `<math>` natively.
+- **Math is typeset with native MathML.** No KaTeX or MathJax.
 
 ## Directory layout
 
@@ -30,52 +30,33 @@ app/
 
   styles/
     base.css                  design tokens, reset, typography, MathML sizing
-    layout.css                spine grid, rail, side-pane overlay, scroll snap
+    layout.css                spine grid, rails, side-pane cells, scroll snap
     controls.css              sliders, radios, readouts, stage (canvas stack)
 
   shared/                     loaded on first paint; everything a panel may import
-    main.js                   boot: build the shell from the manifest, start the router
+    main.js                   boot: build the grid from the manifest, start the router
     manifest.js               the 13 panels: index, slug, title, which panes exist
-    state.js                  the state tuple store (method, h, m, c, k, x0, v0, t)
-    router.js                 hash routes  #/N  #/N/left  #/N/right
+    state.js                  the state tuple store
+    router.js                 hash routes
     loader.js                 dynamic import + prose fetch + mount/pause/resume/destroy
-    dom.js                    tiny DOM helpers (el, html, clamp, fmt)
-    math/
-      complex.js              cmul, cdiv, cabs, cadd, cscale
-      system.js               eigenvalues, damping regime, exact solution, M C K assembly
-      integrators.js          euler, rk4, implicitEuler, semiImplicitEuler, verlet, simulate()
-      stability.js            R(z) per method, |R(hλ)|, doubling time, spectral radius
-      *.test.js               node --test; ports the numeric confirmations in idea.md
-    gfx/
-      region-gl.js            WebGL2 stability-region shader (from docs/poc)
-      plot2d.js               canvas 2D helpers: DPR resize, axes, grid, nice ticks, polyline
-      loop.js                 rAF loop with pause/resume, used by every animated pane
-    ui/
-      controls.js             slider / radio / readout factories bound to the store
+    dom.js                    tiny DOM helpers (el, fragment, clamp, fmt)
+    math/                     complex, system, integrators, stability (+ *.test.js)
+    gfx/                      region shader, canvas 2D helpers, rAF loop
+    ui/                       controls bound to the store
 
   panels/
-    01-rigid-bodies/
-      spine.html              prose for the spine panel (fragment, no <html>/<body>)
+    NN-slug/
+      spine.html              prose for the spine pane (fragment, no <html>/<body>)
       spine.js                the interactive; exports mount(root, ctx)
-      left.html  left.js      refresher pane
-      right.html right.js     drill-down pane (only where idea.md lists one)
-    02-newtonian-physics/
-    03-solving-for-x/
-    04-physical-stability/
-    05-linearize/
-    06-eigen-what-now/
-    07-finding-eigenvalues/
-    08-recap-real-time/
-    09-finding-error/
-    10-explicit-euler/
-    11-lets-break-it/
-    12-higher-order-rk/
-    13-variable-step-sizes/
+      left.html  left.js      refresher pane, where the manifest lists one
+      right.html right.js     drill-down pane, where the manifest lists one
+      right-2.*  right-3.*    further right panes in a chain (panel 12)
 ```
 
 Panel directories are numbered so the file tree reads in essay order. The manifest is the
-source of truth for titles and which panes exist; the router never guesses from the file
-system.
+source of truth for titles and which panes exist; the router and loader never guess from
+the file system. The modules each panel will need, and which are still to be written, are
+listed under "Shared code" in `idea.md`.
 
 ## How the page loads
 
@@ -98,33 +79,34 @@ system.
    HTML instead of in a waterfall.
 
 3. `<script type="module" src="shared/main.js">` boots. `main.js` reads the manifest, stamps
-   out 13 empty `<section class="panel">` elements and the rail, then hands off to the router.
+   out one row per panel with one cell per pane, and the two rails, then hands off to the
+   router.
 
 4. The router reads `location.hash`. For `#/7/left` it scrolls the spine to panel 7, scrolls
    that row to its left cell, and asks the pane manager for panel 7's panes. The manager
-   mounts the spine panes of 6, 7, and 8 and both side panes of 7, so a swipe in any
+   mounts the spine panes of 6, 7, and 8 and the side panes of 7, so a swipe in any
    direction reveals content that is already there. Nothing else is fetched.
 
-5. Scrolling the spine fires an `IntersectionObserver`; when a new panel is most visible the
-   router updates the hash (without triggering its own scroll handler) and repeats step 4.
+5. Scrolling fires `IntersectionObserver`s; when a new cell is most visible the router
+   updates the hash (without triggering its own scroll handler) and repeats step 4.
 
 Every pane costs two requests the first time it is mounted, one `.js` and one `.html`, and
 zero afterwards. Side panes of other panels are destroyed when you move on; state lives in
-the store, so remounting is free. The whole app is addressable by URL and nothing is loaded that is not on
-or next to the screen.
+the store, so remounting is free. Nothing is loaded that is not on or next to the screen.
 
 ## The pane contract
 
-Every `spine.js`, `left.js`, and `right.js` exports the same shape:
+Every pane module exports the same shape:
 
 ```js
 // panels/NN-slug/spine.js
 export function mount(root, ctx) {
   // root: the <div class="viz"> inside this pane's fragment
-  // ctx:  { store, panel, pane, loop, signal }
+  // ctx:  { store, panel, pane, index, loop, signal }
   //   store   the shared state store (get / set / subscribe)
   //   panel   the manifest entry for this panel
-  //   pane    'spine' | 'left' | 'right'
+  //   pane    'spine' | 'left' | 'right' | 'right-2' | ...
+  //   index   the panel's 1-based index
   //   loop    a rAF loop already wired to pause when the pane is hidden
   //   signal  an AbortSignal; pass it to addEventListener and it is cleaned up for you
   const unsub = ctx.store.subscribe(draw);
@@ -146,98 +128,88 @@ The prose fragment (`spine.html`) is plain HTML with one required slot:
 </article>
 ```
 
-The loader fetches the fragment with `fetch(new URL('./spine.html', import.meta.url))`,
-injects it into the pane container, finds `.viz`, and calls `mount`. Prose and code stay
-side by side in the same directory and load together, but prose is authored as HTML rather
-than inside a template literal.
+The loader fetches the fragment, injects it into the pane container, finds `.viz`, and
+calls `mount`. A pane whose files are missing renders a "not built yet" placeholder and
+logs a 404, which is expected while panels are unbuilt. Panes must never cancel wheel
+events: wheel is the page's swipe gesture.
 
-## Shared state
-
-One store, one tuple, the whole app:
+## The store
 
 ```js
 { method: 'euler' | 'rk4' | 'implicit' | 'semi' | 'verlet',
-  h: 1/30, m: 1, c: 0.1, k: 100, x0: 1, v0: 0, t: 0 }
+  h, m, c, k, x0, v0, t }
 ```
 
-`store.get()` returns a frozen snapshot, `store.set(patch)` merges and notifies,
-`store.subscribe(fn)` returns an unsubscribe function. Subscribers receive `(state, patch)`
-so a pane can skip work when the keys it cares about did not change. Panes must never keep
-private copies of tuple entries; the point of the side panes is that they show *the
-reviewer's* current case, and that only works if there is one source of truth.
+`store.get()` returns a frozen snapshot, `store.set(patch)` clamps to `LIMITS`, throws on
+unknown keys, merges, and notifies; `store.subscribe(fn)` returns an unsubscribe function.
+Subscribers receive `(state, patch)` so a pane can skip work when the keys it cares about
+did not change. Panes never keep private copies of tuple entries. Defaults and presets
+(`DEFAULTS`, `PRESETS.demo`, `PRESETS.essay`) follow the numeric notes in `idea.md`.
 
-Defaults follow the demo recommendation in `idea.md` (`m=1, c=0.1, k=100`) so explicit
-Euler blows up within seconds when the reader reaches panel 11. Panel 11 also seeds the
-essay's own parameters (`m=10, c=0.1, k=10`) through a preset button, not by changing
-defaults.
-
-`t` is the exception to "the store owns it". It changes every animation frame, so it lives
-in the store as a value that panes *read* when they want the shared clock but is written by
-`shared/gfx/loop.js`, and subscribers are not notified for `t`-only patches. Panes that
-animate call `ctx.loop.onFrame(cb)`.
+`t` changes every animation frame, so it is written with `{ silent: true }` and subscribers
+are not notified for `t`-only patches. Panes that animate call `ctx.loop.onFrame(cb)`.
 
 ## Router and layout
 
 The page is a real 2D scroll-snap grid, so a touchpad swipe in any direction is the primary
-gesture and every other input (arrow keys, rail dots, deep links) lands on the same route.
+gesture and every other input (arrow keys, rail dots, deep links) lands on the same route,
+which `main.js` applies in `onRoute`.
 
 - The spine is a vertical `scroll-snap-type: y mandatory` container filling the viewport.
   Each panel is a row: a `100dvh` horizontal `scroll-snap-type: x mandatory` container whose
-  children are the panel's cells, `[left] [spine] [right]`, each `100%` wide. Rows without a
-  side pane simply have fewer cells. Every row starts scrolled to its spine cell.
-- Two rails of identical dots. The right edge shows one dot per panel; the bottom edge shows
-  one dot per pane of the current panel (three slots, a missing pane is an invisible slot so
-  the center dot stays centered). Filled is where you are, hollow is where you can go.
+  children are the panel's cells, `[left] [spine] [right] [right-2] …`, each `100%` wide.
+  Rows without a side pane simply have fewer cells. Every row starts scrolled to its spine
+  cell.
+- Two rails of identical dots: one per panel on the right edge, one per pane of the current
+  panel on the bottom edge (a missing pane is an invisible slot so the spine dot stays
+  centered).
 - While a side pane is showing the spine gets `overflow-y: hidden`, so vertical scrolling is
   locked until you come back to the center. `overscroll-behavior-x: contain` on rows keeps
   the browser's back/forward swipe from firing.
 - Only the visible cell of the current row is interactive; the others are `inert`.
-- Deep links: `#/7`, `#/7/left`, `#/7/right`. Anything else redirects to `#/1`.
-- Two `IntersectionObserver`s map scroll to route: one on the spine watching rows (ignored
-  while a side pane is open), one per row watching its cells. Programmatic scrolls set a
-  `navigating` flag cleared on `scrollend` (or a timeout) so the observers ignore them.
+- Routes are the deep links in `idea.md`'s navigation rules; anything else normalizes to
+  `#/1`, and a side that a panel does not have drops to its spine.
+- Two kinds of `IntersectionObserver` map scroll to route: one on the spine watching rows
+  (ignored while a side pane is open), one per row watching its cells. Programmatic scrolls
+  set a `navigating` flag cleared on `scrollend` (or a timeout) so the observers ignore them.
   Leaving a panel whose side pane was open snaps that row back to its spine cell.
 - Cell targets are computed from the cell's index times the row width, not `offsetLeft`,
   which shifts with the row's own scroll offset.
 
-## Rendering
+## Rendering conventions
 
-- **Stability region:** one WebGL2 fragment shader (`gfx/region-gl.js`), ported from
-  `docs/poc/stability-poc.html`. `precision highp float` is required; the boundary is
-  anti-aliased with `fwidth`. The shader shades `|R(hλ)| ≤ 1` in the `λ`-plane for Euler,
-  RK4, and implicit Euler. Semi-implicit Euler and Verlet have no scalar `R`, so the region
-  is greyed out for them and the spectral-radius readout takes over. There is no canvas-2D
-  fallback: every current desktop browser has WebGL2, and `createRegionRenderer` returns
-  `null` so a panel can show a one-line notice if it is ever missing.
-- **Everything else:** canvas 2D through `gfx/plot2d.js`, which owns DPR handling and the
-  axes/grid/tick code so no panel re-implements it. A stage is a positioned `div` with
-  stacked canvases (`.stage > canvas`), each sized by `plot2d.fit()`.
-- **Colors** are CSS custom properties read once per draw with `getComputedStyle`, so the
-  canvas palette and the stylesheet cannot drift apart: `--exact` (blue), `--approx` (red),
-  `--stable` (green), `--unstable` (red), `--region` (shader fill).
+- A stage is a positioned `div` with stacked canvases (`.stage > canvas`), each sized by
+  `plot2d.fitCanvas()` at a capped device pixel ratio.
+- `createRegionRenderer` returns `null` without WebGL2 so a panel can show a one-line
+  notice; there is no canvas-2D fallback.
+- Colors are CSS custom properties read once per draw through `plot2d.cssVar`, so the canvas
+  palette and the stylesheet cannot drift apart: `--exact`, `--approx`, `--stable`,
+  `--unstable`, `--region`, `--region-edge`, `--region-none`, plus `--grid`, `--axis`,
+  `--tick` for plot furniture.
 
 ## Stylesheet
 
 `base.css` defines the tokens and the type scale, including `--stage-max`, the cap that
-keeps a square stage inside the viewport so a panel never scrolls internally. `layout.css` is the spine, rail, and pane
-mechanics and nothing else. `controls.css` styles the small vocabulary of inputs every panel
-uses (`.control`, `.readout`, `.stage`). Panels do not ship their own CSS; if a panel needs
-something new, it is added to `controls.css` so the next panel gets it too.
+keeps a square stage inside the viewport so a panel never scrolls internally. `layout.css`
+is the spine, rails, and pane mechanics and nothing else. `controls.css` styles the small
+vocabulary of inputs every panel uses (`.control`, `.readout`, `.stage`). Panels do not
+ship their own CSS; if a panel needs something new, it is added to `controls.css` so the
+next panel gets it too.
 
 ## Testing
 
-`node --test app/shared/math/` runs the numeric checks with no dependencies. The tests assert
-the confirmations recorded in `idea.md`:
+```
+cd app
+node --test "shared/**/*.test.js"
+```
 
-- eigenvalues of `(m, c, k) = (10, 0.1, 10)` are `−0.005 ± 0.99999i`
-- `|1 + hλ|` at `h = 1/30` is `1.0004` there, and `1.0525` for `(1, 0.1, 100)`
-- RK4 tracks the exact solution through 600 s
-- implicit Euler at `t = 60` reads `0.26` against an exact `0.71`
-- semi-implicit Euler's spectral radius crosses 1 between `h = 0.19` and `0.20` at `k/m = 100`
+No dependencies. The tests assert the numbers recorded under "Numeric confirmations" in
+`idea.md`; keep the two in sync when either changes.
 
 Browser behaviour (lazy loading, routing) is checked in Chrome through the devtools MCP:
 the network panel should show exactly the pane modules for the current panel and its
 neighbours, and the console should hold only the expected 404s for panels not yet built.
+`window.app` exposes `{ store, router, manifest }` for probing.
 
 ## Serving
 
@@ -249,20 +221,11 @@ open http://127.0.0.1:8765/
 
 `file://` does not work: ES modules, import maps, and `fetch` all need an HTTP origin.
 
-## What is scaffolded now
+## Status
 
-- `index.html`, the three stylesheets, `package.json`, `README.md`
-- all of `shared/` with real implementations of the math (ported and extended from the POC),
-  the region shader, the plot helpers, the store, the router, and the loader
-- the manifest with all 13 panels
-- `panels/01-rigid-bodies/` with a placeholder spine and left pane, so the loader path is
-  exercised end to end
-- the other 12 panel directories, each with a `README.md` naming its panes
-
-## Next: the spine
-
-Build panels in essay order, one directory at a time, each as `spine.html` + `spine.js`
-first and the side panes after. Suggested order of effort: 7, 10, 11, 12 first (they share
-the complex plane and the region shader and are the payload), then 3, 8, 9, 13 (trajectory
-plots), then 1, 2, 4, 5, 6 (bespoke interactives). Each panel is done when its `spine.js`
-mounts, subscribes, draws, and destroys cleanly, and the pane's prose is in `spine.html`.
+Scaffolded: `index.html`, the three stylesheets, `package.json`, `README.md`, all of
+`shared/` as inventoried in `idea.md`, the manifest with all 13 panels, panel 1 with
+placeholder panes so the loader path is exercised end to end, and a `README.md` in each
+other panel directory naming its panes. Build order and the shared code each panel pulls
+in are under "Shared code" in `idea.md`. A panel is done when its `spine.js` mounts,
+subscribes, draws, and destroys cleanly, and the pane's prose is in `spine.html`.
