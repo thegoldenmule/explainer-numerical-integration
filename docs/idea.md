@@ -467,11 +467,12 @@ layers, a Taylor mode, and one shared context behind `drawRegion`, `stage.js`,
 `trajectory.js`, `cplane.js`, `bundle.js`, and `drag.js`. `player.js` runs the live
 simulation; `ui/` has the store-bound controls, `transport`, and `livemath`. Panels 7 and
 11 have spines that prove those modules, and every other pane has its prose with a stub
-`mount()`. The entries below are the spec each module was or will be built to; still to
-write are the scene and aux stores, `matrix2.js`, custom acceleration in the steppers,
-normalized `(hω, ζ)` stability, the small `plot2d` helpers (band, vector field,
-transformed grid, heatmap, small-multiple layout, color), `scrub.js`, the toggle and log
-slider, and the sweep strip.
+`mount()`. The second and third groups are built too: `scene.js` and `aux.js` on a
+generalized `createStore`, `matrix2.js`, custom acceleration in the explicit steppers,
+normalized `(hω, ζ)` stability, the `plot2d` helpers (band, vector field, transformed grid
+and shape, heatmap, `layoutGrid`) with `color.js`, the log slider, `toggle`, `scrub.js`,
+and the sweep strip. The entries below are the spec each module was built to; where the
+built API differs from the wording, the entry says so.
 
 ### State beyond the tuple
 
@@ -481,15 +482,20 @@ slider, and the sweep strip.
   Panel 2's left pane draws *the same arrows* the reviewer just dragged on the spine, and
   the pane manager destroys and remounts side panes, so this state cannot live in a pane. It
   needs a second store. The tuple store throws on unknown keys and hardcodes its limits, so
-  `createStore` grows an options argument (`{ limits, validate }`) and `shared/scene.js`
-  instantiates it with the scene schema. The tuple itself stays at eight entries.
+  `createStore` takes an options argument (`{ limits, validate, presets }`, and every
+  store exposes its `limits`) and `shared/scene.js` instantiates it with the scene schema:
+  `{ body: { m, x, v }, forces, linear }`, the shape `math/forces.js` reads, with setters
+  for moving the body, toggling and parameterizing a force, and switching real vs linear,
+  plus `paramStore(i)` so sliders and scrubs bind to one force's parameters. The tuple
+  itself stays at eight entries.
 - **Per-panel knobs that must survive a remount.** Panel 4's perturbation size, panel 13's
   target error, and the highlighted index of every sweep (below) belong in the same kind of
   side store, one `shared/aux.js` with documented keys, not in the tuple and not in pane
   closures.
 - **The bridge.** Panel 5 assembles `M`, `C`, `K` from the scene's linearized forces and
-  writes them into the tuple's `m`, `c`, `k`. That single `store.set()` is how Part I's
-  forces become Part II's eigenvalues; it is the one place the two stores touch.
+  writes them into the tuple's `m`, `c`, `k` (`scene.pushToTuple()`); `setMass` also keeps
+  the tuple's `m` in step. That is how Part I's forces become Part II's eigenvalues, and
+  the sync runs one way only, scene to tuple.
 
 ### Math
 
@@ -502,14 +508,16 @@ slider, and the sweep strip.
   linear `acceleration(m, c, k)`. Panel 2 integrates an arbitrary force sum and 5-right runs
   the *nonlinear* simulation next to the linearized verdict, so the explicit steppers
   (Euler, RK4, semi-implicit) take an optional `accel(x, v, t)`. Implicit Euler and Verlet
-  keep their linear closed forms; the picker restricts to explicit methods when a custom
-  force is in play. The error series `|x − exact|` and its measured ratio come from the
-  player, so panel 9 does not recompute them.
-- **2×2 matrices, `math/matrix2.js`** (6, 6-left, 6-right, 9-right). The helpers now
-  private to `stability.js` (`madd`, `mmul`, `mdet`, `minv`) move here and are exported,
-  plus constructors for rotation, scale, and shear, and an eigen-decomposition of a real
-  2×2: real eigenvectors when the discriminant allows, the complex pair otherwise, which is
-  exactly the moment 6-right's sweep is built to show. `stability.js` imports from here.
+  keep their linear closed forms and throw if given one; the picker restricts to
+  `EXPLICIT_METHODS` when a custom force is in play, and `simulate` reports `hasExact:
+  false`. The error series `|x − exact|` and its measured ratio come from the player, so
+  panel 9 does not recompute them.
+- **2×2 matrices, `math/matrix2.js`** (6, 6-left, 6-right, 9-right). The helpers that were
+  private to `stability.js` (`madd`, `msub`, `mscale`, `mmul`, `mdet`, `minv`, and friends)
+  live here and are exported, plus `rotation`, `scale`, `shear`, `apply`, and `eigen`: real
+  unit eigenvectors when the discriminant allows, the complex pair (no vectors) otherwise,
+  which is exactly the moment 6-right's sweep is built to show, and `defective` for a
+  shear. `stability.js` imports from here.
 - **Modes, `math/modes.js`** (9-right, 10). Eigenvectors of the system matrix, projection
   of `(x, v)` onto them, and the scalar modal simulation `x_{i+1} = R(hλ) x_i` in complex
   arithmetic per method. This is the step from the 2×2 system to `x' = λx` that panel 10's
@@ -527,9 +535,10 @@ slider, and the sweep strip.
 - **Inversion, in `system.js`** (11, 11-left). `paramsFromEigenvalue(m, λ)` giving
   `c = −2m·Re λ`, `k = m|λ|²`, so dragging `λ` on the plane still drives the tuple, and an
   `exactFromEigenvalue` for the no-method left pane.
-- **Normalized stability, in `stability.js`** (12-right-3, 11-right). `updateMatrix` in
-  `(hω, ζ)` coordinates so the Verlet and semi-implicit heatmaps are drawn in the space where
-  their `hω < 2` wall is a straight line.
+- **Normalized stability, in `stability.js`** (12-right-3, 11-right).
+  `updateMatrixNormalized` and `spectralRadiusNormalized` in `(hω, ζ)` coordinates
+  (`m = 1, ω = 1, c = 2ζ, h = hω`) so the Verlet and semi-implicit heatmaps are drawn in
+  the space where their `hω < 2` wall is a straight line.
 
 ### Simulation
 
