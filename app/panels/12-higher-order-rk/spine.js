@@ -27,34 +27,20 @@ const halfRange = s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).
 export function mount(root, ctx) {
   const { store, signal, loop } = ctx;
 
-  // ---- row 1: the plane for the store's method, beside the run ----
+  // ---- row 1: the plane for the store's method, beside the run. The small multiples sit
+  // right under the plane, in its own column, so both fill the column's full width instead
+  // of the plane sharing a half-width row with a strip that spanned the whole viz. ----
   const top = el('div', { class: 'viz-row' });
   root.append(top);
-  const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
+
+  const planeCol = el('div', { class: 'controls' });
+  top.append(planeCol);
+  const planeStage = createStage(planeCol, { layers: ['region', 'plane'], aspect: 'square', signal });
   const plane = createComplexPlane({ stage: planeStage, store, signal, halfRange, region: true });
 
-  const column = el('div', { class: 'controls' });
-  top.append(column);
-  const runStage = createStage(column, { layers: ['plot'], aspect: 'wide', signal });
-  const player = createPlayer({ store, loop, signal });
-  runStage.onDraw(size => {
-    const s = player.series;
-    const tMax = Math.max(SPAN, player.t);
-    const view = drawTrajectory(runStage.ctx('plot'), size, s, { tMin: tMax - SPAN, tMax, y: 'auto', cap: 3, yLabel: 'x' });
-    const r = plane.report, cur = player.current;
-    if (!r) return;
-    const g = runStage.ctx('plot');
-    const corner = { align: 'right', dx: -8 };
-    drawText(g, view, `${r.method.label}: ${r.stable ? 'stable' : 'unstable'}`, view.xMax, view.yMax,
-      { ...corner, color: cssVar(r.stable ? '--stable' : '--unstable'), size: 12, dy: 16 });
-    drawText(g, view, `t = ${fmt(cur.t, 2)} s   x ${fmt(cur.x, 3)} · exact ${fmt(cur.exact, 3)}`, view.xMax, view.yMax,
-      { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
-  });
-  player.onChange(runStage.invalidate);
-
-  // ---- row 2: small multiples, one shared GL canvas blitted into three stages ----
+  // ---- the small multiples: one shared GL canvas blitted into three stages, under the plane ----
   const strip = el('div', { class: 'controls-row' });
-  root.append(strip);
+  planeCol.append(strip);
   const multiples = MULTIPLES.map(method => {
     const stage = createStage(strip, { layers: ['region', 'plane'], aspect: 'square', signal });
     stage.onDraw(({ w, h, dpr }) => {
@@ -79,7 +65,26 @@ export function mount(root, ctx) {
     return stage;
   });
 
-  // ---- row 3: just the picker; the run plays on its own and never stops ----
+  const column = el('div', { class: 'controls' });
+  top.append(column);
+  const runStage = createStage(column, { layers: ['plot'], aspect: 'wide', signal });
+  const player = createPlayer({ store, loop, signal });
+  runStage.onDraw(size => {
+    const s = player.series;
+    const tMax = Math.max(SPAN, player.t);
+    const view = drawTrajectory(runStage.ctx('plot'), size, s, { tMin: tMax - SPAN, tMax, y: 'auto', cap: 3, yLabel: 'x' });
+    const r = plane.report, cur = player.current;
+    if (!r) return;
+    const g = runStage.ctx('plot');
+    const corner = { align: 'right', dx: -8 };
+    drawText(g, view, `${r.method.label}: ${r.stable ? 'stable' : 'unstable'}`, view.xMax, view.yMax,
+      { ...corner, color: cssVar(r.stable ? '--stable' : '--unstable'), size: 12, dy: 16 });
+    drawText(g, view, `t = ${fmt(cur.t, 2)} s   x ${fmt(cur.x, 3)} · exact ${fmt(cur.exact, 3)}`, view.xMax, view.yMax,
+      { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
+  });
+  player.onChange(runStage.invalidate);
+
+  // ---- row 2: just the picker; the run plays on its own and never stops ----
   root.append(el('div', { class: 'controls-row' }, methodPicker(store, { only: MULTIPLES, signal })));
 
   const article = root.closest('article') ?? root;
