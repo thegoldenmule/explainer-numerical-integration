@@ -19,7 +19,8 @@ import { cssVar, makeView, drawGrid, drawPolyline, drawBand, drawText } from 'sh
 import { exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { createStore } from 'shared/state.js';
 import { aux } from 'shared/aux.js';
-import { slider, readout, controls, row } from 'shared/ui/controls.js';
+import { slider, controls, row } from 'shared/ui/controls.js';
+import { bindMath } from 'shared/ui/livemath.js';
 
 const SPAN = 6;         // seconds shown
 const SAMPLES = 600;
@@ -41,26 +42,27 @@ function localDamping(c0) {
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
+  const article = root.closest('article') ?? root;
 
   // seeded from the reader's actual case; re-seeded only when the tuple's own c changes
   const local = localDamping(store.get().c);
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
-  const out = readout({ label: 'verdict' });
 
   const ts = new Float64Array(SAMPLES + 1);
   for (let i = 0; i <= SAMPLES; i++) ts[i] = SPAN * i / SAMPLES;
   const sample = sol => { const xs = new Float64Array(SAMPLES + 1); for (let i = 0; i <= SAMPLES; i++) xs[i] = sol.x(ts[i]); return xs; };
 
-  stage.onDraw(({ w, h, dpr }) => {
-    const s = store.get();
-    const c = local.get().c;                 // this pane's own damping, never the tuple's
-    const sys = { ...s, c };                 // the system actually drawn
-    const eps = aux.get().epsilon;
-    const omega = naturalFrequency(s.m, s.k);
+  // The neighbor sweep (exact[], the six perturbed curves, and the tube-escape stats) is the
+  // same work the draw and the prose both need; memoized so bindMath's synchronous derive and
+  // the next animation-frame draw agree, and a redraw or a re-render never repeats it twice.
+  let measured = null, measureKey = '';
+  function measure(sys, eps) {
+    const key = `${sys.m}/${sys.c}/${sys.k}/${sys.x0}/${sys.v0}/${eps}`;
+    if (key === measureKey) return measured;
+    measureKey = key;
+    const omega = naturalFrequency(sys.m, sys.k);
     const exact = sample(exactSolution(sys));
-    const lo = new Float64Array(SAMPLES + 1), hi = new Float64Array(SAMPLES + 1);
-    for (let i = 0; i <= SAMPLES; i++) { lo[i] = exact[i] - eps; hi[i] = exact[i] + eps; }
 
     // neighbors: (x₀ + ε cos φ, v₀ + ε ω sin φ); with k = 0 there is no ω, so perturb v by ε
     const series = [];
@@ -68,7 +70,7 @@ export function mount(root, ctx) {
     for (let j = 0; j < NEIGHBORS; j++) {
       const phi = 2 * Math.PI * j / NEIGHBORS;
       const dx = eps * Math.cos(phi), dv = eps * (omega > 0 ? omega : 1) * Math.sin(phi);
-      const xs = sample(exactSolution({ ...sys, x0: s.x0 + dx, v0: s.v0 + dv }));
+      const xs = sample(exactSolution({ ...sys, x0: sys.x0 + dx, v0: sys.v0 + dv }));
       let left = false;
       for (let i = 0; i <= SAMPLES; i++) {
         const d = Math.abs(xs[i] - exact[i]);
@@ -83,6 +85,21 @@ export function mount(root, ctx) {
       if (left) escaped++;
       series.push({ xs: ts, ys: xs });
     }
+    measured = { exact, series, maxDist, endDist, far, escapeAt, escaped };
+    return measured;
+  }
+
+  /** The system currently drawn: the tuple's m, k, x₀, v₀ with this pane's own c. */
+  const sysNow = () => ({ ...store.get(), c: local.get().c });
+
+  stage.onDraw(({ w, h, dpr }) => {
+    const s = store.get();
+    const c = local.get().c;                 // this pane's own damping, never the tuple's
+    const sys = { ...s, c };                 // the system actually drawn
+    const eps = aux.get().epsilon;
+    const { exact, series, far, escapeAt } = measure(sys, eps);
+    const lo = new Float64Array(SAMPLES + 1), hi = new Float64Array(SAMPLES + 1);
+    for (let i = 0; i <= SAMPLES; i++) { lo[i] = exact[i] - eps; hi[i] = exact[i] + eps; }
 
     const g = stage.ctx('plot');
     // ampQ, the amplitude over the first quarter of the window, is the scale the reader can
@@ -116,30 +133,34 @@ export function mount(root, ctx) {
     }
     // anchored at t = 0: a runaway takes the tube off the top of the frame long before t = SPAN
     drawText(g, view, 'ε-tube around the exact solution', 0, exact[0] - eps, { color: cssVar('--exact'), size: 11, dx: 8, dy: 16 });
-
-    // the verdict is the sign of Re λ = −c / 2m, and nothing else
-    const alpha = -c / (2 * s.m);
-    const verdict = c > 0
-      ? [el('span', { class: 'stable' }, 'asymptotically stable'), ': every neighbor falls into the tube and keeps converging']
-      : c < 0
-        ? [el('span', { class: 'unstable' }, 'unstable'), escaped > 0
-            ? `: ${escaped} of ${NEIGHBORS} neighbors have left the tube, however close they started`
-            : `: Re λ > 0, so every neighbor leaves eventually — none has yet in the ${SPAN} s shown; push c further down`]
-        : escaped === 0
-          ? [el('span', { class: 'stable' }, 'stable'), ', but not asymptotically: with c = 0 nothing decays, so the neighbors ride the tube’s edge forever']
-          : [el('span', { class: 'unstable' }, 'unstable'), `: Re λ = 0, but with k = ${fmt(s.k, 2)} there is no restoring force either, so a nudge in v drifts away forever`];
-    out.set([
-      ...verdict, '\n',
-      `Re λ = −c / 2m = ${fmt(alpha, 3)}   ε = ${fmt(eps, 3)}   farthest any neighbor strays: ${fmt(maxDist, 4)}   at t = ${SPAN} s: ${fmt(endDist, 4)} (${endDist > eps * SLACK ? 'outside' : 'inside'} the tube, ${fmt(endDist / eps, 2)}× ε)\n`,
-      el('span', { class: 'label' }, `the damping above is this pane’s own: a real spring’s c is never negative, so the tuple stops at 0 and the unstable case would be unreachable. The spring’s actual c = ${fmt(s.c, 2)} is untouched.`),
-    ]);
   });
 
   root.append(controls(row(
     slider(aux, 'epsilon', { label: 'ε (perturbation size)', log: true, format: v => fmt(v, 3), signal }),
     slider(local, 'c', { label: 'this pane’s own c (damping): drag it below 0', min: C_SLIDER[0], max: C_SLIDER[1], step: C_STEP, format: v => fmt(v, 2), signal }),
   )));
-  root.append(out.el);
+
+  // the verdict sentence in the prose: the sign of Re λ = −c / 2m, and nothing else. Bound
+  // to all three stores (the tuple for m, this pane's own c, and aux's ε) so it stays live
+  // whichever one moves; `measure` above is memoized, so this repeats no work the draw
+  // hasn't already done for the same (m, c, k, x₀, v₀, ε).
+  function verdictSlots() {
+    const sys = sysNow(), eps = aux.get().epsilon;
+    const { maxDist, endDist, escaped } = measure(sys, eps);
+    const alpha = -sys.c / (2 * sys.m);
+    const verdict = sys.c > 0 ? 'asymptotically stable'
+      : sys.c < 0 ? 'unstable'
+        : escaped === 0 ? 'stable' : 'unstable';
+    const cls = verdict === 'unstable' ? 'unstable' : 'stable';
+    return {
+      alpha, maxDist, endDist,
+      verdict: el('span', { class: cls }, verdict),
+      tubeState: endDist > eps * SLACK ? 'outside' : 'inside',
+    };
+  }
+  bindMath(article, store, verdictSlots, { signal });
+  bindMath(article, local, verdictSlots, { signal });
+  bindMath(article, aux, verdictSlots, { signal });
 
   // the tuple only re-seeds the local damping (m, k, x₀, v₀ still come from it directly)
   const unsub = store.subscribe((s, patch) => {

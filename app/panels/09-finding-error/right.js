@@ -12,7 +12,7 @@ import { exactSolution } from 'shared/math/system.js';
 import { decompose, project, modalFactors, simulateModal } from 'shared/math/modes.js';
 import { METHODS } from 'shared/math/integrators.js';
 import { sweepKey } from 'shared/math/sweep.js';
-import { slider, methodPicker, readout, controls, row } from 'shared/ui/controls.js';
+import { slider, methodPicker, controls, row } from 'shared/ui/controls.js';
 
 const SPAN = 4;   // seconds of the modal run
 
@@ -30,8 +30,6 @@ export function mount(root, ctx) {
 
   // the modal run: |a₁|, |a₂| on a log axis beside the reconstructed x
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  const out = readout({ label: 'the state, decomposed' });
-  const verdict = v => el('span', { class: v <= 1 ? 'stable' : 'unstable' }, fmt(v, 4));
   let run = null, runKey = '';
   const modalRun = state => {
     const key = sweepKey({ method: state.method, h: state.h, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0 });
@@ -55,7 +53,6 @@ export function mount(root, ctx) {
         ? 'critically damped: one repeated λ, one eigenvector, no modal split'
         : `${METHODS[state.method].label} has no scalar R(hλ); pick Euler, RK4, or implicit Euler`;
       drawText(g, makeView({ w, h, dpr, halfW: 1 }), why, 0, 0, { color: cssVar('--muted'), align: 'center' });
-      out.set(why);
       return;
     }
     const { sim, modes, R } = r;
@@ -79,6 +76,13 @@ export function mount(root, ctx) {
     drawPolyline(g, vL, sim.t, ex1, { color: cssVar('--exact'), width: 1.5, dash: [6, 4] });
     drawPolyline(g, vL, sim.t, mag1, { color: cssVar('--approx'), width: 2 });
     drawPolyline(g, vL, sim.t, mag2, { color: cssVar('--axis'), width: 1.25, dash: [2, 3] });
+    // the two modes' λ and |R(hλ)|, colored by the same verdict the disk elsewhere uses
+    const same = Math.abs(cabs(R[0]) - cabs(R[1])) < 1e-9;
+    const cornerL = { align: 'right', dx: -6 };
+    drawText(g, vL, `λ₁ = ${cfmt(modes.lambdas[0], 3)}  |R| = ${fmt(cabs(R[0]), 4)}`, SPAN, vL.yMax,
+      { ...cornerL, color: cssVar(cabs(R[0]) <= 1 ? '--stable' : '--unstable'), size: 11, dy: 14 });
+    drawText(g, vL, `λ₂ = ${cfmt(modes.lambdas[1], 3)}  |R| = ${fmt(cabs(R[1]), 4)}${same ? '  (conjugate: same ratio)' : ''}`, SPAN, vL.yMax,
+      { ...cornerL, color: cssVar(cabs(R[1]) <= 1 ? '--stable' : '--unstable'), size: 11, dy: 28 });
     g.restore();
 
     // right: the reconstructed x against the exact curve
@@ -94,22 +98,15 @@ export function mount(root, ctx) {
     drawGrid(g, vR, { xLabel: 't', yLabel: 'x = a₁ + a₂' });
     drawPolyline(g, vR, sim.t, exact, { color: cssVar('--exact'), width: 1.5, dash: [6, 4] });
     drawPolyline(g, vR, sim.t, sim.x, { color: cssVar('--approx'), width: 2 });
+    drawText(g, vR, `(x₀, v₀) = (${fmt(state.x0, 2)}, ${fmt(state.v0, 2)}) = a₁·(1, λ₁) + a₂·(1, λ₂)`, SPAN, vR.yMax, { align: 'right', dx: -6, color: cssVar('--fg'), size: 11, dy: 14 });
+    drawText(g, vR, `a₁ = ${cfmt(a1, 3)}   a₂ = ${cfmt(a2, 3)}`, SPAN, vR.yMax, { align: 'right', dx: -6, color: cssVar('--muted'), size: 11, dy: 28 });
     g.restore();
-
-    const same = Math.abs(cabs(R[0]) - cabs(R[1])) < 1e-9;
-    out.set([
-      `(x₀, v₀) = (${fmt(state.x0, 2)}, ${fmt(state.v0, 2)}) = a₁·(1, λ₁) + a₂·(1, λ₂)\n`,
-      `a₁ = ${cfmt(a1, 3)}   λ₁ = ${cfmt(modes.lambdas[0], 3)}   |R(hλ₁)| = `, verdict(cabs(R[0])), '\n',
-      `a₂ = ${cfmt(a2, 3)}   λ₂ = ${cfmt(modes.lambdas[1], 3)}   |R(hλ₂)| = `, verdict(cabs(R[1])),
-      same ? '   (a conjugate pair: one ratio for both modes)' : '',
-    ]);
   });
   top.append(controls(
     row(slider(store, 'x0', { label: 'x₀', signal }), slider(store, 'v0', { label: 'v₀', signal })),
     slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
     methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal }),
   ));
-  root.append(out.el);
 
   const unsub = store.subscribe(runStage.invalidate, { immediate: false });
   return { destroy() { unsub(); } };

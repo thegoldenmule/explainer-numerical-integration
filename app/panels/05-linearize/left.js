@@ -1,18 +1,18 @@
 // Panel 5, left: what linear means. One function f, two draggable inputs a and b, and the
 // check f(a + b) = f(a) + f(b): a, b, and a + b sit on the x axis with their outputs dropped
-// to the curve, and the readout does the arithmetic. f(x) = 2x passes; f(x) = x² fails by
-// exactly 2ab.
+// to the curve, and the arithmetic is called out in the corner of the plot. f(x) = 2x
+// passes; f(x) = x² fails by exactly 2ab.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
-import { readout, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 
 const HALF_W = 3.2;
 const FUNCTIONS = {
-  linear: { label: 'f(x) = 2x', f: x => 2 * x, cross: () => 0 },
-  square: { label: 'f(x) = x²', f: x => x * x, cross: (a, b) => 2 * a * b },
+  linear: { label: 'f(x) = 2x', f: x => 2 * x },
+  square: { label: 'f(x) = x²', f: x => x * x },
 };
 
 export function mount(root, ctx) {
@@ -22,10 +22,9 @@ export function mount(root, ctx) {
   let view = null;
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
-  const out = readout({ label: 'the check' });
 
   stage.onDraw(({ w, h, dpr }) => {
-    const { f, cross } = FUNCTIONS[kind];
+    const { f } = FUNCTIONS[kind];
     const g = stage.ctx('plot');
     const yMax = kind === 'square' ? 8 : 6.5;
     view = makeView({ w, h, dpr, xMin: -HALF_W, xMax: HALF_W, yMin: -yMax * 0.45, yMax });
@@ -52,12 +51,13 @@ export function mount(root, ctx) {
     drawText(g, view, 'b', b, 0, { color: green, size: 12, align: 'center', dy: 22 });
     drawText(g, view, 'a + b', a + b, 0, { color: red, size: 12, align: 'center', dy: -12 });
 
+    // the arithmetic, called out top-right, clear of the grid's own labels
     const passes = Math.abs(sum - fab) < 1e-9;
-    out.set([
-      `f(a) + f(b) = ${fmt(fa, 2)} + ${fmt(fb, 2)} = ${fmt(sum, 2)}      f(a + b) = f(${fmt(a + b, 2)}) = ${fmt(fab, 2)}\n`,
-      passes ? el('span', { class: 'stable' }, 'equal: linear') : el('span', { class: 'unstable' }, `off by ${fmt(fab - sum, 2)} = 2ab: not linear`),
-      kind === 'square' ? `   (a + b)² = a² + 2ab + b², and the cross term 2ab = ${fmt(cross(a, b), 2)} is what a linear model must drop` : '   and f(s·a) = s·f(a) for the same reason: the graph is a line through the origin',
-    ]);
+    const corner = { align: 'right', dx: -8 };
+    drawText(g, view, `f(a) + f(b) = ${fmt(fa, 2)} + ${fmt(fb, 2)} = ${fmt(sum, 2)}`, HALF_W, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 16 });
+    drawText(g, view, `f(a + b) = f(${fmt(a + b, 2)}) = ${fmt(fab, 2)}`, HALF_W, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
+    drawText(g, view, passes ? 'equal: linear' : `off by ${fmt(fab - sum, 2)}: not linear`, HALF_W, yMax,
+      { ...corner, color: cssVar(passes ? '--stable' : '--unstable'), size: 12, dy: 48 });
   });
 
   createDragHandles(stage.canvas('plot'), {
@@ -78,7 +78,6 @@ export function mount(root, ctx) {
     stage.invalidate();
   }, { signal }));
   root.append(controls(el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, ...buttons))));
-  root.append(out.el);
 
   return { destroy() {} };
 }

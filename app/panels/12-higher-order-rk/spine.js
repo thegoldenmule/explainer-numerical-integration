@@ -11,7 +11,7 @@ import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { methodPicker, presets, readout, controls } from 'shared/ui/controls.js';
+import { methodPicker, presets, controls } from 'shared/ui/controls.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { METHODS } from 'shared/math/integrators.js';
 import { stabilityReport } from 'shared/math/stability.js';
@@ -33,22 +33,20 @@ export function mount(root, ctx) {
   top.append(column);
   const runStage = createStage(column, { layers: ['plot'], aspect: 'wide', signal });
   const player = createPlayer({ store, loop, signal });
-  const out = readout();
   runStage.onDraw(size => {
     const s = player.series;
     const tMax = Math.max(SPAN, player.t);
-    drawTrajectory(runStage.ctx('plot'), size, s, { tMin: tMax - SPAN, tMax, y: 'auto', cap: 3, yLabel: 'x' });
+    const view = drawTrajectory(runStage.ctx('plot'), size, s, { tMin: tMax - SPAN, tMax, y: 'auto', cap: 3, yLabel: 'x' });
     const r = plane.report, cur = player.current;
     if (!r) return;
-    const verdict = el('span', { class: r.stable ? 'stable' : 'unstable' }, r.stable ? 'stable' : 'unstable');
-    out.set([
-      `${r.method.label}: `, verdict, `\n`,
-      `t = ${fmt(cur.t, 2)} s\n`,
-      `x ${fmt(cur.x, 3)} · exact ${fmt(cur.exact, 3)}`,
-    ]);
+    const g = runStage.ctx('plot');
+    const corner = { align: 'right', dx: -8 };
+    drawText(g, view, `${r.method.label}: ${r.stable ? 'stable' : 'unstable'}`, view.xMax, view.yMax,
+      { ...corner, color: cssVar(r.stable ? '--stable' : '--unstable'), size: 12, dy: 16 });
+    drawText(g, view, `t = ${fmt(cur.t, 2)} s   x ${fmt(cur.x, 3)} · exact ${fmt(cur.exact, 3)}`, view.xMax, view.yMax,
+      { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
   });
   player.onChange(runStage.invalidate);
-  column.append(out.el);
 
   // ---- row 2: small multiples, one shared GL canvas blitted into three stages ----
   const strip = el('div', { class: 'controls-row' });

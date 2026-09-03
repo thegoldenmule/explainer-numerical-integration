@@ -8,7 +8,7 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
-import { controls, readout } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { ampFactor } from 'shared/math/stability.js';
 import { cscale } from 'shared/math/complex.js';
@@ -41,6 +41,12 @@ export function mount(root, ctx) {
       const below = -1 / h > view.yMin + 0.1 * (view.yMax - view.yMin);
       drawText(g, view, `h = ${fracOf(h)} s: center −${fmt(1 / h, 0)}, radius ${fmt(1 / h, 0)}`, -1 / h, below ? -1 / h : view.yMin,
         { color: cssVar('--region-edge'), size: 11, align: 'center', dy: below ? 15 : -8 });
+      // the eigenvalue's own verdict at this h, top-right corner
+      const ls = eigenvalues(s.m, s.c, s.k);
+      const l = ls.reduce((a, b) => (b[1] > a[1] ? b : a));
+      const f = ampFactor('euler', cscale(l, h));
+      drawText(g, view, `|1 + hλ| = ${fmt(f, 4)}: ${f <= 1 ? 'inside' : 'outside'}`, view.xMax, view.yMax,
+        { color: cssVar(f <= 1 ? '--stable' : '--unstable'), size: 11, align: 'right', dx: -8, dy: 16 });
     },
   });
 
@@ -48,24 +54,15 @@ export function mount(root, ctx) {
   const input = el('input', { type: 'range', min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
   const value = el('output');
   input.addEventListener('input', () => store.set({ h: HS[Number(input.value)] }), { signal });
-  const out = readout({ label: 'step, disk radius 1/h, |1 + hλ| at the upper root' });
 
   const unsubscribe = store.subscribe(s => {
     const i = current(s);
     if (Number(input.value) !== i) input.value = i;
     value.textContent = `${fracOf(HS[i])} s`;
-    const ls = eigenvalues(s.m, s.c, s.k);
-    const l = ls.reduce((a, b) => (b[1] > a[1] ? b : a));
-    out.set(HS.flatMap((h, j) => {
-      const f = ampFactor('euler', cscale(l, h));
-      const line = `h = ${fracOf(h).padEnd(4)}  r = ${fmt(1 / h, 0).padStart(2)}  |R| = ${fmt(f, 4)}  ${f <= 1 ? 'inside' : 'outside'}`;
-      return [j === i ? el('strong', {}, line) : line, '\n'];
-    }));
   });
 
   root.append(controls(
     el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'h along the range'), value), input),
-    out.el,
   ));
 
   return { destroy() { unsubscribe(); } };

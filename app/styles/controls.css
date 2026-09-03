@@ -52,6 +52,11 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .readout .stable { color: var(--stable); font-weight: 600; }
 .readout .unstable { color: var(--unstable); font-weight: 600; }
 
+/* verdict words bound into prose (bindMath), now that a verdict this color-coded no longer
+   needs a readout box to live in */
+.prose .stable { color: var(--stable); font-weight: 600; }
+.prose .unstable { color: var(--unstable); font-weight: 600; }
+
 .btn {
   border: 1px solid var(--border);
   background: var(--surface);

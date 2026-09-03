@@ -14,8 +14,9 @@ Built. See `docs/idea.md` (section "5. Stability analysis: linearize") for the b
   block under the stage and into the prose's `M x″ + C x′ + K x = 0`, and `scene.pushToTuple()`
   writes the tuple on resume and on every scene change while on screen. There is no readout.
 - `left.html` + `left.js`: refresher, What "linear" means. `f(a + b)` against `f(a) + f(b)` with
-  two draggable inputs on the x axis, their outputs dropped to the curve, and the arithmetic in
-  the readout, for `f(x) = 2x` and `f(x) = x²`.
+  two draggable inputs on the x axis, their outputs dropped to the curve, and the arithmetic
+  (`f(a) + f(b) = …`, `f(a + b) = …`, the pass/fail verdict) `drawText` in the top-right corner
+  of the plot, for `f(x) = 2x` and `f(x) = x²`. No readout.
 - `right.html` + `right.js`: drill-down, Taylor expansion and 1/r² gravity. One square stage:
   `inverseSquareExpansion` about the gravity force's `r₀`, every term count drawn at once
   (`drawBundle`) against the true curve, with `r₀` and the mass's own distance marked; the

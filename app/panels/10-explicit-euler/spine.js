@@ -9,7 +9,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { slider, controls, readout } from 'shared/ui/controls.js';
+import { slider, controls } from 'shared/ui/controls.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { ampFactor, doublingTime, halvingTime } from 'shared/math/stability.js';
 import { cscale } from 'shared/math/complex.js';
@@ -44,23 +44,20 @@ export function mount(root, ctx) {
     },
   });
 
-  const out = readout({ label: 'explicit Euler' });
   top.append(controls(
     slider(store, 'h', { label: 'h (step)', min: 0.005, max: 0.25, format: v => v.toFixed(3), signal }),
     slider(store, 'm', { label: 'm (mass)', min: 0.1, max: 20, signal }),
     slider(store, 'c', { label: 'c (drag)', min: 0, max: 30, signal }),
     slider(store, 'k', { label: 'k (spring)', min: 0, max: 400, signal }),
-    out.el,
   ));
 
   bindMath(root.closest('article') ?? root, store, s => {
     const [v] = eulerVerdicts(s);
     const verdict = el('span', { class: v.stable ? 'stable' : 'unstable' }, v.stable ? 'inside the disk: stable' : 'outside the disk: unstable');
-    const time = v.stable
+    const time = v.factor === 1 ? 'exactly on the edge' : v.stable
       ? `error halves every ${fmt(halvingTime(s.h, v.factor), 2)} s`
       : `error doubles every ${fmt(doublingTime(s.h, v.factor), 2)} s`;
-    out.set([verdict, `\n|1 + hλ| = ${fmt(v.factor, 4)}: ${v.factor === 1 ? 'on the edge' : time}`]);
-    return { 'abs-r': v.factor };
+    return { 'abs-r': v.factor, verdict, time };
   }, { signal });
 
   return { destroy() {} };

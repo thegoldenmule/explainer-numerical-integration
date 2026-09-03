@@ -1,17 +1,17 @@
 // Panel 13, left: local truncation error on one step (the next Taylor term, from the exact
 // state) versus the global error the fixed-step run has accumulated by then. One plot: the
 // exact curve, the run's polyline, and a single step taken from the exact curve at a
-// scrubbed step index; two readouts.
+// scrubbed step index, with both errors called out in the corner.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
-import { cssVar, drawPolyline, drawPoint } from 'shared/gfx/plot2d.js';
+import { cssVar, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { createStepper, simulate, METHODS } from 'shared/math/integrators.js';
 import { exactSolution } from 'shared/math/system.js';
 import { localTruncationError } from 'shared/math/taylor.js';
 import { sweepKey } from 'shared/math/sweep.js';
-import { slider, readout, controls } from 'shared/ui/controls.js';
+import { slider, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
 const STEPS = 60;   // steps shown; the span is 60 h so a single step stays visible
@@ -21,7 +21,6 @@ export function mount(root, ctx) {
   let at = 12;   // which step the local one is taken at (local to the pane)
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
-  const out = readout({ label: 'one step vs. the whole run' });
   let sim = null, simKey = '';
   const fixedRun = state => {
     const key = sweepKey({ method: state.method, h: state.h, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0 });
@@ -57,13 +56,12 @@ export function mount(root, ctx) {
     drawPoint(g, view, t0 + h, one.x, { r: 4.5, fill: accent });
     if (Number.isFinite(s.x[i + 1]) && Math.abs(s.x[i + 1]) < 1e6) drawPoint(g, view, t0 + h, s.x[i + 1], { r: 4.5, fill: cssVar('--approx') });
 
-    out.set([
-      `step ${i} → ${i + 1}, t = ${fmt(t0, 3)} → ${fmt(t0 + h, 3)} s, ${METHODS[method].label} (order ${order})\n`,
-      el('span', { class: 'swatch stable' }), `local: one step from the exact state lands ${fmt(local, 5)} off`,
-      `  (next Taylor term h^${order + 1}/${order + 1}! · |x⁽${order + 1}⁾| = ${fmt(est.x, 5)})\n`,
-      el('span', { class: 'swatch approx' }), `global: the run is ${fmt(global, 5)} off after ${i + 1} steps`,
-      local > 0 && Number.isFinite(global) ? `, ${fmt(global / local, 1)}× the local error` : '',
-    ]);
+    // the two errors, called out top-right in the color of the point each one measures
+    const corner = { align: 'right', dx: -8 };
+    drawText(g, view, `step ${i} → ${i + 1}, ${METHODS[method].label} (order ${order})`, view.xMax, view.yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 16 });
+    drawText(g, view, `local: ${fmt(local, 5)} off  (next term ${fmt(est.x, 5)})`, view.xMax, view.yMax, { ...corner, color: accent, size: 12, dy: 32 });
+    drawText(g, view, `global: ${fmt(global, 5)} off after ${i + 1} steps${local > 0 && Number.isFinite(global) ? `, ${fmt(global / local, 1)}× the local error` : ''}`,
+      view.xMax, view.yMax, { ...corner, color: cssVar('--approx'), size: 12, dy: 48 });
   });
 
   const atInput = el('input', { type: 'range', min: 0, max: STEPS - 1, step: 1, value: at });
@@ -73,7 +71,6 @@ export function mount(root, ctx) {
     el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'take one step from the exact curve at'), atOut), atInput),
     slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
   ));
-  root.append(out.el);
 
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
   bindMath(root.closest('article'), store, () => ({}), { signal });

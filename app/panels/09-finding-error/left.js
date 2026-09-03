@@ -6,16 +6,16 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { doublingTime, halvingTime } from 'shared/math/stability.js';
-import { readout, controls, row } from 'shared/ui/controls.js';
+import { controls, row } from 'shared/ui/controls.js';
 
 const MAX_STEPS = 140;   // "a thousandfold after 140" at 1.05
+const sub = i => String(i).replace(/\d/g, d => '₀₁₂₃₄₅₆₇₈₉'[d]);
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
   let z = 1.05, n = 10;   // the ratio and how many steps have been taken
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
-  const out = readout({ label: 'error in, error out' });
   const zInput = el('input', { type: 'range', min: 0.5, max: 1.5, step: 0.001, value: z });
   const zOut = el('output', {}, z.toFixed(3));
 
@@ -34,22 +34,21 @@ export function mount(root, ctx) {
     drawPolyline(g, view, xs, e, { color, width: 1, alpha: 0.5 });
     if (n <= 60) e.forEach((v, i) => drawPoint(g, view, i, v, { r: 3.5, fill: color, stroke: null }));
     else drawPolyline(g, view, xs, e, { color, width: 2 });
+
+    // the arithmetic, in whichever top corner the curve itself isn't occupying: z > 1 climbs
+    // to the top-right, z < 1 starts near the top-left (e₀ = 1)
+    const h_ = store.get().h;
+    const doubling = doublingTime(h_, z), halving = halvingTime(h_, z);
+    const steps = z > 1 ? Math.LN2 / Math.log(z) : z < 1 ? Math.LN2 / -Math.log(z) : Infinity;
+    const corner = z > 1 ? { x: view.xMin, align: 'left', dx: 8 } : { x: view.xMax, align: 'right', dx: -8 };
+    drawText(g, view, `e₁ = z · e₀ = ${fmt(z, 3)}`, corner.x, view.yMax, { align: corner.align, dx: corner.dx, color, size: 12, dy: 16 });
+    drawText(g, view, `after ${n} step${n === 1 ? '' : 's'}: e${sub(n)} = ${fmt(z ** n, 4)}`, corner.x, view.yMax, { align: corner.align, dx: corner.dx, color, size: 12, dy: 32 });
+    const time = z === 1 ? 'the error never doubles or halves'
+      : `${z > 1 ? 'doubles' : 'halves'} every ${fmt(steps, 1)} steps = ${fmt(z > 1 ? doubling : halving, 2)} s at h = ${fmt(h_, 3)} s`;
+    drawText(g, view, time, corner.x, view.yMax, { align: corner.align, dx: corner.dx, color, size: 12, dy: 48 });
   });
 
-  function update() {
-    const h = store.get().h;
-    const doubling = doublingTime(h, z), halving = halvingTime(h, z);
-    const steps = z > 1 ? Math.LN2 / Math.log(z) : z < 1 ? Math.LN2 / -Math.log(z) : Infinity;
-    const verdict = z > 1 ? el('span', { class: 'unstable' }, 'growing') : z < 1 ? el('span', { class: 'stable' }, 'shrinking') : 'steady';
-    out.set([
-      `one step: e₁ = z · e₀ = ${fmt(z, 3)} · 1 = ${fmt(z, 3)}   `, verdict, '\n',
-      `after ${n} step${n === 1 ? '' : 's'}: e${sub(n)} = ${fmt(z, 3)}^${n} = ${fmt(z ** n, 4)}\n`,
-      z === 1 ? 'the error never doubles or halves'
-        : `${z > 1 ? 'doubles' : 'halves'} every ${fmt(steps, 1)} steps = ${fmt(z > 1 ? doubling : halving, 2)} s at the current h = ${fmt(h, 3)} s`,
-    ]);
-    stage.invalidate();
-  }
-  const sub = i => String(i).replace(/\d/g, d => '₀₁₂₃₄₅₆₇₈₉'[d]);
+  const update = () => stage.invalidate();
 
   zInput.addEventListener('input', () => { z = Number(zInput.value); zOut.textContent = z.toFixed(3); update(); }, { signal });
   const btn = (label, fn) => el('button', { class: 'btn', type: 'button', onclick: fn }, label);
@@ -63,9 +62,7 @@ export function mount(root, ctx) {
       btn('z = 0.95', () => { z = 0.95; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
     ),
   ));
-  root.append(out.el);
 
   const unsub = store.subscribe((s, patch) => { if ('h' in patch) update(); }, { immediate: false });
-  update();
   return { destroy() { unsub(); } };
 }

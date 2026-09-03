@@ -17,7 +17,7 @@ import { spectralRadiusNormalized, updateMatrixNormalized } from 'shared/math/st
 import { eigen } from 'shared/math/matrix2.js';
 import { naturalFrequency, dampingRatio } from 'shared/math/system.js';
 import { sweep, sweepKey } from 'shared/math/sweep.js';
-import { readout, toggleFn, controls } from 'shared/ui/controls.js';
+import { toggleFn, controls } from 'shared/ui/controls.js';
 
 const CELL = 0.025;                                   // in both hω and ζ; hω = 2 falls on a cell edge
 const X_MIN = -0.05, X_MAX = 2.6, Y_MIN = -0.025, Y_MAX = 1.05;
@@ -42,7 +42,7 @@ function cellAt(hw, zeta) {
 const verdictOf = rho => (rho > 1 + EPS ? 'unstable' : rho < 1 - EPS ? 'stable' : 'neutral');
 const verdictText = { stable: 'stable', neutral: 'neutral', unstable: 'unstable' };
 
-/** One run of the unit-frequency system, with what the readout says about it. */
+/** One run of the unit-frequency system, with what the run's corner callout says about it. */
 function run(method, hw, zeta) {
   const h = Math.max(HW_MIN, hw);
   const sim = simulate({ method, h, m: 1, c: 2 * zeta, k: 1, x0: 1, v0: 0 }, T_END);
@@ -125,7 +125,6 @@ export function mount(root, ctx) {
 
   // ---- the run beside it ----
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  const out = readout();
   runStage.onDraw(size => {
     const s = store.get();
     const p = shown(s);
@@ -134,7 +133,6 @@ export function mount(root, ctx) {
       const { w, h, dpr } = size;
       g.clearRect(0, 0, w, h);
       drawText(g, makeView({ w, h, dpr, halfW: 1 }), 'k = 0: no spring, ω = 0, so hω and ζ are undefined', 0, 0, { color: cssVar('--muted'), align: 'center' });
-      out.set('spine: k = 0, so there is no ω to normalize by; raise k or hover a cell');
       return;
     }
     const hw = Math.min(p.hw, X_MAX * 2), zeta = Math.min(p.zeta, 1e6);
@@ -143,17 +141,16 @@ export function mount(root, ctx) {
     drawText(g, v, `${METHODS[method].label} at hω = ${fmt(r.h, 3)}, ζ = ${fmt(zeta, 3)}, ${PERIODS} periods of m = k = 1, x₀ = 1`, T_END, Y_RANGE[1],
       { color: cssVar('--muted'), size: 11, align: 'right', dx: -6, dy: 14 });
 
-    // three short lines: the readout sits under the strip and must not push the pane past the fold
+    // the loop's own numbers, called out beneath the title: verdict/ρ, phase drift, amplitude
     const verdict = verdictOf(r.rho);
     const phase = Number.isFinite(r.freqRatio)
       ? `frequency ${fmt(r.freqRatio, 4)} × exact: phase drifts ${fmt((r.freqRatio - 1) * 360, 1)}° per period`
       : r.real ? 'no oscillation left: the update’s eigenvalues are real' : 'no oscillation to compare';
-    out.set([
-      `${hover ? 'cell' : 'spine'}: hω = ${fmt(hw, 3)}, ζ = ${fmt(zeta, 3)} → ρ = ${fmt(r.rho, 4)} `,
-      el('span', { class: verdict === 'unstable' ? 'unstable' : 'stable' }, verdictText[verdict]), '\n',
-      `${phase}\n`,
-      `last-period amplitude: red ${fmt(r.ampSim, 3)} vs exact ${fmt(r.ampExact, 3)}`,
-    ]);
+    const corner = { color: cssVar('--muted'), size: 11, align: 'right', dx: -6 };
+    drawText(g, v, `${hover ? 'cell' : 'spine'}: hω = ${fmt(hw, 3)}, ζ = ${fmt(zeta, 3)} → ρ = ${fmt(r.rho, 4)}: ${verdictText[verdict]}`, T_END, Y_RANGE[1],
+      { ...corner, color: cssVar(verdict === 'unstable' ? '--unstable' : '--stable'), dy: 30 });
+    drawText(g, v, phase, T_END, Y_RANGE[1], { ...corner, dy: 46 });
+    drawText(g, v, `last-period amplitude: red ${fmt(r.ampSim, 3)} vs exact ${fmt(r.ampExact, 3)}`, T_END, Y_RANGE[1], { ...corner, dy: 62 });
   });
 
   // ---- hover: the cell under the pointer ----
@@ -168,7 +165,7 @@ export function mount(root, ctx) {
   }, { signal });
   // No wheel handler: wheel is the page's swipe gesture and must never be cancelled.
 
-  // ---- the switch and the readout ----
+  // ---- the switch ----
   const compare = toggleFn({
     label: 'compare: semi-implicit Euler',
     get: () => method === 'semi',
@@ -176,7 +173,7 @@ export function mount(root, ctx) {
     signal,
   });
   const back = el('button', { class: 'btn', type: 'button', onclick: () => { hover = null; mapStage.invalidate(); runStage.invalidate(); } }, 'back to the spine’s point');
-  root.append(controls(el('div', { class: 'controls-row' }, compare, back), out.el));
+  root.append(controls(el('div', { class: 'controls-row' }, compare, back)));
 
   const unsub = store.subscribe(() => { mapStage.invalidate(); runStage.invalidate(); }, { immediate: false });
   return { destroy() { unsub(); } };

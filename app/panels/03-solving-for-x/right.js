@@ -8,7 +8,6 @@ import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { exactSolution } from 'shared/math/system.js';
-import { readout } from 'shared/ui/controls.js';
 
 const SPAN = 4;              // seconds of the mass's history shown
 const CELLS = 64;            // string cells (interior unknowns per step)
@@ -41,6 +40,7 @@ export function mount(root, ctx) {
     const view = drawTrajectory(g, size, { t: T, x: X }, { tMin: t0, tMax: t1, approx: cssVar('--exact'), yLabel: null });
     drawPoint(g, view, tau, s.x(tau), { r: 6, fill: cssVar('--exact') });
     drawText(g, view, 'ODE: one number, x(t)', view.xMin, view.yMax, { color: cssVar('--fg'), size: TITLE, align: 'left', dx: 34, dy: 19 });
+    drawText(g, view, `x = ${fmt(s.x(tau), 3)}`, view.xMax, view.yMax, { color: cssVar('--exact'), size: 13, align: 'right', dx: -8, dy: 19 });
   });
 
   // ---- the PDE: a shape over time ----
@@ -78,6 +78,7 @@ export function mount(root, ctx) {
     drawText(g, stringView, 'PDE: a whole shape, u(x, t)', stringView.xMin, stringView.yMax, { color: cssVar('--fg'), size: TITLE, align: 'left', dx: 34, dy: 19 });
     energy = 0;
     for (let i = 0; i <= CELLS; i++) energy = Math.max(energy, Math.abs(u[i]));
+    drawText(g, stringView, `${CELLS - 1} numbers, max |u| = ${fmt(energy, 3)}`, stringView.xMax, stringView.yMax, { color: cssVar('--approx'), size: 13, align: 'right', dx: -8, dy: 19 });
     if (energy < 1e-3) drawText(g, stringView, 'poke the string', 0.5, 0.15, { color: cssVar('--muted'), size: 13, align: 'center' });
   });
 
@@ -88,10 +89,9 @@ export function mount(root, ctx) {
     e.preventDefault();
   }, { signal });
 
-  const out = readout();
   root.append(el('div', { class: 'controls-row' },
     el('button', { class: 'btn', type: 'button', onclick: () => { resetString(); stringStage.invalidate(); } }, 'Still the string'),
-  ), out.el);
+  ));
 
   // ---- one clock for both ----
   const offFrame = loop.onFrame(dt => {
@@ -102,7 +102,6 @@ export function mount(root, ctx) {
     while (n-- > 0) stepString();
     massStage.invalidate();
     stringStage.invalidate();
-    out.set(`ODE state: 1 number (x = ${fmt(sol ? sol.x(tau) : 0, 3)}) · PDE state: ${CELLS - 1} numbers, max |u| = ${fmt(energy, 3)}`);
   });
 
   const unsub = store.subscribe(() => massStage.invalidate(), { immediate: false });

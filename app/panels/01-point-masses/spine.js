@@ -6,7 +6,7 @@
 //
 // The dot's size never changes with m: this panel's one sentence is "all the mass at one
 // point, no extent", and a dot that grows with mass would draw the opposite. The mass shows
-// up as a number beside the point, in the readout, and in the prose.
+// up as a number beside the point (drawText) and in the prose (bindMath).
 //
 // Nothing writes the tuple on mount. The mass slider goes through scene.setMass, which is
 // the scene's one documented sync into the tuple's m, and only ever runs on a reader's drag.
@@ -16,7 +16,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { scene } from 'shared/scene.js';
-import { slider, readout, controls } from 'shared/ui/controls.js';
+import { slider, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
 const HALF_W = 4;       // the same plane as panel 2's spine, so the body does not jump
@@ -30,7 +30,6 @@ export function mount(root, ctx) {
   let grab = [0, 0];    // pointer-to-body offset, so the dot does not snap under the cursor
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  const out = readout({ label: 'the whole state' });
 
   stage.onDraw(({ w, h, dpr }) => {
     const { body } = scene.get();
@@ -50,8 +49,6 @@ export function mount(root, ctx) {
     drawPoint(g, view, x, y, { r: BODY_R, fill: cssVar('--fg') });
     drawText(g, view, `m = ${fmt(body.m, 2)}`, x, y, { color: cssVar('--muted'), size: 11, dx: BODY_R + 6, dy: 4 });
     drawText(g, view, 'drag it', view.xMin, view.yMax, { color: cssVar('--muted'), size: 11, dx: 8, dy: 18 });
-
-    out.set(`x = ${fmt(x, 2)}\ny = ${fmt(y, 2)}\nm = ${fmt(body.m, 2)}`);
   });
 
   // ---- drag the mass ----
@@ -64,7 +61,6 @@ export function mount(root, ctx) {
   });
 
   root.append(controls(slider(scene.paramStore('body'), 'm', { label: 'm (mass)', min: 0.1, max: 10, format: v => fmt(v, 2), signal })));
-  root.append(out.el);
 
   const offMath = bindMath(article, scene, s => ({ x: s.body.x[0], y: s.body.x[1], m: s.body.m }), { signal });
   const unsub = scene.subscribe(stage.invalidate, { immediate: false });

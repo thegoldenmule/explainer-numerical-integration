@@ -7,7 +7,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPoint, drawPolyline, drawText, makeView } from 'shared/gfx/plot2d.js';
 import { exactSolution, acceleration } from 'shared/math/system.js';
-import { readout, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 
 const SPAN = 4;        // seconds shown
 const SAMPLES = 800;   // of the exact curve
@@ -29,7 +29,6 @@ export function mount(root, ctx) {
 
   const xStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
   const vStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  const out = readout({ label: 'at this instant' });
 
   let curve = null, curveKey = '';
   function curves(state) {
@@ -50,8 +49,9 @@ export function mount(root, ctx) {
 
   // A strip's title: bigger and darker than drawTrajectory's own small --tick y-label (which
   // is suppressed here, yLabel: null, so the two never overlap), offset clear of the y-tick
-  // numbers stacked at the strip's left edge.
-  function strip(stage, size, ys, title, value, slope) {
+  // numbers stacked at the strip's left edge. The value at the scrubbed instant is called out
+  // in the opposite corner, in place of the old readout box.
+  function strip(stage, size, ys, title, label, value, slope) {
     const g = stage.ctx('plot');
     const blue = cssVar('--exact');
     const view = drawTrajectory(g, size, { t: curve.t, x: ys }, { tMin: 0, tMax: SPAN, approx: blue, yLabel: null, width: 1.5 });
@@ -59,11 +59,14 @@ export function mount(root, ctx) {
     drawPolyline(g, view, [tScrub - TANGENT, tScrub + TANGENT], [value - TANGENT * slope, value + TANGENT * slope], { color: cssVar('--approx'), width: 2.5 });
     drawPoint(g, view, tScrub, value, { r: 5, fill: cssVar('--approx') });
     drawText(g, view, title, view.xMin, view.yMax, { color: cssVar('--fg'), size: 15, align: 'left', dx: 34, dy: 19 });
+    drawText(g, view, `${label} = ${fmt(value, 3)}`, view.xMax, view.yMax, { color: cssVar('--approx'), size: 13, align: 'right', dx: -8, dy: 19 });
   }
 
   // The a-bar: a bare canvas (no shared "thin bar" stage exists — done locally per CLAUDE.md).
-  // Sized to the readout's own content width so it lines up with the text beneath it.
+  // Sized to its own wrapper's content width so it spans the controls column.
+  const barBox = el('div');
   const barCanvas = el('canvas', { width: 1, height: BAR_H });
+  barBox.append(barCanvas);
   function drawBar(a, capA) {
     const w = barCanvas.width;
     const g = barCanvas.getContext('2d');
@@ -90,28 +93,24 @@ export function mount(root, ctx) {
     const state = store.get();
     const c = curves(state);
     const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
-    strip(xStage, size, c.x, 'x(t)', x, v);
+    strip(xStage, size, c.x, 'x(t)', 'x', x, v);
   });
   vStage.onDraw(size => {
     const state = store.get();
     const c = curves(state);
     const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
     const a = c.acc(x, v);
-    strip(vStage, size, c.v, 'v(t)', v, a);
-    const style = getComputedStyle(out.el);
-    const w = Math.max(60, Math.round(out.el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)));
+    strip(vStage, size, c.v, 'v(t)', 'v', v, a);
+    const w = Math.max(60, Math.round(barBox.clientWidth));
     if (barCanvas.width !== w) barCanvas.width = w;
     drawBar(a, c.capA);
-    out.set(`t = ${fmt(tScrub, 2)} s\nx = ${fmt(x, 3)}\nv = ${fmt(v, 3)}   (= x′, slope of x)\na = ${fmt(a, 3)}   (= v′, slope of v)`);
   });
 
   const invalidate = () => { xStage.invalidate(); vStage.invalidate(); };
   root.append(controls(localSlider({
     label: 't (this instant)', min: 0, max: SPAN, value: tScrub, format: v => `${v.toFixed(2)} s`, signal,
     onInput: v => { tScrub = v; invalidate(); },
-  })));
-  out.el.append(el('br'), barCanvas);
-  root.append(out.el);
+  }), barBox));
 
   const unsub = store.subscribe(invalidate, { immediate: false });
   return { destroy() { unsub(); } };

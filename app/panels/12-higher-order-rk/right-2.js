@@ -7,9 +7,9 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawBundle } from 'shared/gfx/bundle.js';
-import { cssVar, makeView, drawGrid, drawPolyline } from 'shared/gfx/plot2d.js';
+import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { controls, readout } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { eigenvalues, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { simulate } from 'shared/math/integrators.js';
 import { ampFactor } from 'shared/math/stability.js';
@@ -18,7 +18,7 @@ import { sweepRange, sweep, sweepKey, nearestIndex } from 'shared/math/sweep.js'
 
 const HS = sweepRange(1 / 60, 1 / 2, 6, { log: true });   // 1/60 s up to half a second
 const FINE = 600;
-/** short enough for the narrow readout: 3 decimals, or 2 significant digits when tiny */
+/** short enough for the corner callout: 3 decimals, or 2 significant digits when tiny */
 const short = v => (Math.abs(v) < 1e-3 && v !== 0 ? v.toPrecision(2) : v.toFixed(3)).replace(/-/g, '−');
 
 /** 60 / ω_n seconds, clamped: 6 s for the demo spring, 60 s for the essay's. */
@@ -42,10 +42,8 @@ export function mount(root, ctx) {
   const input = el('input', { type: 'range', min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
   const value = el('output');
   input.addEventListener('input', () => store.set({ h: HS[Number(input.value)] }), { signal });
-  const out = readout({ label: 'implicit x at the window\u2019s end' });
   top.append(controls(
     el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'h along the range'), value), input),
-    out.el,
   ));
 
   // the bundle: one implicit run per h in the range, memoized on the system and the window
@@ -74,12 +72,13 @@ export function mount(root, ctx) {
     drawBundle(g, view, series.map(r => ({ xs: r.result.t, ys: r.result.x })), { highlight: i, width: 2, dimWidth: 1.25 });
 
     value.textContent = `${fmt(HS[i], 3)} s`;
+    // the highlighted run's own endpoint against the exact one, top-right: the rest of the
+    // bundle's spread is the over-damping, visible without a row per h
     const exactEnd = sol.x(tEnd);
-    out.set(series.flatMap((r, j) => {
-      const last = r.result.x[r.result.n - 1];
-      const line = `h = ${fmt(r.value, 3)}  x(${fmt(tEnd, 0)}) = ${short(last)}`;
-      return [j === i ? el('strong', {}, line) : line, '\n'];
-    }).concat(`exact      x(${fmt(tEnd, 0)}) = ${short(exactEnd)}`));
+    const last = series[i].result.x[series[i].result.n - 1];
+    const corner = { align: 'right', dx: -8 };
+    drawText(g, view, `h = ${fmt(HS[i], 3)} s: x(${fmt(tEnd, 0)}) = ${short(last)}`, view.xMax, view.yMax, { ...corner, color: cssVar('--approx'), size: 12, dy: 16 });
+    drawText(g, view, `exact x(${fmt(tEnd, 0)}) = ${short(exactEnd)}`, view.xMax, view.yMax, { ...corner, color: cssVar('--exact'), size: 12, dy: 32 });
   });
   const unsubscribe = store.subscribe(runStage.invalidate, { immediate: false });
 

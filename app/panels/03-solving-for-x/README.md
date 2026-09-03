@@ -15,11 +15,16 @@ pane contract. Panes in this directory:
   block: the step count and the max error are live `data-var` slots in the prose, filled by
   `bindMath`.
 - `left.html` + `left.js`: refresher, x, v, a: derivatives. Two `strip` stages plus a local
-  a-bar; the scrubbed `t` is local to the pane, not the tuple.
+  a-bar; the scrubbed `t` is local to the pane, not the tuple. No readout: `t` is on the local
+  slider's own output, `x` and `v` are `drawText` in the corner of the strip that plots them
+  (opposite each strip's title), and `a` stays exactly where it was, the a-bar canvas — now
+  sized from its own wrapper `<div>` instead of the removed box.
 - `right.html` + `right.js`: drill-down, ODEs vs PDEs; intractability. Two `strip` stages, the
   point mass (ODE) over a plucked string (PDE, explicit leapfrog under the CFL bound). Both
-  carry a canvas-drawn title at `size: 15` in `--fg` instead of `drawGrid`'s 11px `yLabel`. The
-  prose links out to Bonini's paradox on Wikipedia.
+  carry a canvas-drawn title at `size: 15` in `--fg` instead of `drawGrid`'s 11px `yLabel`. No
+  readout: the running "ODE state / PDE state" line is now `drawText` split onto the two
+  strips it was summarizing — `x = …` on the mass strip, `N numbers, max |u| = …` on the string
+  strip. The prose links out to Bonini's paradox on Wikipedia.
 
 Each `.js` exports `mount(root, ctx)`; each `.html` is an `<article>` with a `.viz` slot.
 Neither the spine's hover pick nor the right pane's clock writes the shared tuple.

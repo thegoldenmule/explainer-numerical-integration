@@ -8,7 +8,8 @@ import { el, fmt, clamp } from 'shared/dom.js';
 import { aux } from 'shared/aux.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
-import { controls, readout } from 'shared/ui/controls.js';
+import { cssVar, drawText } from 'shared/gfx/plot2d.js';
+import { controls } from 'shared/ui/controls.js';
 import { sweepStrip } from 'shared/ui/sweep.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { taylorAmplification } from 'shared/math/stability.js';
@@ -34,30 +35,28 @@ export function mount(root, ctx) {
     verdict: () => (highlight() ? { order: highlight() } : null),
     // the RK4 region reaches about 2.8/h along both axes
     halfRange: s => Math.max(3.2 / s.h, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
+    // the highlighted order's own polynomial and |S(hλ)|, top-right; nothing to single out
+    // when every order is lit (highlight() === 0)
+    onDraw(g, view, s) {
+      const hi = highlight();
+      if (!hi) return;
+      const ls = eigenvalues(s.m, s.c, s.k);
+      const l = ls.reduce((a, b) => (b[1] > a[1] ? b : a));
+      const f = cabs(taylorAmplification(cscale(l, s.h), hi));
+      const corner = { align: 'right', dx: -8 };
+      drawText(g, view, `RK${hi}: ${polynomialText(hi, '+')}`, view.xMax, view.yMax, { ...corner, color: cssVar('--fg'), size: 11, dy: 16 });
+      drawText(g, view, `|S| = ${fmt(f, 4)}: ${f <= 1 ? 'inside' : 'outside'}`, view.xMax, view.yMax,
+        { ...corner, color: cssVar(f <= 1 ? '--stable' : '--unstable'), size: 11, dy: 32 });
+    },
   });
 
   const strip = sweepStrip({
     values: CHOICES, label: 'highlight an order', format: o => NAMES[o], initial: highlight(), signal,
     onSelect: i => aux.set({ highlight: i }),
   });
-  const out = readout({ label: '|Sₙ(hλ)| at the upper root' });
-  function update() {
-    const s = store.get();
-    const ls = eigenvalues(s.m, s.c, s.k);
-    const l = ls.reduce((a, b) => (b[1] > a[1] ? b : a));
-    const hi = highlight();
-    out.set(ORDERS.flatMap(n => {
-      const f = cabs(taylorAmplification(cscale(l, s.h), n));
-      // short lines: this readout lives in the narrow column beside the plane
-      const line = [`RK${n}  ${polynomialText(n, '+')}\n`, `     |S| = ${fmt(f, 4)} `,
-        el('span', { class: f <= 1 ? 'stable' : 'unstable' }, f <= 1 ? 'inside' : 'outside'), '\n'];
-      return hi === n ? [el('strong', {}, line)] : hi ? [el('span', { class: 'muted' }, line)] : line;
-    }));
-    stage.invalidate();
-  }
-  top.append(controls(strip.el, out.el));
-  const unsubscribe = store.subscribe(update);
-  const unsubscribeAux = aux.subscribe(() => { strip.select(highlight(), { notify: false }); update(); }, { immediate: false });
+  top.append(controls(strip.el));
+  const unsubscribe = store.subscribe(stage.invalidate, { immediate: false });
+  const unsubscribeAux = aux.subscribe(() => { strip.select(highlight(), { notify: false }); stage.invalidate(); }, { immediate: false });
 
   return { destroy() { unsubscribe(); unsubscribeAux(); } };
 }

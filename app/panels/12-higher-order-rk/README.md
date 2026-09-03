@@ -1,21 +1,35 @@
 # Panel 12: Higher-order Runge-Kutta
 
-Spine, left, right, and right-2 are built; right-3 (Verlet) is not. See `docs/idea.md`
-(section "12. Higher-order Runge-Kutta") for the beat, and `docs/plan.md` for the pane
-contract. Panel 12 is the one exception to "side panes are one deep": its right pane is a
-three-long chain (`#/12/right`, `#/12/right/2`, `#/12/right/3`).
+Built. See `docs/idea.md` (section "12. Higher-order Runge-Kutta") for the beat, and
+`docs/plan.md` for the pane contract. Panel 12 is the one exception to "side panes are one
+deep": its right pane is a three-long chain (`#/12/right`, `#/12/right/2`, `#/12/right/3`).
 
 - `spine.html` + `spine.js`: the region for the store's method beside the live run; three
   small multiples (Euler, RK4, implicit Euler) pinned to the same λ, each a stage blitted
   from the one shared WebGL2 canvas; picker, presets, transport with speeds. The contrast:
-  implicit Euler never explodes and visibly over-damps the essay spring.
+  implicit Euler never explodes and visibly over-damps the essay spring. No readout: the
+  method's verdict and `t`/`x`/exact are `drawText` in the run's own corner.
 - `left.html` + `left.js`: refresher, Taylor series. Partial sums of eˣ added one term at a
-  time (a local slider), against the exponential, with |Sₙ(hλ)| for the current spring.
+  time (a local slider), against the exponential, with |Sₙ(hλ)| for the current spring. No
+  readout: the graph title already carries `Sₙ(x): n+1 terms`, now also drawing the
+  polynomial `Sₙ(z) = …` beneath it; `|Sₙ(hλ)|` against the exact factor and the grow/shrink
+  verdict moved into a live prose sentence, bound with `bindMath` on both the tuple store and
+  `aux` (the strip's `n` lives in `aux.highlight`), reading `n` fresh from `aux` each time
+  rather than a closure variable, so it owes nothing to subscription order.
 - `right.html` + `right.js`: drill-down, depth 1, Explode order. RK1–RK4 regions as Taylor
   `order` layers in one shader pass; a local slider highlights one order and its polynomial.
+  No readout: only the highlighted order's own polynomial and `|S|` verdict survive, `drawText`
+  directly on the plane (top-right corner); the other three orders' rows were dropped as
+  redundant with the overlaid regions, which already show which order reaches where.
 - `right-2.html` + `right-2.js`: drill-down, depth 2, Implicit Euler. Its region, and a bundle
   of implicit runs across six step sizes against the exact curve; a discrete slider sets the
-  store's `h` to highlight one.
-- `right-3.html` + `right-3.js`: drill-down, depth 3, Verlet (not built).
+  store's `h` to highlight one. No readout: only the highlighted run's `x` at the window's end,
+  against the exact one, survives, `drawText` in the run strip's corner; the other five rows
+  were dropped — the bundle's own spread already shows the over-damping growing with the step.
+- `right-3.html` + `right-3.js`: drill-down, depth 3, Verlet. The spectral radius `ρ` of its
+  2×2 update as a heatmap over `(hω, ζ)`, with a switch to overlay semi-implicit Euler; hover a
+  cell to run it against the exact curve. No readout: `ρ`/verdict, the phase-drift line, and
+  the last-period amplitude comparison are `drawText` stacked beneath the run strip's own
+  title; the duplicate `k = 0` fallback message was dropped (already drawn on the canvas).
 
 Each `.js` exports `mount(root, ctx)`; each `.html` is an `<article>` with a `.viz` slot.

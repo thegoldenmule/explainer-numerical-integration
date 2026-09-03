@@ -21,7 +21,7 @@ import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawShape, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { rotation, apply } from 'shared/math/matrix2.js';
 import { scene, BODY_LIMITS } from 'shared/scene.js';
-import { slider, readout, controls } from 'shared/ui/controls.js';
+import { slider, controls } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { BODY_RADIUS, worldPoints, grabSamples } from './body.js';
@@ -93,7 +93,6 @@ export function mount(root, ctx) {
   let grab = [0, 0];   // pointer-to-centre offset, so the body does not snap under the cursor
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  const out = readout({ label: 'the whole state' });
 
   // the grab lattice is spaced in CSS pixels, not body units, so it still covers the body on a
   // wide stage; it is rebuilt only when the view's scale changes, not on every pointermove
@@ -130,8 +129,7 @@ export function mount(root, ctx) {
     // the point mass is still in here: it is the centre of mass, drawn as the spine draws it
     drawPoint(g, view, x, y, { r: 6, fill: cssVar('--fg') });
     drawText(g, view, 'centre of mass', x, y, { color: cssVar('--muted'), size: 10, dx: 11, dy: 17 });
-
-    out.set(`x = ${fmt(x, 2)}\ny = ${fmt(y, 2)}\nθ = ${fmt(theta, 2)} rad = ${fmt(theta * 180 / Math.PI, 1)}°\nm = ${fmt(m, 2)}`);
+    drawText(g, view, `m = ${fmt(m, 2)}`, x, y, { color: cssVar('--muted'), size: 11, dx: 11, dy: 30 });
   });
 
   // ---- drags: anywhere on the body to move it, the handle on its axis to spin it ----
@@ -160,7 +158,6 @@ export function mount(root, ctx) {
   });
 
   root.append(controls(slider(facade, 'theta', { label: 'θ (rotation)', format: v => `${fmt(v, 2)} rad`, signal })));
-  root.append(out.el);
 
   const offScrub = bindScrub(article, facade, { signal });
   const offMath = bindMath(article, facade, undefined, { signal });

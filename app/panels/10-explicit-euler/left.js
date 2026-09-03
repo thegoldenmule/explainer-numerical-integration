@@ -5,9 +5,9 @@
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
-import { cssVar, drawPolyline } from 'shared/gfx/plot2d.js';
+import { cssVar, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { slider, controls, row, readout } from 'shared/ui/controls.js';
+import { slider, controls, row } from 'shared/ui/controls.js';
 import { createStepper } from 'shared/math/integrators.js';
 import { eigenvalues, exactSolution } from 'shared/math/system.js';
 import { handleIndex } from 'shared/gfx/cplane.js';
@@ -42,9 +42,9 @@ export function mount(root, ctx) {
     stage.invalidate();
   }
 
-  // ---- the plot: the fine exact curve on a layer beneath the walk ----
-  const stage = createStage(root, { layers: ['exact', 'plot'], aspect: 'strip', signal });
-  const out = readout({ label: 'last step' });
+  // ---- the plot: the fine exact curve on a layer beneath the walk. No readout beside it
+  // any more, so a tangent walk gets the taller 'wide' stage instead of a 'strip'. ----
+  const stage = createStage(root, { layers: ['exact', 'plot'], aspect: 'wide', signal });
   const fine = { t: new Float64Array(FINE), x: new Float64Array(FINE) };
   stage.onDraw(size => {
     const s = store.get();
@@ -68,10 +68,11 @@ export function mount(root, ctx) {
     const i = series.n - 1;
     const err = Math.abs(series.x[i] - series.exact[i]);
     const prevErr = i > 0 ? Math.abs(series.x[i - 1] - series.exact[i - 1]) : NaN;
-    out.set(
-      `step ${i}:  t = ${fmt(stepper.t, 3)}   x = ${fmt(series.x[i], 4)}   exact = ${fmt(series.exact[i], 4)}\n` +
-      `error ${fmt(err, 4)}${prevErr > 0 ? `   ratio to last step ${fmt(err / prevErr, 3)}` : ''}`,
-    );
+    // the last step's arithmetic, called out top-right, clear of the grid's own labels
+    const corner = { align: 'right', dx: -8 };
+    drawText(g, view, `step ${i}: t = ${fmt(stepper.t, 3)} s`, view.xMax, view.yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 16 });
+    drawText(g, view, `x = ${fmt(series.x[i], 4)}   exact = ${fmt(series.exact[i], 4)}`, view.xMax, view.yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
+    drawText(g, view, `error ${fmt(err, 4)}${prevErr > 0 ? `   ratio to last step ${fmt(err / prevErr, 3)}` : ''}`, view.xMax, view.yMax, { ...corner, color: cssVar('--approx'), size: 12, dy: 48 });
   });
 
   const btn = (label, fn, title) => el('button', { class: 'btn', type: 'button', title, onclick: fn }, label);
@@ -82,7 +83,6 @@ export function mount(root, ctx) {
       btn('Reset', reset),
     ),
     slider(store, 'h', { label: 'h (step)', min: 0.005, max: 0.25, format: v => v.toFixed(3), signal }),
-    out.el,
   ));
 
   reset();

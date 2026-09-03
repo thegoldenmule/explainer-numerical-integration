@@ -3,12 +3,12 @@
 // decay on the negative real axis, pure oscillation on the imaginary axis, a ringing decay
 // in between. Reading the plane by example, before any method can get it wrong.
 
-import { el, fmt } from 'shared/dom.js';
+import { el } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane, handleIndex } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
-import { cssVar } from 'shared/gfx/plot2d.js';
-import { controls, row, readout } from 'shared/ui/controls.js';
+import { cssVar, drawText } from 'shared/gfx/plot2d.js';
+import { controls, row } from 'shared/ui/controls.js';
 import { eigenvalues, exactFromEigenvalue, paramsFromEigenvalue } from 'shared/math/system.js';
 import { cfmt } from 'shared/math/complex.js';
 
@@ -21,10 +21,12 @@ const PLACES = [
   { label: 'Pure oscillation: λ = 10i', lambda: [0, 10] },
 ];
 
+/** One or two words for the run's corner label; the general categories are already the
+ *  prose's own paragraphs, so this names the case without re-explaining it. */
 const describe = ([a, b]) => {
-  if (Math.abs(b) < 1e-9) return a < 0 ? 'on the negative real axis: pure decay, no ringing' : a > 0 ? 'on the positive real axis: pure growth' : 'at the origin: nothing moves';
-  if (Math.abs(a) < 1e-9) return 'on the imaginary axis: pure oscillation, forever, at the same amplitude';
-  return a < 0 ? 'left half plane: a spiral inward, a ringing decay in time' : 'right half plane: a spiral outward; the real system is unstable';
+  if (Math.abs(b) < 1e-9) return a < 0 ? 'pure decay' : a > 0 ? 'pure growth — unstable' : 'nothing moves';
+  if (Math.abs(a) < 1e-9) return 'pure oscillation';
+  return a < 0 ? 'ringing decay' : 'ringing growth — unstable';
 };
 
 export function mount(root, ctx) {
@@ -37,13 +39,11 @@ export function mount(root, ctx) {
   // no method here: the roots are colored by the physical verdict
   createComplexPlane({ stage: planeStage, store, signal, drag: true, halfRange: HALF, verdict: 'physical' });
 
-  const out = readout({ label: 'λ' });
   top.append(controls(
     row(...PLACES.map(p => el('button', {
       class: 'btn', type: 'button',
       onclick: () => store.set(paramsFromEigenvalue(store.get().m, p.lambda)),
     }, p.label))),
-    out.el,
   ));
 
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
@@ -62,10 +62,15 @@ export function mount(root, ctx) {
       series.x[i] = sol.x(series.t[i]);
       if (Number.isFinite(series.x[i])) amp = Math.max(amp, Math.min(Math.abs(series.x[i]), 8 * Math.abs(s.x0) + 1));
     }
-    drawTrajectory(runStage.ctx('plot'), size, series, {
+    const view = drawTrajectory(runStage.ctx('plot'), size, series, {
       tMin: 0, tMax: tEnd, y: [-1.15 * amp, 1.15 * amp], approx: cssVar('--exact'), width: 2, yLabel: 'x (exact)',
     });
-    out.set(`${cfmt(lambda, 3)}\n${describe(lambda)}`);
+    // this λ and what it means, in the run's own corner: the plane carries no |R| label here
+    // (verdict: 'physical' turns those off), so this is the only place the value is printed
+    const corner = { align: 'right', dx: -8 };
+    const unstable = a > 0;
+    drawText(runStage.ctx('plot'), view, `λ = ${cfmt(lambda, 3)}`, view.xMax, view.yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 16 });
+    drawText(runStage.ctx('plot'), view, describe(lambda), view.xMax, view.yMax, { ...corner, color: cssVar(unstable ? '--unstable' : '--fg'), size: 12, dy: 32 });
   });
   const unsubscribe = store.subscribe(runStage.invalidate, { immediate: false });
 

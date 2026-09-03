@@ -4,14 +4,14 @@
 // RK4 is n = 4. The term count is the sweep strip's index, kept in aux.highlight so it
 // survives a remount (the key is shared by every sweep, so it is clamped on read).
 
-import { el, fmt, clamp } from 'shared/dom.js';
+import { el, clamp } from 'shared/dom.js';
 import { aux } from 'shared/aux.js';
 import { sweepStrip } from 'shared/ui/sweep.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawBundle } from 'shared/gfx/bundle.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { controls, readout } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { expPartialSums, polynomialText } from 'shared/math/taylor.js';
 import { taylorAmplification } from 'shared/math/stability.js';
 import { eigenvalues } from 'shared/math/system.js';
@@ -46,8 +46,11 @@ export function mount(root, ctx) {
     drawGrid(g, view, { xLabel: 'x', yLabel: 'eˣ and its partial sums' });
     drawPolyline(g, view, xs, exact, { color: cssVar('--exact'), width: 2, dash: [6, 4] });
     drawBundle(g, view, sums.slice(0, n + 1), { highlight: n, width: 2, dimWidth: 1.25, dimAlpha: 0.3 });
-    drawText(g, view, `S${n}(x): ${n + 1} term${n ? 's' : ''}`, X_MAX, Y_MAX,
+    const name = n === 1 ? ' (Euler)' : n === 4 ? ' (RK4)' : '';
+    drawText(g, view, `S${n}(x): ${n + 1} term${n ? 's' : ''}${name}`, X_MAX, Y_MAX,
       { color: cssVar('--approx'), size: 11, align: 'right', dx: -6, dy: 46 });
+    drawText(g, view, `S${n}(z) = ${polynomialText(n)}`, X_MAX, Y_MAX,
+      { color: cssVar('--muted'), size: 11, align: 'right', dx: -6, dy: 62 });
   });
 
   const strip = sweepStrip({
@@ -55,36 +58,33 @@ export function mount(root, ctx) {
     format: d => `${d + 1} term${d === 0 ? '' : 's'}, degree ${d}`,
     onSelect: i => aux.set({ highlight: i }),
   });
-  const out = readout();
-  function update() {
-    const s = store.get();
-    const z = cscale(upper(s), s.h);
-    const sum = cabs(taylorAmplification(z, n));
-    const ex = Math.exp(z[0]);
-    const name = n === 1 ? ' (Euler)' : n === 4 ? ' (RK4)' : '';
-    out.set([
-      `S${n}(z) = ${polynomialText(n)}${name}\n`,
-      `|S${n}(hλ)| = ${fmt(sum, 4)}   exact |e^{hλ}| = ${fmt(ex, 4)}   `,
-      el('span', { class: sum <= 1 ? 'stable' : 'unstable' }, sum <= 1 ? 'does not grow' : 'grows'),
-    ]);
-    stage.invalidate();
-  }
-  root.append(controls(strip.el, out.el));
-  const unsubscribe = store.subscribe(update);
+  root.append(controls(strip.el));
   const unsubscribeAux = aux.subscribe(a => {
     n = termsOf(a.highlight);
     strip.select(n, { notify: false });
-    update();
+    stage.invalidate();
   }, { immediate: false });
 
-  bindMath(root.closest('article') ?? root, store, s => {
+  // Whatever degree the strip is on, |Sₙ(hλ)| against the exact factor: bound to both stores
+  // (the tuple for h/λ, aux for the strip's own n) so it stays live whichever one moves. n is
+  // read fresh from aux here rather than the closure above, so this owes nothing to the order
+  // the two subscriptions were registered in.
+  function slots() {
+    const s = store.get();
+    const deg = termsOf(aux.get().highlight);
     const z = cscale(upper(s), s.h);
+    const sum = cabs(taylorAmplification(z, deg));
     return {
       'abs-exact': Math.exp(z[0]),
       'abs-taylor-1': cabs(taylorAmplification(z, 1)),
       'abs-taylor-4': cabs(taylorAmplification(z, 4)),
+      absN: sum,
+      growVerdict: el('span', { class: sum <= 1 ? 'stable' : 'unstable' }, sum <= 1 ? 'does not grow' : 'grows'),
     };
-  }, { signal, digits: 4 });
+  }
+  const article = root.closest('article') ?? root;
+  bindMath(article, store, slots, { signal, digits: 4 });
+  bindMath(article, aux, slots, { signal, digits: 4 });
 
-  return { destroy() { unsubscribe(); unsubscribeAux(); } };
+  return { destroy() { unsubscribeAux(); } };
 }

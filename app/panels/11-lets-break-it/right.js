@@ -16,7 +16,6 @@ import { updateMatrix, spectralRadius } from 'shared/math/stability.js';
 import { sweep, sweepKey } from 'shared/math/sweep.js';
 import { cfmt } from 'shared/math/complex.js';
 import { aux } from 'shared/aux.js';
-import { readout, controls } from 'shared/ui/controls.js';
 
 const ROWS = 3, COLS = 3, COUNT = ROWS * COLS;
 const PERIODS = 4;                 // of the exact solution per mini run
@@ -141,7 +140,10 @@ export function mount(root, ctx) {
   const runs = (state, pts) => sweep(pts.map((_, i) => i), i => miniRun(state, pts[i].lambda),
     { key: sweepKey({ panel: '11-right-runs', method: state.method, h: state.h, m: state.m, x0: state.x0, v0: state.v0 }) });
 
-  // ---- row 1: the plane with the nine points, beside the readout ----
+  // ---- row 1: the plane with the nine points. No readout beside it any more, but the
+  // .viz-row wrapper stays: standalone, .stage.half loses the 48%-of-row-width cap that keeps
+  // it beside the 'wide' grid stage below without pushing it past the fold. An empty second
+  // column costs nothing. ----
   const top = el('div', { class: 'viz-row' });
   root.append(top);
   const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
@@ -173,8 +175,6 @@ export function mount(root, ctx) {
       }
     },
   });
-  const out = readout({ label: 'highlighted λ' });
-  top.append(controls(out.el));
 
   // ---- row 2: the small multiples ----
   const gridStage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
@@ -207,20 +207,6 @@ export function mount(root, ctx) {
       label(g, dpr, pts[i].kind, cell.w - 5 * dpr, 12 * dpr, { color: cssVar('--muted'), align: 'right' });
       g.restore();
     });
-
-    // the readout follows the same highlight
-    if (hi < 0 || !pts[hi]) { out.set('hover a point on the plane, or a small multiple'); return; }
-    const p = pts[hi], r = results[hi].result;
-    const { c, k } = paramsFromEigenvalue(state.m, p.lambda);
-    const v = verdictOf(r.rho);
-    const scalar = METHODS[state.method].hasRegion;
-    out.set([
-      `λ = ${cfmt(p.lambda, 3)}   (${p.kind})\n`,
-      `m = ${fmt(state.m, 2)}, c = −2m·Re λ = ${fmt(c, 3)}, k = m|λ|² = ${fmt(k, 1)}${c < 0 ? '  (c < 0: the real system grows)' : ''}\n`,
-      `${scalar ? '|R(hλ)|' : 'ρ'} = ${fmt(r.rho, 4)}  `,
-      el('span', { class: v === 'unstable' ? 'unstable' : 'stable' }, v === 'neutral' ? 'on the edge: amplitude held' : v),
-      `   over ${r.sim.n - 1} steps of h = ${fmt(state.h, 3)}`,
-    ]);
   });
 
   // ---- hover: nearest point on the plane, cell under the pointer on the grid ----
