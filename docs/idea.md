@@ -90,9 +90,10 @@ not here.
 12. **Higher-order Runge-Kutta.** RK4 is the first five terms of the same Taylor series;
     `z = q(hλ)` with `q` the degree-4 polynomial, stable iff `|q(hλ)| ≤ 1`. The region is
     larger and handles oscillation. Implicit Euler, `|1 − hλ| ≥ 1`, is stable almost
-    everywhere but hard to implement. *Beat:* switch integrator and the region redraws;
-    small multiples of Euler, RK4, implicit Euler pinned to one `λ`. The teaching contrast:
-    implicit Euler never explodes but artificially damps the spring.
+    everywhere but hard to implement. *Beat:* two graphs, stacked full width — the plane for
+    the store's method, and the live spring against the exact curve. Switch integrator and
+    both redraw. The teaching contrast: implicit Euler never explodes but artificially damps
+    the spring; the right panes take that apart one method at a time.
 13. **Variable step sizes.** Euler and RK4 are truncations of one Taylor series, so the next
     term is a local truncation error estimate, computable in real time. Set a target error
     and grow `h` until you hit it, or add terms. The college paper: RK4 at a 0.01 error bound
@@ -344,11 +345,11 @@ wildcards), then the left pane as a step down and the right pane as a step up.
   with no method; the spine is one of these with the current system; this is all of them.
 
 **12. Higher-order Runge-Kutta.** `method = *`.
-- *Spine viz:* switch integrator and the region redraws; small multiples of Euler, RK4, and
-  implicit Euler pinned to the same `λ`, which falls inside one and outside another. The
-  teaching contrast: implicit Euler never explodes, but its spring is visibly over-damped
-  against the exact curve. The spine only shows that; the second and third right panes
-  explain it.
+- *Spine viz:* two graphs, stacked full width: the plane for the store's method (region and
+  eigenvalues), and the live spring running against the exact curve. Switching integrator
+  redraws both. The teaching contrast: implicit Euler never explodes, but its spring is
+  visibly over-damped against the exact curve. The spine only shows that; the second and
+  third right panes explain it.
 - *Left, step down (one term at a time):* Taylor series. Add terms to the expansion one by
   one and watch the approximation of `e^{hλ}` improve; Euler is the first two, RK4 the first
   five.
@@ -625,7 +626,7 @@ built API differs from the wording, the entry says so.
 - **Small helpers in `plot2d.js`.** A filled band between two curves (panel 4's ε-tube), a
   vector field (4-right's flow), a transformed grid and shape (6, 6-left), a heatmap over a
   view with a diverging colormap centered on `ρ = 1` (12-right-3, 11-right), a grid layout
-  for small multiples (11-right, 12), and `gfx/color.js` for alpha and mixing of the CSS
+  for small multiples (11-right), and `gfx/color.js` for alpha and mixing of the CSS
   palette.
 - **Drag handles, `gfx/drag.js`** (1, 2, 2-left, 5, 6, 7, 11). Pointer capture, hit test
   against a list of handles, and move/end callbacks on `ctx.signal`. Panel 1's spine hand-
