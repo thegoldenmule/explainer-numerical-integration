@@ -16,6 +16,8 @@ const WAVE_SPEED = 1;        // in string lengths per second
 const DT = 0.8 / (CELLS * WAVE_SPEED);   // CFL: c·dt/dx ≤ 1
 const DAMPING = 0.02;        // per unit time, so a pluck settles
 const PLUCK = 0.35;          // amplitude of a poke, in the plot's units
+const TITLE = 15;            // graph titles: bigger and darker than drawGrid's own 11px labels,
+                             // offset clear of the y-tick numbers at the strip's left edge
 
 export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
@@ -36,8 +38,9 @@ export function mount(root, ctx) {
     const t0 = Math.max(0, tau - SPAN), t1 = Math.max(SPAN, tau);
     for (let i = 0; i <= N; i++) { T[i] = t0 + (t1 - t0) * i / N; X[i] = s.x(T[i]); }
     const g = massStage.ctx('plot');
-    const view = drawTrajectory(g, size, { t: T, x: X }, { tMin: t0, tMax: t1, approx: cssVar('--exact'), yLabel: 'x (one number)' });
+    const view = drawTrajectory(g, size, { t: T, x: X }, { tMin: t0, tMax: t1, approx: cssVar('--exact'), yLabel: null });
     drawPoint(g, view, tau, s.x(tau), { r: 6, fill: cssVar('--exact') });
+    drawText(g, view, 'ODE: one number, x(t)', view.xMin, view.yMax, { color: cssVar('--fg'), size: TITLE, align: 'left', dx: 34, dy: 19 });
   });
 
   // ---- the PDE: a shape over time ----
@@ -68,13 +71,14 @@ export function mount(root, ctx) {
     const g = stringStage.ctx('plot');
     stringView = makeView({ w, h, dpr, xMin: 0, xMax: 1, yMin: -0.5, yMax: 0.5 });
     g.clearRect(0, 0, w, h);
-    drawGrid(g, stringView, { xLabel: 'along the string', yLabel: 'u (a shape)' });
+    drawGrid(g, stringView, { xLabel: 'along the string', yLabel: null });
     const xs = new Float64Array(CELLS + 1);
     for (let i = 0; i <= CELLS; i++) xs[i] = i / CELLS;
     drawPolyline(g, stringView, xs, u, { color: cssVar('--approx'), width: 2 });
+    drawText(g, stringView, 'PDE: a whole shape, u(x, t)', stringView.xMin, stringView.yMax, { color: cssVar('--fg'), size: TITLE, align: 'left', dx: 34, dy: 19 });
     energy = 0;
     for (let i = 0; i <= CELLS; i++) energy = Math.max(energy, Math.abs(u[i]));
-    if (energy < 1e-3) drawText(g, stringView, 'poke the string', 0.5, 0.15, { color: cssVar('--muted'), align: 'center' });
+    if (energy < 1e-3) drawText(g, stringView, 'poke the string', 0.5, 0.15, { color: cssVar('--muted'), size: 13, align: 'center' });
   });
 
   const canvas = stringStage.canvas('plot');

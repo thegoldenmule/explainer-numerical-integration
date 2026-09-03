@@ -18,8 +18,13 @@
     <p>Now you can see one of the tensions inside of a physics engine. We want to stay “close
       enough” to that blue line so that our physics engine doesn’t explode. At the same time,
       we’d like to spend the least possible amount of computation doing it.</p>
-    <p>Scrub <math><mi>dt</mi></math> and the red polyline hugs or leaves the blue curve; touch
-      the curve to step back down to one instant.</p>
+    <p>Scrub <math><mi>dt</mi></math> and the red polyline hugs or leaves the blue curve. The
+      strip underneath plots the gap between them,
+      <math><mrow><mo>|</mo><mi>x</mi><mo>−</mo><mtext>exact</mtext><mo>|</mo></mrow></math>, at
+      every one of those steps on a log scale, so you can watch it grow: right now the window
+      holds <math><mn data-var="steps" data-digits="0">120</mn></math> steps and the gap reaches
+      <math><mn data-var="maxerr">0.6</mn></math>. Hover a point on either graph and that step
+      lights up on both, with its error called out.</p>
   </div>
   <div class="viz"></div>
 </article>
