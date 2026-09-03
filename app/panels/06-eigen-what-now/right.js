@@ -12,13 +12,13 @@ import { cssVar, makeView, drawGrid, drawTransformedGrid, drawArrow, drawText } 
 import { rotation, scale, mmul, eigen, apply } from 'shared/math/matrix2.js';
 import { sweep, sweepRange, sweepKey } from 'shared/math/sweep.js';
 import { aux } from 'shared/aux.js';
-import { readout, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { sweepStrip } from 'shared/ui/sweep.js';
 
 const HALF_W = 2.4;
 const COUNT = 12;   // one per tick; drawBundle draws at most 12 series per call
-const A = 3, B = 1; // the anisotropic stretch under the rotation sweep
-const CRITICAL = Math.acos(2 * Math.sqrt(A * B) / (A + B));   // where the rotation sweep goes complex
+const A = 3, B = 1; // the anisotropic stretch under the rotation sweep; the directions meet
+                    // at cos θ* = 2√(AB) / (A + B), which the reader is asked to find
 
 const SWEEPS = {
   rotation: {
@@ -36,14 +36,13 @@ const SWEEPS = {
 };
 
 const highlightIndex = () => Math.min(COUNT - 1, Math.max(0, aux.get().highlight < 0 ? 0 : aux.get().highlight));
-const fmtLam = ([re, im]) => (Math.abs(im) < 1e-12 ? fmt(re, 3) : `${fmt(re, 3)} ${im >= 0 ? '+' : '−'} ${fmt(Math.abs(im), 3)}i`);
+const degreesApart = ([u, v]) => Math.acos(Math.min(1, Math.abs(u[0] * v[0] + u[1] * v[1]))) * 180 / Math.PI;
 
 export function mount(root, ctx) {
   const { signal } = ctx;
   let kind = 'rotation';
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  const out = readout({ label: 'highlighted value' });
 
   const results = () => {
     const sw = SWEEPS[kind];
@@ -77,22 +76,16 @@ export function mount(root, ctx) {
         drawArrow(g, view, 0, 0, img[0], img[1], { color: cssVar(j === 0 ? '--exact' : '--approx'), width: 2.5, head: 8 });
         drawText(g, view, `λ${j + 1} = ${fmt(e.values[j][0], 2)}`, img[0], img[1], { color: cssVar(j === 0 ? '--exact' : '--approx'), size: 11, dx: 6, dy: j === 0 ? -6 : 14 });
       });
-    } else {
-      drawText(g, view, 'no real eigenvector: every direction turns', 0, -0.8 * HALF_W * h / w, { color: cssVar('--unstable'), size: 12, align: 'center' });
     }
 
-    const v = rs[hi].value;
-    const lines = [`${sw.format(v)}:  M = [[${fmt(M[0][0], 2)}, ${fmt(M[0][1], 2)}], [${fmt(M[1][0], 2)}, ${fmt(M[1][1], 2)}]]   λ = ${e.values.map(fmtLam).join(', ')}`];
-    if (e.vectors) {
-      const dot = Math.abs(e.vectors[0][0] * e.vectors[1][0] + e.vectors[0][1] * e.vectors[1][1]);
-      lines.push(`\nreal: two invariant directions, ${fmt(Math.acos(Math.min(1, dot)) * 180 / Math.PI, 1)}° apart`);
-    } else {
-      lines.push('\n', el('span', { class: 'unstable' }, 'complex'), ': the directions met and vanished; |λ| is still a scale, arg λ a turn per application');
-    }
-    lines.push('\n', el('span', { class: 'label' }, kind === 'rotation'
-      ? `the real eigenvectors converge and vanish at θ* = arccos(2√(ab) / (a + b)) = ${fmt(CRITICAL * 180 / Math.PI, 1)}° for a = ${A}, b = ${B}`
-      : 'along a scale sweep the directions stay put on the axes; only λ₁ = s changes'));
-    out.set(lines);
+    // the verdict, on the canvas: the readout under the picture is gone
+    const status = e.vectors
+      ? [`${sw.format(rs[hi].value)}: two invariant directions, ${fmt(degreesApart(e.vectors), 1)}° apart`,
+         kind === 'rotation' ? 'sweep on and watch that angle close' : 'they stay on the axes; only λ changes']
+      : [`${sw.format(rs[hi].value)}: complex, the directions met and vanished`,
+         '|λ| is still a scale, arg λ a turn per application'];
+    status.forEach((line, i) => drawText(g, view, line, view.xMin, view.yMax,
+      { color: cssVar(e.vectors ? '--muted' : '--unstable'), size: 12, dx: 10, dy: 18 + i * 15 }));
   });
 
   // ---- the strip (rebuilt when the sweep changes) and the kind switch ----
@@ -114,7 +107,6 @@ export function mount(root, ctx) {
   }, { signal }));
 
   root.append(controls(el('div', { class: 'controls-row' }, ...buttons), box));
-  root.append(out.el);
 
   const unsubAux = aux.subscribe((s, patch) => {
     if ('highlight' in patch) { strip.select(highlightIndex(), { notify: false }); stage.invalidate(); }

@@ -162,6 +162,16 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .scrub[data-active] { border-bottom-style: solid; }
 .scrub:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+/* a matrix entry the control being dragged is writing (panel 6 left). mathbackground paints
+   the bare glyph box, with no padding and no radius, so it reads as a colour block; this
+   reads as a chip. */
+.mn-hi {
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 0 0.15em;
+  border-radius: 2px;
+}
+
 /* the sweep strip (ui/sweep.js): ticks, one per value; hover or drag selects */
 .sweep {
   display: grid;
