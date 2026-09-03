@@ -119,7 +119,7 @@ export function mount(root, ctx) {
     g.restore();
     drawPoint(g, view, px, py, { r: 5, fill: color });
     const left = px > X_MAX * 0.7;
-    drawText(g, view, `the spine's system${off ? ' (off the map)' : ''}`, px, py,
+    drawText(g, view, `the current spring${off ? ' (off the map)' : ''}`, px, py,
       { color: cssVar('--fg'), size: 11, align: left ? 'right' : 'left', dx: left ? -14 : 14, dy: 4 });
   });
 
@@ -147,7 +147,7 @@ export function mount(root, ctx) {
       ? `frequency ${fmt(r.freqRatio, 4)} × exact: phase drifts ${fmt((r.freqRatio - 1) * 360, 1)}° per period`
       : r.real ? 'no oscillation left: the update’s eigenvalues are real' : 'no oscillation to compare';
     const corner = { color: cssVar('--muted'), size: 11, align: 'right', dx: -6 };
-    drawText(g, v, `${hover ? 'cell' : 'spine'}: hω = ${fmt(hw, 3)}, ζ = ${fmt(zeta, 3)} → ρ = ${fmt(r.rho, 4)}: ${verdictText[verdict]}`, T_END, Y_RANGE[1],
+    drawText(g, v, `${hover ? 'cell' : 'spring'}: hω = ${fmt(hw, 3)}, ζ = ${fmt(zeta, 3)} → ρ = ${fmt(r.rho, 4)}: ${verdictText[verdict]}`, T_END, Y_RANGE[1],
       { ...corner, color: cssVar(verdict === 'unstable' ? '--unstable' : '--stable'), dy: 30 });
     drawText(g, v, phase, T_END, Y_RANGE[1], { ...corner, dy: 46 });
     drawText(g, v, `last-period amplitude: red ${fmt(r.ampSim, 3)} vs exact ${fmt(r.ampExact, 3)}`, T_END, Y_RANGE[1], { ...corner, dy: 62 });
@@ -172,8 +172,8 @@ export function mount(root, ctx) {
     set: v => { method = v ? 'semi' : 'verlet'; mapStage.invalidate(); runStage.invalidate(); },
     signal,
   });
-  const back = el('button', { class: 'btn', type: 'button', onclick: () => { hover = null; mapStage.invalidate(); runStage.invalidate(); } }, 'back to the spine’s point');
-  root.append(controls(el('div', { class: 'controls-row' }, compare, back)));
+  const resetBtn = el('button', { class: 'btn', type: 'button', title: 'Clear the hovered cell and show the current spring', onclick: () => { hover = null; mapStage.invalidate(); runStage.invalidate(); } }, 'Reset');
+  root.append(controls(el('div', { class: 'controls-row' }, compare, resetBtn)));
 
   const unsub = store.subscribe(() => { mapStage.invalidate(); runStage.invalidate(); }, { immediate: false });
   return { destroy() { unsub(); } };
