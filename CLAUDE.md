@@ -7,25 +7,32 @@ Make incremental commits to main as you work.
 ## What this is
 
 An interactive, in-browser explainer of physical and numerical stability (a damped mass-spring,
-several integrators, one complex plane). `docs/idea.md` is the concept and outline, section by
-section; `docs/plan.md` is the application architecture. Read `plan.md` before touching `app/`.
-`docs/poc/` holds the original proof of concept and numeric scripts; the app ports them.
-`docs/checkpoints.md` is the plan for the "say it in your own words" checkpoints (a Claude
+several integrators, one complex plane).
+
+**`docs/` is the app, not the documentation.** GitHub Pages publishes this repo from
+`main`'s `docs/` folder, which is the only folder name Pages accepts besides the repo root,
+so the site lives there and `docs/.nojekyll` keeps Jekyll's hands off it. The writing about
+the project is in `design/`.
+
+`design/idea.md` is the concept and outline, section by
+section; `design/plan.md` is the application architecture. Read `plan.md` before touching `docs/`.
+`design/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+`design/checkpoints.md` is the plan for the "say it in your own words" checkpoints (a Claude
 API grader behind a small `server/`); it is authoritative for that feature and is not built yet.
 
 ## Commands
 
-Everything runs from `app/`. There is no build, no bundler, no `npm install`.
+Everything runs from `docs/`. There is no build, no bundler, no `npm install`.
 
 ```
-cd app
+cd docs
 python3 -m http.server 8765 --bind 127.0.0.1     # serve (file:// does not work: modules + import map + fetch)
 node --test "shared/**/*.test.js"                # all tests
 node --test shared/math/stability.test.js        # one file
 node --test --test-name-pattern "implicit" "shared/**/*.test.js"   # one test by name
 ```
 
-`app/package.json` exists only to set `"type": "module"` for Node; do not add dependencies.
+`docs/package.json` exists only to set `"type": "module"` for Node; do not add dependencies.
 
 Browser checks go through the chrome-devtools MCP against the running server (console, network
 requests, screenshots, `evaluate_script`). If the MCP reports its browser profile is already in
@@ -38,7 +45,7 @@ use, kill the stale process: `pkill -f "user-data-dir=/Users/benjaminjordan/.cac
 between a title row and 13 panels (rows). Each row scrolls horizontally between its cells:
 `[left] [spine] [right] [right-2] …`, each a full viewport. Routes are `#/N`, `#/N/left`,
 `#/N/right`, and `#/N/right/D` for a chain of right panes (panel 12 has three); an
-out-of-range depth clamps down. `#/0` is the title page (`app/title/`, not a manifest
+out-of-range depth clamps down. `#/0` is the title page (`docs/title/`, not a manifest
 entry, mounted by `main.js` itself) and is where an empty or unparseable hash lands. Every input
 (touchpad swipe, arrow keys, rail dots, deep link) ends as a route the router applies in
 `shared/main.js`'s `onRoute`; IntersectionObservers map user scrolling back to routes, with
@@ -50,7 +57,7 @@ gets `overflow-y: hidden`. Cell scroll targets are computed from cell index × r
 title, and which side panes exist (`left` is an object or null; `right` is null or an array of
 `{ title }`, one per chain step). Adding a pane means the manifest entry says it exists and the
 files `panels/<slug>/<pane>.{html,js}` are present (`right`, `right-2`, `right-3` for a chain);
-nothing is registered anywhere else. `docs/idea.md` is authoritative for what each panel and
+nothing is registered anywhere else. `design/idea.md` is authoritative for what each panel and
 pane is; the manifest follows it. A pane
 whose files are missing renders a "not built yet" placeholder and logs a 404, which is expected
 while panels are unbuilt.
@@ -73,7 +80,7 @@ tolerance for the critical case, closed-form solution), `integrators.js` (`creat
 `simulate`; Verlet is seeded with the exact `x(−h)`), `stability.js` (scalar `R(hλ)` for
 Euler/RK4/implicit; 2×2 `updateMatrix` + `spectralRadius` for every method, which is the only
 honest verdict for semi-implicit Euler and Verlet). Tests assert the numeric confirmations
-recorded in `docs/idea.md`; keep them in sync if those numbers change.
+recorded in `design/idea.md`; keep them in sync if those numbers change.
 
 **Rendering** (`shared/gfx/`): the stability region is a WebGL2 fragment shader
 (`region-gl.js`, `precision highp float` is required); everything else is canvas 2D via
@@ -85,7 +92,7 @@ CSS custom properties so canvases match the stylesheet.
 - Modules inside `shared/` import each other with **relative** paths (Node runs the tests and
   does not read the import map). Panels import with the bare `shared/...` prefix.
 - **Never cancel wheel events** in a pane; wheel is the page's swipe gesture.
-- Panels ship no CSS. Add shared classes to `app/styles/controls.css` instead.
+- Panels ship no CSS. Add shared classes to `docs/styles/controls.css` instead.
 - Light mode only; no theme toggle, no `prefers-color-scheme` branch.
 - Math is typeset with native MathML; no KaTeX/MathJax.
 - Latest desktop browsers only; no polyfills, no fallbacks for WebGL2.
