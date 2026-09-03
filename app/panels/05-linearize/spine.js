@@ -118,7 +118,7 @@ export function mount(root, ctx) {
   // ---- the stage: body, arrows, a, and the look-ahead ----
   const stage = createStage(root, { layers: ['plane'], aspect: 'strip', signal });
   root.append(fragment(ASSEMBLY));
-  const out = readout({ label: 'the bridge to Part II' });
+  const out = readout({ label: 'the bridge to the tuple' });
   root.append(out.el);
 
   stage.onDraw(({ w, h, dpr }) => {
