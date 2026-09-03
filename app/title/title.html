@@ -76,6 +76,23 @@
     text-shadow: 0 0 24px rgba(251, 250, 247, 0.9), 0 0 60px rgba(251, 250, 247, 0.8);
   }
 
+  .title .source {
+    position: relative;
+    z-index: 2;
+    margin: 0.75rem auto 0;
+    max-width: none;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .title .source a {
+    color: inherit;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 0.15em;
+  }
+  .title .source a:hover {
+    color: var(--fg);
+  }
+
   .title .directions {
     position: relative;
     z-index: 2;
@@ -124,6 +141,7 @@
   <div class="hero">
     <div>
       <h1>Why do physics engines break?</h1>
+      <p class="source">Adapted from a <a href="https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2" target="_blank" rel="noopener">two-part series</a> on physical and numerical stability.</p>
     </div>
   </div>
 
