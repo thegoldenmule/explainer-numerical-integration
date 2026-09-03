@@ -4,10 +4,12 @@
     <p>Physical stability is a statement about a solution to our system of equations. It roughly
       says that a solution is physically stable if it starts out close to the real solution and
       stays close to the real solution, <em>forever</em>.</p>
-    <blockquote><p>“…the intuitive description is that a solution <math><mrow><mi>φ</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
+    <blockquote><p><em>“…the intuitive description is that a solution <math><mrow><mi>φ</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
       is [physically] stable if each solution <math><mrow><mi>ψ</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
       that starts out close to <math><mrow><mi>φ</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
-      remains close to it for all time.” — <em>Game Physics</em>, David Eberly</p></blockquote>
+      remains close to it for all time.”</em> — <em><a
+      href="https://www.sciencedirect.com/book/monograph/9781558607408/game-physics">Game
+      Physics</a> by David Eberly</em></p></blockquote>
     <p>This is a property of the <em>system</em>, before any integrator is chosen. The exact
       solution is drawn with an <math><mi>ε</mi></math>-tube around it and a handful of neighbors
       started nearby. A stable system pulls the neighbors into the tube; an unstable one lets
@@ -16,7 +18,12 @@
       solutions are physically stable. We can analyze this using something called Linear
       Stability Theory (LST). However, this requires us to make some concessions, which is the
       next panel.</p>
-    <p>Drag the perturbation size and watch the neighbors converge into the tube or leave it.</p>
+    <p>Whether the neighbors converge or leave is decided by the damping. A real spring’s
+      damping is never negative, so the spring’s own <math><mi>c</mi></math> stops at zero and
+      the failing case would be unreachable. The damping slider here is therefore <em>this
+      pane’s own</em>: it runs below zero into a what-if the spring itself cannot be put into,
+      and it is never written back. Drag <math><mi>ε</mi></math>, then drag the damping down
+      through zero and watch the neighbors stop converging and leave the tube.</p>
   </div>
   <div class="viz"></div>
 </article>

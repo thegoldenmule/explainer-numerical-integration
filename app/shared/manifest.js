@@ -25,7 +25,7 @@ export const manifest = Object.freeze([
     right: [{ title: 'ODEs vs PDEs; intractability' }] },
   { index: 4,  part: 1, slug: '04-physical-stability',  title: 'Physical stability',
     rung: 'x₀, v₀ perturbed: a small bundle around one solution',
-    left:  { title: 'What “close” means' },
+    left:  null,
     right: [{ title: 'Lyapunov vs asymptotic' }] },
   { index: 5,  part: 1, slug: '05-linearize',           title: 'Stability analysis: linearize',
     rung: 'concrete system; the force models vary',

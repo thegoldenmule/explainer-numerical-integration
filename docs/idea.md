@@ -155,7 +155,7 @@ unreadable fast. Keep sweeps small and let linked highlighting carry the compari
                                |
    [x, v, a: derivatives] <--- 3  Solving for x  ---------> [ODEs vs PDEs; intractability]
                                |
-   [what "close" means] <----- 4  Physical stability  ----> [Lyapunov vs asymptotic]
+                       <----- 4  Physical stability  ----> [Lyapunov vs asymptotic]
                                |
    [what "linear" means] <---- 5  Linearize  -------------> [Taylor expansion; 1/r² gravity]
                                |
@@ -217,9 +217,10 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - *Spine viz:* the exact solution with an ε-tube around it and a handful of neighbors
   started nearby. Drag the perturbation size; the neighbors converge into the tube or leave
   it. This is a property of the system, before any integrator exists.
-- *Left, step down (one neighbor):* exactly two curves, the exact and one perturbed, with
-  their distance plotted as a single number over time. "Starts close and stays close" as one
-  line that either flattens or climbs.
+- *Left:* none. It was built — two curves and their distance `d(t)` as one line — and cut:
+  with the tuple's `c` clamped at zero it could only ever draw a line that flattens, never
+  one that climbs, so it made the opposite of the panel's point. The spine now carries the
+  whole beat with its own damping, which runs negative.
 - *Right, step up (`(x₀, v₀) = *`):* the whole initial-condition plane as a phase portrait
   with a flow field. Stable, asymptotically stable, and unstable as three portraits side by
   side (Lyapunov's three flavors).
