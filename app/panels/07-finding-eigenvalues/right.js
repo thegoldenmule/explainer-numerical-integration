@@ -16,7 +16,7 @@ import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
-import { controls, row } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { discriminant, regime, eigenvalues, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { cfmt } from 'shared/math/complex.js';
 import { localDamping } from './local.js';
@@ -34,10 +34,12 @@ export function mount(root, ctx) {
   const article = root.closest('article') ?? root;
   const local = localDamping(store, { range: C_RANGE, signal });
 
-  // a square plane beside its one control, then a strip under both (--stage-max's budget)
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const planeStage = createStage(top, { layers: ['plane'], aspect: 'half', signal });
+  // the one button, above a full-width plane, then a strip under both (--stage-max's budget)
+  const snap = el('button', { class: 'btn', type: 'button' }, 'set c = 2√(mk)');
+  snap.addEventListener('click', () => local.set({ c: criticalC(local.get()) }), { signal });
+  root.append(controls(snap));
+
+  const planeStage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
   const plane = createComplexPlane({
     stage: planeStage, store: local, signal, verdict: 'physical',
     halfRange: s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
@@ -51,15 +53,6 @@ export function mount(root, ctx) {
         view.xMin, view.yMin, { color: muted, size: 11, dx: 8, dy: -10 });
     },
   });
-
-  // the one button: critical is a measure-zero value no drag will ever land on
-  const snap = el('button', { class: 'btn', type: 'button' }, 'set c = 2√(mk)');
-  snap.addEventListener('click', () => local.set({ c: criticalC(local.get()) }), { signal });
-  const note = el('p', { class: 'muted' },
-    'Critically damped: the one c where c² − 4mk = 0 and the two roots collide on the real '
-    + 'axis — the boundary between overdamped (two real roots, no oscillation) and underdamped '
-    + '(a conjugate pair, and the mass rings). No drag lands on it exactly, so this sets it.');
-  top.append(controls(row(snap), note));
 
   // the closed form, sampled over a few natural periods
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
