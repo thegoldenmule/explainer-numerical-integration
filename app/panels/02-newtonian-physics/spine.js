@@ -5,67 +5,53 @@
 //
 // The scrubs bind to one facade over the scene store (unique keys per parameter, each routed
 // to scene.setForceParam / setMass), the same shape panel 5's spine uses, so bindScrub and
-// bindMath take the article once and every slot follows any scene change.
+// bindMath take the article once and every slot follows any scene change. The facade, the
+// per-force equations, and the row that shows one on/off live in arrows.js: the right pane
+// offers the same four forces to drag and toggle while it runs, from the same code.
 //
 // Every active force is also an arrow from the body; the sum and a are drawn on top. Toggle
 // each force, drag an arrow's head to scale it (through the scene store, so the left pane
-// sees the same numbers), drag the body itself, and step time by hand: one explicit Euler
-// step of the tuple's h in 2D. The scene is 2D and createStepper is 1D, so the step is
-// written here; time is a local clock and lives on the canvas, not in the tuple.
+// sees the same numbers), drag the body itself, run or step time by hand: explicit Euler
+// steps of the tuple's h in 2D. The scene is 2D and createStepper is 1D, so the step is
+// written here; time is a local clock and lives on the canvas, not in the tuple. A dotted
+// line previews the next FORECAST_STEPS of that same step from wherever the body is now, so
+// dragging or toggling a force shows where it is about to take the body before you run it.
 
 import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
-import { cssVar, makeView, drawGrid, drawPoint, drawText } from 'shared/gfx/plot2d.js';
+import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { netForce } from 'shared/math/forces.js';
-import { scene, defaultScene, FORCE_LIMITS, BODY_LIMITS } from 'shared/scene.js';
-import { toggleFn, controls } from 'shared/ui/controls.js';
+import { scene, defaultScene } from 'shared/scene.js';
+import { controls } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { FORCE_COLOR, SUM_COLOR, ACCEL_COLOR, forceVectors, arrowMap, drawForceArrow, scalePatch, mag } from './arrows.js';
+import {
+  FORCE_COLOR, SUM_COLOR, ACCEL_COLOR, forceVectors, arrowMap, drawForceArrow, scalePatch, mag,
+  forceParamFacade, forceRows, forceComponents,
+} from './arrows.js';
 
 const HALF_W = 4;
 const HALF_H = 2.2;
 const BODY_R = 9;
+const FORECAST_STEPS = 25;
 
-/** One store-shaped view over every scrubbable parameter of the scene, keyed uniquely. */
-function paramFacade() {
-  const at = type => scene.forceIndex(type);
-  const map = {
-    'wind-fx': [at('wind'), 'fx', FORCE_LIMITS.fx], 'wind-fy': [at('wind'), 'fy', FORCE_LIMITS.fy],
-    G: [at('gravity'), 'G', FORCE_LIMITS.G], m2: [at('gravity'), 'm2', FORCE_LIMITS.m2], r: [at('gravity'), 'r', FORCE_LIMITS.r],
-    'drag-c': [at('drag'), 'c', FORCE_LIMITS.c], 'spring-k': [at('spring'), 'k', FORCE_LIMITS.k],
-    m1: ['body', 'm', BODY_LIMITS.m],
-  };
-  const get = () => {
-    const s = scene.get(), o = {};
-    for (const [key, [i, p]] of Object.entries(map)) o[key] = i === 'body' ? s.body.m : s.forces[i][p];
-    return o;
-  };
-  return {
-    get,
-    set(patch) {
-      for (const [key, v] of Object.entries(patch)) {
-        if (!map[key] || !Number.isFinite(v)) continue;
-        const [i, p] = map[key];
-        if (i === 'body') scene.setMass(v); else scene.setForceParam(i, p, v);
-      }
-      return get();
-    },
-    subscribe: (fn, opts) => scene.subscribe(() => { const g = get(); fn(g, g); }, opts),
-    limits: Object.fromEntries(Object.entries(map).map(([key, [, , lim]]) => [key, lim])),
-  };
+/**
+ * The next `n` explicit-Euler steps of size `h` from the scene's current (x, v), without
+ * touching the scene: a look-ahead, not a run. Every force model reads body.x/body.v, so
+ * this restages netForce at each step exactly as step() below does, one step at a time.
+ */
+function forecast(s, h, n) {
+  let x = s.body.x, v = s.body.v;
+  const pts = [x];
+  for (let i = 0; i < n; i++) {
+    const a = netForce({ ...s, body: { m: s.body.m, x, v } }).map(F => F / s.body.m);
+    x = [x[0] + h * v[0], x[1] + h * v[1]];
+    v = [v[0] + h * a[0], v[1] + h * a[1]];
+    pts.push(x);
+  }
+  return pts;
 }
-
-const sc = (key, digits, log = false) => `<mn data-scrub="${key}" data-digits="${digits}"${log ? ' data-log' : ''}>0</mn>`;
-const vec = (xk, yk) => `<mo>=</mo><mo>(</mo><mn data-var="${xk}" data-digits="2">0</mn><mo>,</mo><mn data-var="${yk}" data-digits="2">0</mn><mo>)</mo>`;
-
-const EQUATIONS = {
-  wind: `<math><mrow><mi>F</mi><mo>=</mo><mo>(</mo>${sc('wind-fx', 1)}<mo>,</mo>${sc('wind-fy', 1)}<mo>)</mo></mrow></math>`,
-  gravity: `<math><mrow><mi>F</mi><mo>=</mo><mfrac><mrow>${sc('G', 2)}<mo>·</mo>${sc('m1', 2)}<mo>·</mo>${sc('m2', 0, true)}</mrow><msup><mn data-scrub="r" data-digits="1" data-log>0</mn><mn>2</mn></msup></mfrac>${vec('Fgx', 'Fgy')}</mrow></math>`,
-  drag: `<math><mrow><mi>F</mi><mo>=</mo><mo>−</mo>${sc('drag-c', 2)}<mo>·</mo><mi>v</mi>${vec('Fdx', 'Fdy')}</mrow></math>`,
-  spring: `<math><mrow><mi>F</mi><mo>=</mo><mo>−</mo>${sc('spring-k', 0, true)}<mo>·</mo><mi>x</mi>${vec('Fsx', 'Fsy')}</mrow></math>`,
-};
 
 const TOTALS = `<math display="block"><mrow>
   <munder><mo>∑</mo><mi>i</mi></munder><msub><mi>F</mi><mi>i</mi></msub>
@@ -77,27 +63,25 @@ const TOTALS = `<math display="block"><mrow>
 </mrow></math>`;
 
 export function mount(root, ctx) {
-  const { store, signal } = ctx;
+  const { store, loop, signal } = ctx;
   const article = root.closest('article') ?? root;
-  const facade = paramFacade();
+  const facade = forceParamFacade();
   let t = 0, steps = 0;           // this pane's clock: the tuple's t belongs to the players
+  let running = false, carry = 0;
   let view = null, frozenMap = null;
 
-  // ---- the force rows: switch, equation, and whether it counts toward the sum ----
-  const rows = scene.get().forces.map((f, i) => el('div', { class: 'transport' },
-    toggleFn({
-      label: f.type[0].toUpperCase() + f.type.slice(1),
-      get: () => scene.get().forces[i].on, set: v => scene.toggleForce(i, v), subscribe: scene.subscribe, signal,
-    }),
-    fragment(EQUATIONS[f.type]),
-    el('span', { class: 'muted', 'data-var': `${f.type}-off` }),
-  ));
-  const stepBtn = el('button', { class: 'btn', type: 'button', title: 'One explicit Euler step of the tuple’s h' }, 'Step once');
+  // ---- the force rows: switch, equation, and whether it counts toward the sum. Each row's
+  // off-hint is always in the DOM at its full width (CSS hides it by :has(input:checked), not
+  // a text swap) and the row itself has a reserved min-height, so toggling a force or
+  // dragging a number wide never wraps the row and shoves the stage below it around. ----
+  const rows = forceRows(signal);
+  const runBtn = el('button', { class: 'btn', type: 'button', title: 'Run explicit Euler steps of the tuple’s h', 'aria-pressed': 'false' }, 'Run');
+  const stepBtn = el('button', { class: 'btn', type: 'button', title: 'One explicit Euler step of the tuple’s h' }, 'Step');
   const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
-  root.append(controls(rows, el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, stepBtn, resetBtn))));
+  root.append(controls(rows, el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  root.append(fragment(TOTALS));
+  root.append(el('div', { class: 'totals' }, fragment(TOTALS)));
 
   const mapNow = () => frozenMap ?? arrowMap(scene.get());
 
@@ -120,6 +104,12 @@ export function mount(root, ctx) {
       drawText(g, view, 'spring anchor', 0, 0, { color: cssVar('--muted'), size: 10, dx: 6, dy: 14 });
     }
 
+    // a dotted preview of the next FORECAST_STEPS of this same step, from wherever the body
+    // is right now: it redraws on every scene change, so it is always what happens next
+    const preview = forecast(s, store.get().h, FORECAST_STEPS);
+    drawPolyline(g, view, preview.map(p => p[0]), preview.map(p => p[1]),
+      { color: cssVar('--muted'), width: 1.5, dash: [2, 3], alpha: 0.8 });
+
     for (const f of list) drawForceArrow(g, view, body.x, f.F, map, { color: FORCE_COLOR[f.type], label: f.label });
     drawForceArrow(g, view, body.x, sum, map, { color: SUM_COLOR, width: 4, head: 11 });
     drawForceArrow(g, view, body.x, a, map, { color: ACCEL_COLOR, width: 1.5, head: 6 });
@@ -130,12 +120,13 @@ export function mount(root, ctx) {
     drawText(g, view, 'ΣF', view.xMin, view.yMax, { color: cssVar(SUM_COLOR), size: 11, dx: 8, dy: 16 });
     drawText(g, view, 'a = ΣF / m', view.xMin, view.yMax, { color: cssVar(ACCEL_COLOR), size: 11, dx: 8, dy: 30 });
     drawText(g, view, 'v', view.xMin, view.yMax, { color: cssVar('--stable'), size: 11, dx: 8, dy: 44 });
+    drawText(g, view, `⋯ next ${FORECAST_STEPS} steps`, view.xMin, view.yMax, { color: cssVar('--muted'), size: 11, dx: 8, dy: 58 });
 
     // the clock and the state the equations do not already carry
     const hint = list.length === 0 ? 'every force is off' : 'arrow lengths are compressed (log) so all four fit; the equations are the truth';
     drawText(g, view, `x = (${fmt(body.x[0], 2)}, ${fmt(body.x[1], 2)})   v = (${fmt(body.v[0], 2)}, ${fmt(body.v[1], 2)})`,
       view.xMin, view.yMin, { color: cssVar('--fg'), size: 11, dx: 8, dy: -32 });
-    drawText(g, view, `t = ${fmt(t, 3)} s: ${steps} step${steps === 1 ? '' : 's'} of h = ${fmt(store.get().h, 3)} s`,
+    drawText(g, view, `t = ${fmt(t, 3)} s: ${steps} step${steps === 1 ? '' : 's'} of h = ${fmt(store.get().h, 3)} s${running ? '   running' : ''}`,
       view.xMin, view.yMin, { color: cssVar('--muted'), size: 11, dx: 8, dy: -18 });
     drawText(g, view, hint, view.xMin, view.yMin, { color: cssVar('--muted'), size: 10, dx: 8, dy: -5 });
   });
@@ -169,7 +160,7 @@ export function mount(root, ctx) {
     onEnd: () => { frozenMap = null; stage.invalidate(); },
   });
 
-  // ---- step time by hand: one explicit Euler step in 2D ----
+  // ---- step time: one explicit Euler step in 2D, by hand or run continuously ----
   function step() {
     const s = scene.get();
     const h = store.get().h;
@@ -187,6 +178,21 @@ export function mount(root, ctx) {
     t = 0; steps = 0;
     stage.invalidate();
   }
+  function setRunning(v) {
+    running = v; carry = 0;
+    runBtn.setAttribute('aria-pressed', String(running));
+    runBtn.textContent = running ? 'Pause' : 'Run';
+    stage.invalidate();
+  }
+  const offFrame = loop.onFrame(dt => {
+    if (!running) return;
+    carry += dt;
+    const h = store.get().h;
+    let n = Math.min(Math.floor(carry / h), 200);
+    carry -= n * h;
+    while (n-- > 0) step();
+  });
+  runBtn.addEventListener('click', () => setRunning(!running), { signal });
   stepBtn.addEventListener('click', step, { signal });
   resetBtn.addEventListener('click', reset, { signal });
 
@@ -194,13 +200,9 @@ export function mount(root, ctx) {
   bindScrub(article, facade, { signal });
   bindMath(article, facade, () => {
     const s = scene.get();
-    const { list, sum } = forceVectors(s, { all: true });
-    const at = type => list.find(v => v.type === type)?.F ?? [0, 0];
-    const [Fgx, Fgy] = at('gravity'), [Fdx, Fdy] = at('drag'), [Fsx, Fsy] = at('spring');
-    const off = Object.fromEntries(s.forces.map(f => [`${f.type}-off`, f.on ? '' : 'off — not in ΣF']));
+    const { sum } = forceVectors(s);
     return {
-      ...off,
-      Fgx, Fgy, Fdx, Fdy, Fsx, Fsy,
+      ...forceComponents(s),
       Sx: sum[0], Sy: sum[1],
       ax: sum[0] / s.body.m, ay: sum[1] / s.body.m,
     };
@@ -208,5 +210,8 @@ export function mount(root, ctx) {
 
   const unsub = scene.subscribe(stage.invalidate, { immediate: false });
   const unsubTuple = store.subscribe((s, patch) => { if ('h' in patch) stage.invalidate(); }, { immediate: false });
-  return { destroy() { unsub(); unsubTuple(); } };
+  return {
+    pause() { setRunning(false); },
+    destroy() { offFrame(); unsub(); unsubTuple(); },
+  };
 }

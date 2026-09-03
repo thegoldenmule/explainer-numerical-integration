@@ -14,8 +14,11 @@
 // `toForce` inverts it, so a dragged tip still reads back as a force; a pane freezes the whole
 // map for the duration of a drag so the tip stays under the pointer.
 
+import { el, fragment } from 'shared/dom.js';
 import { cssVar, drawArrow, drawText } from 'shared/gfx/plot2d.js';
 import { MODELS, forceOf } from 'shared/math/forces.js';
+import { scene, FORCE_LIMITS, BODY_LIMITS } from 'shared/scene.js';
+import { toggleFn } from 'shared/ui/controls.js';
 
 /** CSS variable per force type; the sum and the acceleration have their own. */
 export const FORCE_COLOR = Object.freeze({ wind: '--force-wind', gravity: '--force-gravity', drag: '--force-drag', spring: '--force-spring' });
@@ -123,4 +126,84 @@ export function scalePatch(force, F, Fnext) {
   const along = Math.max(0, (Fnext[0] * F[0] + Fnext[1] * F[1]) / len);
   const key = { gravity: 'G', drag: 'c', spring: 'k' }[force.type];
   return { [key]: force[key] * along / len };
+}
+
+// ---- the four forces' draggable equations, and the on/off row that shows one (the spine
+// and the right pane both let the reader drag and toggle the same four forces) ----
+
+const sc = (key, digits, log = false) => `<mn data-scrub="${key}" data-digits="${digits}"${log ? ' data-log' : ''}>0</mn>`;
+const vec = (xk, yk) => `<mo>=</mo><mo>(</mo><mn data-var="${xk}" data-digits="2">0</mn><mo>,</mo><mn data-var="${yk}" data-digits="2">0</mn><mo>)</mo>`;
+
+/**
+ * Each force's model as a live MathML fragment: every parameter scrubbable (bindScrub, via
+ * forceParamFacade below), the vector it produces read out at the end — Fgx/Fgy, Fdx/Fdy,
+ * Fsx/Fsy, filled by whatever bindMath derive computes forceVectors' list.
+ */
+export const FORCE_EQUATIONS = Object.freeze({
+  wind: `<math><mrow><mi>F</mi><mo>=</mo><mo>(</mo>${sc('wind-fx', 1)}<mo>,</mo>${sc('wind-fy', 1)}<mo>)</mo></mrow></math>`,
+  gravity: `<math><mrow><mi>F</mi><mo>=</mo><mfrac><mrow>${sc('G', 2)}<mo>·</mo>${sc('m1', 2)}<mo>·</mo>${sc('m2', 0, true)}</mrow><msup><mn data-scrub="r" data-digits="1" data-log>0</mn><mn>2</mn></msup></mfrac>${vec('Fgx', 'Fgy')}</mrow></math>`,
+  drag: `<math><mrow><mi>F</mi><mo>=</mo><mo>−</mo>${sc('drag-c', 2)}<mo>·</mo><mi>v</mi>${vec('Fdx', 'Fdy')}</mrow></math>`,
+  spring: `<math><mrow><mi>F</mi><mo>=</mo><mo>−</mo>${sc('spring-k', 0, true)}<mo>·</mo><mi>x</mi>${vec('Fsx', 'Fsy')}</mrow></math>`,
+});
+
+/**
+ * One store-shaped view over every scrubbable parameter of every force, plus the body's
+ * mass m1 (gravity's own equation, and any totals beside the rows): unique keys, so one
+ * bindScrub over one article catches every row.
+ */
+export function forceParamFacade() {
+  const at = type => scene.forceIndex(type);
+  const map = {
+    'wind-fx': [at('wind'), 'fx', FORCE_LIMITS.fx], 'wind-fy': [at('wind'), 'fy', FORCE_LIMITS.fy],
+    G: [at('gravity'), 'G', FORCE_LIMITS.G], m2: [at('gravity'), 'm2', FORCE_LIMITS.m2], r: [at('gravity'), 'r', FORCE_LIMITS.r],
+    'drag-c': [at('drag'), 'c', FORCE_LIMITS.c], 'spring-k': [at('spring'), 'k', FORCE_LIMITS.k],
+    m1: ['body', 'm', BODY_LIMITS.m],
+  };
+  const get = () => {
+    const s = scene.get(), o = {};
+    for (const [key, [i, p]] of Object.entries(map)) o[key] = i === 'body' ? s.body.m : s.forces[i][p];
+    return o;
+  };
+  return {
+    get,
+    set(patch) {
+      for (const [key, v] of Object.entries(patch)) {
+        if (!map[key] || !Number.isFinite(v)) continue;
+        const [i, p] = map[key];
+        if (i === 'body') scene.setMass(v); else scene.setForceParam(i, p, v);
+      }
+      return get();
+    },
+    subscribe: (fn, opts) => scene.subscribe(() => { const g = get(); fn(g, g); }, opts),
+    limits: Object.fromEntries(Object.entries(map).map(([key, [, , lim]]) => [key, lim])),
+  };
+}
+
+/**
+ * One force's row: the on/off switch, its equation, and a hint that always occupies its full
+ * width so toggling a force cannot itself change the row's width — pair with the .force-row /
+ * .force-off-hint CSS, which reserves the row's height too.
+ */
+export function forceRow(f, i, { signal } = {}) {
+  return el('div', { class: 'transport force-row' },
+    toggleFn({
+      label: f.type[0].toUpperCase() + f.type.slice(1),
+      get: () => scene.get().forces[i].on, set: v => scene.toggleForce(i, v), subscribe: scene.subscribe, signal,
+    }),
+    fragment(FORCE_EQUATIONS[f.type]),
+    el('span', { class: 'muted force-off-hint' }, 'off — not in ΣF'),
+  );
+}
+
+/** Every force's row, in scene order. */
+export function forceRows(signal) {
+  return scene.get().forces.map((f, i) => forceRow(f, i, { signal }));
+}
+
+/** The vector each force produces, keyed for bindMath: Fgx/Fgy, Fdx/Fdy, Fsx/Fsy. */
+export function forceComponents(state) {
+  const { list } = forceVectors(state, { all: true });
+  const at = type => list.find(v => v.type === type)?.F ?? [0, 0];
+  const [Fgx, Fgy] = at('gravity'), [Fdx, Fdy] = at('drag'), [Fsx, Fsy] = at('spring');
+  return { Fgx, Fgy, Fdx, Fdy, Fsx, Fsy };
 }

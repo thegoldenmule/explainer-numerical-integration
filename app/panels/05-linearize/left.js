@@ -2,6 +2,10 @@
 // check f(a + b) = f(a) + f(b): a, b, and a + b sit on the x axis with their outputs dropped
 // to the curve, and the arithmetic is called out in the corner of the plot. f(x) = 2x
 // passes; f(x) = x² fails by exactly 2ab.
+//
+// a, b, and a + b are all draggable only along the positive x axis (the check makes no
+// special use of negative inputs), so the view shows only that quadrant — the other three
+// would just be unused plot.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -9,7 +13,7 @@ import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { controls } from 'shared/ui/controls.js';
 
-const HALF_W = 3.2;
+const X_MAX = 3.2;    // the plot shows only x ≥ 0: the drag range, and the only quadrant used
 const FUNCTIONS = {
   linear: { label: 'f(x) = 2x', f: x => 2 * x },
   square: { label: 'f(x) = x²', f: x => x * x },
@@ -27,12 +31,12 @@ export function mount(root, ctx) {
     const { f } = FUNCTIONS[kind];
     const g = stage.ctx('plot');
     const yMax = kind === 'square' ? 8 : 6.5;
-    view = makeView({ w, h, dpr, xMin: -HALF_W, xMax: HALF_W, yMin: -yMax * 0.45, yMax });
+    view = makeView({ w, h, dpr, xMin: 0, xMax: X_MAX, yMin: 0, yMax });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'f(x)' });
 
     const xs = [], ys = [];
-    for (let i = 0; i <= 200; i++) { const x = -HALF_W + 2 * HALF_W * i / 200; xs.push(x); ys.push(f(x)); }
+    for (let i = 0; i <= 200; i++) { const x = X_MAX * i / 200; xs.push(x); ys.push(f(x)); }
     drawPolyline(g, view, xs, ys, { color: cssVar('--fg'), width: 1.5 });
 
     const fa = f(a), fb = f(b), fab = f(a + b), sum = fa + fb;
@@ -54,18 +58,18 @@ export function mount(root, ctx) {
     // the arithmetic, called out top-right, clear of the grid's own labels
     const passes = Math.abs(sum - fab) < 1e-9;
     const corner = { align: 'right', dx: -8 };
-    drawText(g, view, `f(a) + f(b) = ${fmt(fa, 2)} + ${fmt(fb, 2)} = ${fmt(sum, 2)}`, HALF_W, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 16 });
-    drawText(g, view, `f(a + b) = f(${fmt(a + b, 2)}) = ${fmt(fab, 2)}`, HALF_W, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
-    drawText(g, view, passes ? 'equal: linear' : `off by ${fmt(fab - sum, 2)}: not linear`, HALF_W, yMax,
+    drawText(g, view, `f(a) + f(b) = ${fmt(fa, 2)} + ${fmt(fb, 2)} = ${fmt(sum, 2)}`, X_MAX, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 16 });
+    drawText(g, view, `f(a + b) = f(${fmt(a + b, 2)}) = ${fmt(fab, 2)}`, X_MAX, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 32 });
+    drawText(g, view, passes ? 'equal: linear' : `off by ${fmt(fab - sum, 2)}: not linear`, X_MAX, yMax,
       { ...corner, color: cssVar(passes ? '--stable' : '--unstable'), size: 12, dy: 48 });
   });
 
   createDragHandles(stage.canvas('plot'), {
     signal, hitRadius: 14,
     handles: () => [{ id: 'a', x: a, y: 0 }, { id: 'b', x: b, y: 0 }],
-    view: () => view ?? makeView({ w: 1, h: 1, dpr: 1, xMin: -HALF_W, xMax: HALF_W, yMin: -1, yMax: 1 }),
+    view: () => view ?? makeView({ w: 1, h: 1, dpr: 1, xMin: 0, xMax: X_MAX, yMin: 0, yMax: 1 }),
     onMove: (id, p) => {
-      const x = Math.max(-HALF_W + 0.1, Math.min(HALF_W - 0.1, p.x));
+      const x = Math.max(0.05, Math.min(X_MAX - 0.1, p.x));
       if (id === 'a') a = x; else b = x;
       stage.invalidate();
     },

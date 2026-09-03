@@ -8,15 +8,17 @@
 // point, no extent", and a dot that grows with mass would draw the opposite. The mass shows
 // up as a number beside the point (drawText) and in the prose (bindMath).
 //
-// Nothing writes the tuple on mount. The mass is a scrubbable number in the block equation,
-// routed through scene.paramStore('body') → scene.setMass, the scene's one documented sync
-// into the tuple's m, and only ever runs on a reader's drag.
+// Nothing writes the tuple on mount. All three numbers — x, y, m — are scrubbable right in
+// the block equation, the same as panel 1's right pane does for (x, y, θ): one store-shaped
+// facade over the scene body backs both bindScrub and bindMath, so the printed numbers are
+// themselves the controls, not just a readout of the canvas drag. x and y route through
+// scene.moveBody, m through scene.setMass, the scene's one documented sync into the tuple's m.
 
 import { clamp, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
-import { scene } from 'shared/scene.js';
+import { scene, BODY_LIMITS } from 'shared/scene.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 
@@ -24,9 +26,32 @@ const HALF_W = 4;       // the same plane as panel 2's spine, so the body does n
 const CLAMP_Y = 2.2;
 const BODY_R = 9;
 
+/** A store-shaped view of (x, y, m): the three numbers printed in the spine's own equation. */
+function stateFacade() {
+  const get = () => { const { body } = scene.get(); return { x: body.x[0], y: body.x[1], m: body.m }; };
+  return {
+    get,
+    set(patch) {
+      const { body } = scene.get();
+      const x = Number.isFinite(patch.x) ? patch.x : body.x[0];
+      const y = Number.isFinite(patch.y) ? patch.y : body.x[1];
+      if (x !== body.x[0] || y !== body.x[1]) scene.moveBody(x, y);
+      if (Number.isFinite(patch.m)) scene.setMass(patch.m);
+      return get();
+    },
+    subscribe(fn, opts) {
+      const relay = () => { const s = get(); fn(s, s); };
+      return scene.subscribe(relay, opts);
+    },
+    // tighter than BODY_LIMITS.x, so a scrub cannot push the body past this plane's edge
+    limits: { x: [-HALF_W, HALF_W], y: [-CLAMP_Y, CLAMP_Y], m: BODY_LIMITS.m },
+  };
+}
+
 export function mount(root, ctx) {
   const { signal } = ctx;
   const article = root.closest('article') ?? root;
+  const facade = stateFacade();
   let view = null;
   let grab = [0, 0];    // pointer-to-body offset, so the dot does not snap under the cursor
 
@@ -61,8 +86,8 @@ export function mount(root, ctx) {
     onMove: (id, p) => scene.moveBody(clamp(p.x + grab[0], -HALF_W, HALF_W), clamp(p.y + grab[1], -CLAMP_Y, CLAMP_Y)),
   });
 
-  const offMath = bindMath(article, scene, s => ({ x: s.body.x[0], y: s.body.x[1], m: s.body.m }), { signal });
-  const offScrub = bindScrub(article, scene.paramStore('body'), { signal, limits: { m: [0.1, 10] } });
+  const offMath = bindMath(article, facade, undefined, { signal });
+  const offScrub = bindScrub(article, facade, { signal });
   const unsub = scene.subscribe(stage.invalidate, { immediate: false });
   return { destroy() { unsub(); offMath(); offScrub(); } };
 }

@@ -8,7 +8,9 @@
 //
 // θ, θ′, t and the lever arm live in a pane-local store so the equations under the stage can
 // be ordinary live MathML: one bindMath over that store catches the integration, a second
-// over the scene catches a force being toggled or dragged on the spine.
+// over the scene catches a force being toggled or dragged — here or on the spine, the same
+// four force rows as the spine's (arrows.js's forceRows), so a force can be changed without
+// leaving this pane while it runs.
 
 import { el, fmt, fragment } from 'shared/dom.js';
 import { createStore } from 'shared/state.js';
@@ -18,7 +20,7 @@ import { scene } from 'shared/scene.js';
 import { controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
-import { FORCE_COLOR, SUM_COLOR, forceVectors, arrowMap, drawForceArrow } from './arrows.js';
+import { FORCE_COLOR, SUM_COLOR, forceVectors, arrowMap, drawForceArrow, forceParamFacade, forceRows, forceComponents } from './arrows.js';
 
 const BODY = { w: 1.6, h: 1 };
 const HALF_W = 4;
@@ -45,6 +47,7 @@ const EQUATIONS = `
 export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
   const article = root.closest('article') ?? root;
+  const facade = forceParamFacade();
   let running = false, carry = 0;
 
   // the body's rotation state and where the forces act: local to this pane
@@ -53,6 +56,9 @@ export function mount(root, ctx) {
     validate: () => undefined,
     presets: {},
   });
+
+  // ---- the same four force rows as the spine's: drag or toggle a force here too ----
+  root.append(controls(forceRows(signal)));
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
   root.append(fragment(EQUATIONS));
@@ -154,19 +160,21 @@ export function mount(root, ctx) {
 
   root.append(controls(el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
 
-  // ---- live math: the rotation store drives the integration, the scene drives the forces ----
+  // ---- live math: the rotation store drives the integration, the scene drives the forces
+  // and the force rows' own equations (forceComponents: Fgx/Fgy, Fdx/Fdy, Fsx/Fsy) ----
   const derive = () => {
-    const { sum, I, T, alpha } = torque();
-    return { I, T, alpha, Sx: sum[0], Sy: sum[1], lever: rot.get().lever };
+    const { sum, I, T, alpha, s } = torque();
+    return { ...forceComponents(s), I, T, alpha, Sx: sum[0], Sy: sum[1], lever: rot.get().lever };
   };
   bindMath(article, rot, derive, { signal });
   bindMath(article, scene, derive, { signal });
   const offScrub = bindScrub(article, rot, { signal });
+  const offForceScrub = bindScrub(article, facade, { signal });
 
   const unsubRot = rot.subscribe(stage.invalidate, { immediate: false });
   const unsubScene = scene.subscribe(stage.invalidate, { immediate: false });
   return {
     pause() { running = false; runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; },
-    destroy() { offFrame(); unsubRot(); unsubScene(); offScrub(); },
+    destroy() { offFrame(); unsubRot(); unsubScene(); offScrub(); offForceScrub(); },
   };
 }

@@ -2,8 +2,12 @@
 // r₀, every term count in the sweep drawn at once against the true curve, with the term-count
 // strip under the graph selecting which one is highlighted (aux.highlight, so the choice
 // survives a remount). r₀ and the mass's distance come from the scene the spine sets up.
+//
+// Under the strip, the series itself: the same expansion the prose writes symbolically,
+// spelled out with r₀'s actual coefficients to exactly as many terms as the strip has
+// selected — the strip picks the highlighted curve above and how far this equation runs.
 
-import { el } from 'shared/dom.js';
+import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawBundle } from 'shared/gfx/bundle.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
@@ -20,6 +24,19 @@ const highlightIndex = () => Math.min(TERMS.length - 1, Math.max(0, aux.get().hi
 
 /** What keeping this many terms buys, in one line under the curve. */
 const verdict = hi => (hi === 0 ? 'a constant: m g' : hi === 1 ? 'linear in δ: all a linear model keeps' : 'past δ¹: what linearizing drops');
+
+/** 1/r² ≈ [coefficients[0]] − [|coefficients[1]|]δ + … to degree n, r₀'s actual numbers. */
+function seriesMathML(r0, n) {
+  const { coefficients } = inverseSquareExpansion(r0, n);
+  const terms = coefficients.map((c, i) => {
+    const mag = `<mn>${fmt(Math.abs(c), 3)}</mn>`;
+    const delta = i === 0 ? '' : i === 1 ? '<mi>δ</mi>' : `<msup><mi>δ</mi><mn>${i}</mn></msup>`;
+    return i === 0 ? mag : `<mo>${c < 0 ? '−' : '+'}</mo>${mag}${delta}`;
+  }).join('');
+  return `<math display="block"><mrow>
+    <mfrac><mn>1</mn><msup><mi>r</mi><mn>2</mn></msup></mfrac><mo>≈</mo>${terms}
+  </mrow></math>`;
+}
 
 export function mount(root, ctx) {
   const { signal } = ctx;
@@ -54,7 +71,21 @@ export function mount(root, ctx) {
   });
   root.append(el('div', { class: 'controls' }, strip.el));
 
-  const unsub = scene.subscribe(() => taylor.invalidate(), { immediate: false });
-  const unsubAux = aux.subscribe((s, patch) => { if ('highlight' in patch) { strip.select(highlightIndex(), { notify: false }); taylor.invalidate(); } }, { immediate: false });
+  // the series itself, under the strip: rebuilt (not just re-numbered) on every change,
+  // since the number of terms — not just their values — is what the strip is choosing
+  const seriesEl = el('div');
+  root.append(seriesEl);
+  function renderSeries() {
+    seriesEl.replaceChildren(fragment(seriesMathML(scene.get().forces[gi].r, highlightIndex())));
+  }
+  renderSeries();
+
+  const unsub = scene.subscribe(() => { renderSeries(); taylor.invalidate(); }, { immediate: false });
+  const unsubAux = aux.subscribe((s, patch) => {
+    if (!('highlight' in patch)) return;
+    strip.select(highlightIndex(), { notify: false });
+    renderSeries();
+    taylor.invalidate();
+  }, { immediate: false });
   return { destroy() { unsub(); unsubAux(); } };
 }
