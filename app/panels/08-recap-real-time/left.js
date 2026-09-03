@@ -13,8 +13,9 @@ import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, niceStep } from 'shared/gfx/plot2d.js';
 import { createStore } from 'shared/state.js';
 import { stepCost } from 'shared/player.js';
-import { slider, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 import { stepsPerFrame, fmtMs, fmtSteps, fmtCount } from './cost.js';
 
 const MAX_OBJECTS = 1e7;
@@ -139,11 +140,25 @@ export function mount(root, ctx) {
   const syncFps = () => { for (const b of fpsRow.children) b.setAttribute('aria-pressed', String(Number(b.dataset.fps) === local.get().fps)); };
   syncFps();
 
-  root.append(controls(
-    slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
-    slider(local, 'objects', { label: 'objects simulated', log: true, format: v => fmtCount(v), signal }),
-    fpsRow,
-  ));
+  root.append(controls(fpsRow));
+
+  // one facade over the two numbers scrubbed in the prose — h (the tuple) and objects (this
+  // pane's own budget) — so a single bindScrub call can bind both from the article.
+  const scrub = {
+    get: () => ({ h: store.get().h, objects: local.get().objects }),
+    set(patch) {
+      if (Number.isFinite(patch.h)) store.set({ h: patch.h });
+      if (Number.isFinite(patch.objects)) local.set({ objects: patch.objects });
+      return scrub.get();
+    },
+    subscribe(fn, opts) {
+      const relay = () => { const s = scrub.get(); fn(s, s); };
+      const offStore = store.subscribe(relay, opts);
+      const offLocal = local.subscribe(relay, { immediate: false });
+      return () => { offStore(); offLocal(); };
+    },
+    limits: { h: [0.002, 0.25], objects: [1, MAX_OBJECTS] },
+  };
 
   const slots = () => {
     const { n, fps, frameMs, perStep, steps, slice, fillAt } = budget();
@@ -156,8 +171,9 @@ export function mount(root, ctx) {
   const article = root.closest('article');
   bindMath(article, store, slots, { signal });
   bindMath(article, local, slots, { signal });
+  const offScrub = bindScrub(article, scrub, { signal });
 
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
   const unsubLocal = local.subscribe(() => { syncFps(); stage.invalidate(); }, { immediate: false });
-  return { destroy() { unsub(); unsubLocal(); } };
+  return { destroy() { unsub(); unsubLocal(); offScrub(); } };
 }

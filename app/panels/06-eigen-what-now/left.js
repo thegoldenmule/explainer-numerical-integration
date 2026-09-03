@@ -16,12 +16,13 @@
 //               drag, so it never flickers.
 // No eigenvectors here.
 
-import { el, fmt, fragment } from 'shared/dom.js';
+import { el, fragment } from 'shared/dom.js';
 import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawShape, drawArrow, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { slider, controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
+import { controls } from 'shared/ui/controls.js';
 import { trs, applyPoint, areaFactor, drawAffineGrid } from './affine.js';
 
 const HALF_W = 3.4;
@@ -87,23 +88,18 @@ export function mount(root, ctx) {
     drawText(g, view, 'before', SHAPE[4][0], SHAPE[4][1], { color: cssVar('--muted'), size: 11, dx: 6, dy: -4 });
   });
 
-  // ---- the matrix (output) and the three controls (input) ----
+  // ---- the matrix (output) and the prose's own T(tx,ty)·R(θ)·S(s) (input) ----
   side.append(numberMatrix());
   const cells = Object.fromEntries(CELLS.map(key => [key, article.querySelector(`[data-var="${key}"]`)]));
 
-  const translate = controls(
-    slider(local, 'tx', { label: 'translate x', format: v => fmt(v, 2), signal }),
-    slider(local, 'ty', { label: 'translate y', format: v => fmt(v, 2), signal }));
-  const rotate = slider(local, 'theta', { label: 'rotate θ', format: v => `${fmt(v, 0)}°`, signal });
-  const scale = slider(local, 's', { label: 'scale s', format: v => fmt(v, 2), signal });
-  side.append(translate, rotate, scale);
-
-  // Which entries a control writes. Translate and rotate are fixed; scale spills into the
-  // off-diagonal exactly when sin θ ≠ 0, so the rule is read off θ and never flickers.
+  // Which entries a scrub writes. Translate and rotate are fixed; scale spills into the
+  // off-diagonal exactly when sin θ ≠ 0, so the rule is read off θ and never flickers. Each
+  // group's own scrub nodes (not a slider container) arm the highlight now.
+  const scrubNode = key => article.querySelector(`[data-scrub="${key}"]`);
   const GROUPS = [
-    { el: translate, cells: () => ['m02', 'm12'] },
-    { el: rotate, cells: () => BLOCK },
-    { el: scale, cells: () => (Math.abs(Math.sin(local.get().theta * D2R)) < 1e-9 ? ['m00', 'm11'] : BLOCK) },
+    { keys: ['tx', 'ty'], cells: () => ['m02', 'm12'] },
+    { keys: ['theta'], cells: () => BLOCK },
+    { keys: ['s'], cells: () => (Math.abs(Math.sin(local.get().theta * D2R)) < 1e-9 ? ['m00', 'm11'] : BLOCK) },
   ];
   let active = null;
   function paint() {
@@ -113,10 +109,14 @@ export function mount(root, ctx) {
   const arm = g => () => { active = g; paint(); };
   const disarm = () => { if (!active) return; active = null; paint(); };
   for (const g of GROUPS) {
-    g.el.addEventListener('pointerdown', arm(g), { signal });
-    g.el.addEventListener('keydown', arm(g), { signal });
+    for (const key of g.keys) {
+      const node = scrubNode(key);
+      node.addEventListener('pointerdown', arm(g), { signal });
+      node.addEventListener('keydown', arm(g), { signal });
+    }
   }
   for (const type of ['pointerup', 'pointercancel', 'keyup']) window.addEventListener(type, disarm, { signal });
+  const offScrub = bindScrub(article, local, { signal });
 
   bindMath(article, local, () => {
     const m = M();
@@ -128,5 +128,5 @@ export function mount(root, ctx) {
   }, { signal });
 
   const unsub = local.subscribe(() => { paint(); stage.invalidate(); });
-  return { destroy() { unsub(); } };
+  return { destroy() { unsub(); offScrub(); } };
 }

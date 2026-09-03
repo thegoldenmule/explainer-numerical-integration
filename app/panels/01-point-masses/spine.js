@@ -8,16 +8,17 @@
 // point, no extent", and a dot that grows with mass would draw the opposite. The mass shows
 // up as a number beside the point (drawText) and in the prose (bindMath).
 //
-// Nothing writes the tuple on mount. The mass slider goes through scene.setMass, which is
-// the scene's one documented sync into the tuple's m, and only ever runs on a reader's drag.
+// Nothing writes the tuple on mount. The mass is a scrubbable number in the block equation,
+// routed through scene.paramStore('body') → scene.setMass, the scene's one documented sync
+// into the tuple's m, and only ever runs on a reader's drag.
 
 import { clamp, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { scene } from 'shared/scene.js';
-import { slider, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const HALF_W = 4;       // the same plane as panel 2's spine, so the body does not jump
 const CLAMP_Y = 2.2;
@@ -60,9 +61,8 @@ export function mount(root, ctx) {
     onMove: (id, p) => scene.moveBody(clamp(p.x + grab[0], -HALF_W, HALF_W), clamp(p.y + grab[1], -CLAMP_Y, CLAMP_Y)),
   });
 
-  root.append(controls(slider(scene.paramStore('body'), 'm', { label: 'm (mass)', min: 0.1, max: 10, format: v => fmt(v, 2), signal })));
-
   const offMath = bindMath(article, scene, s => ({ x: s.body.x[0], y: s.body.x[1], m: s.body.m }), { signal });
+  const offScrub = bindScrub(article, scene.paramStore('body'), { signal, limits: { m: [0.1, 10] } });
   const unsub = scene.subscribe(stage.invalidate, { immediate: false });
-  return { destroy() { unsub(); offMath(); } };
+  return { destroy() { unsub(); offMath(); offScrub(); } };
 }

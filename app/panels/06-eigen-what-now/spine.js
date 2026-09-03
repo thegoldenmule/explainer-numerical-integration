@@ -19,14 +19,18 @@
 // only when the tuple's m or k change, and otherwise left alone — including while the reader
 // drags it down through critical to watch the two directions converge and vanish.
 
-import { el, fmt, fragment } from 'shared/dom.js';
+import { fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawArrow, drawPolyline, drawText, drawPoint } from 'shared/gfx/plot2d.js';
 import { systemMatrix, regime, naturalFrequency, dampingRatio } from 'shared/math/system.js';
 import { eigen, apply } from 'shared/math/matrix2.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { controls, row } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
+
+/** This pane's own range for c. Fixed, not derived from m and k: bindScrub reads a key's
+ *  limits once at bind time, and 2√(mk) over the tuple's own m and k stays inside this. */
+const C_RANGE = [0, 200];
 
 const HALF_W = 2.6;
 const NEAR_DEG = 4;        // within this angle of an eigenvector, it lights up
@@ -59,17 +63,6 @@ function decompose(e, v) {
   const q = [[lam[0] * p[0][0], lam[0] * p[0][1]], [lam[1] * p[1][0], lam[1] * p[1][1]]];
   if (![c1, c2, ...p.flat(), ...q.flat()].every(n => Number.isFinite(n))) return null;
   return { c: [c1, c2], u: [u1, u2], p, q, lam };
-}
-
-/** A local slider for a number that lives outside the tuple (this pane's own damping). */
-function localSlider({ label, min, max, value, format = v => String(v), onInput, signal }) {
-  const input = el('input', { type: 'range', min, max, step: 'any', value });
-  const out = el('output', {}, format(value));
-  input.addEventListener('input', () => { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
-  const node = el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, label), out), input);
-  node.setValue = v => { input.value = v; out.textContent = format(v); };
-  node.setMax = v => { input.max = v; };
-  return node;
 }
 
 const sup = (name, i) => `<msub><mover><mi>${name}</mi><mo>^</mo></mover><mn>${i}</mn></msub>`;
@@ -109,11 +102,11 @@ const equations = () => fragment(`
       per <math><mrow><mn>1</mn><mo>/</mo><mi>ω</mi></mrow></math> s: the raw
       <math><mrow><mi>A</mi><mo>=</mo><mo>[</mo><mo>[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>]</mo><mo>,</mo><mo>[</mo>${slot('a10', 2, '−100.00')}<mo>,</mo>${slot('a11', 2, '−30.00')}<mo>]</mo><mo>]</mo></mrow></math>,
       <math><mrow><mi>ω</mi><mo>=</mo>${slot('omega', 2, '10.00')}</mrow></math> /s. This pane’s own
-      <math><mrow><mi>c</mi><mo>=</mo>${slot('localC', 2, '30.00')}</mrow></math> against
+      <math><mrow><mi>c</mi><mo>=</mo><mn data-var="localC" data-scrub="localC" data-digits="2">30.00</mn></mrow></math> against
       <math><mrow><mn>2</mn><msqrt><mrow><mi>m</mi><mi>k</mi></mrow></msqrt><mo>=</mo>${slot('critical', 2, '20.00')}</mrow></math>
       (<math><mi data-var="regime">overdamped</mi></math>) — the spring’s
       <math><mrow><mi>c</mi><mo>=</mo>${slot('c', 2, '0.10')}</mrow></math> is never written from
-      here. Slide it below critical and the two directions meet and vanish.
+      here. Drag it below critical and the two directions meet and vanish.
     </small>
   </div>`);
 
@@ -129,7 +122,6 @@ export function mount(root, ctx) {
   const s0 = store.get();
   let mkKey = `${s0.m}/${s0.k}`;
   let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
-  let cCtl = null;
 
   function ensureLocalC(s) {
     const key = `${s.m}/${s.k}`;
@@ -137,8 +129,6 @@ export function mount(root, ctx) {
     mkKey = key;
     const critical = 2 * Math.sqrt(s.m * s.k);
     localC = PRESET_FACTOR * critical;
-    cCtl?.setMax(Math.max(50, 3 * critical));
-    cCtl?.setValue(localC);
   }
 
   // The pane's own read-only view of the world: the tuple, plus the local damping and the
@@ -151,11 +141,19 @@ export function mount(root, ctx) {
   };
   const local = {
     get: snapshot,
+    /** Only localC is writable, and only into this pane: the tuple's c is never touched. */
+    set(patch) {
+      if (!('localC' in patch) || !Number.isFinite(patch.localC)) return snapshot();
+      const next = Math.min(C_RANGE[1], Math.max(C_RANGE[0], patch.localC));
+      if (next !== localC) { localC = next; notify({ localC: next }); }
+      return snapshot();
+    },
     subscribe(fn, { immediate = true } = {}) {
       subs.add(fn);
       if (immediate) { const s = snapshot(); fn(s, s); }
       return () => subs.delete(fn);
     },
+    limits: { localC: C_RANGE },
   };
 
   /** Everything both the picture and the prose read, from one snapshot. */
@@ -180,7 +178,7 @@ export function mount(root, ctx) {
   root.append(equations());
   const stage = createStage(root, { layers: ['plane'], aspect: 'half', signal });
 
-  const notify = () => { const s = snapshot(); for (const fn of subs) fn(s, s); stage.invalidate(); };
+  const notify = (patch) => { const s = snapshot(); for (const fn of subs) fn(s, patch ?? s); stage.invalidate(); };
 
   stage.onDraw(({ w, h, dpr }) => {
     const { e, v, R, dirs, near, off, split } = model(local.get());
@@ -245,17 +243,9 @@ export function mount(root, ctx) {
     },
   });
 
-  cCtl = localSlider({
-    label: 'this pane’s own c (damping): lower it past 2√(mk)',
-    min: 0, max: Math.max(50, 3 * 2 * Math.sqrt(s0.m * s0.k)), value: localC,
-    format: v => fmt(v, 2),
-    onInput: v => { localC = v; notify(); },
-    signal,
-  });
-  root.append(controls(row(cCtl)));
-
   // The picture is the argument; the slots carry only what a picture cannot print. The
   // verdict sentence and the eigen-directions live on the canvas (drawText), not here.
+  bindScrub(article, local, { signal });
   bindMath(article, local, s => {
     const d = model(s);
     return {

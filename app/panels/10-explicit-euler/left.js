@@ -7,7 +7,8 @@ import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { slider, controls, row } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
+import { controls, row } from 'shared/ui/controls.js';
 import { createStepper } from 'shared/math/integrators.js';
 import { eigenvalues, exactSolution } from 'shared/math/system.js';
 import { handleIndex } from 'shared/gfx/cplane.js';
@@ -82,17 +83,18 @@ export function mount(root, ctx) {
       btn('Step ×10', () => step(10)),
       btn('Reset', reset),
     ),
-    slider(store, 'h', { label: 'h (step)', min: 0.005, max: 0.25, format: v => v.toFixed(3), signal }),
   ));
 
   reset();
   const unsubscribe = store.subscribe((s, patch) => { if (TUPLE.some(k => k in patch)) reset(); }, { immediate: false });
 
-  bindMath(root.closest('article') ?? root, store, s => {
+  const article = root.closest('article') ?? root;
+  bindMath(article, store, s => {
     const ls = eigenvalues(s.m, s.c, s.k);
     const l = ls[handleIndex(ls)];
     return { 'lambda-re': l[0], 'lambda-im': l[1], 'abs-r': ampFactor('euler', cscale(l, s.h)) };
   }, { signal });
+  const offScrub = bindScrub(article, store, { signal, limits: { h: [0.005, 0.25] } });
 
-  return { destroy() { unsubscribe(); } };
+  return { destroy() { unsubscribe(); offScrub(); } };
 }

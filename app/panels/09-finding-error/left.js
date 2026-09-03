@@ -7,8 +7,11 @@ import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { doublingTime, halvingTime } from 'shared/math/stability.js';
 import { controls, row } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
+import { bindMath } from 'shared/ui/livemath.js';
 
 const MAX_STEPS = 140;   // "a thousandfold after 140" at 1.05
+const Z_RANGE = [0.5, 1.5];
 const sub = i => String(i).replace(/\d/g, d => '₀₁₂₃₄₅₆₇₈₉'[d]);
 
 export function mount(root, ctx) {
@@ -16,8 +19,25 @@ export function mount(root, ctx) {
   let z = 1.05, n = 10;   // the ratio and how many steps have been taken
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
-  const zInput = el('input', { type: 'range', min: 0.5, max: 1.5, step: 0.001, value: z });
-  const zOut = el('output', {}, z.toFixed(3));
+
+  // z is dragged where it is written, in e(i+1) = z·e(i). Local to the pane: the ratio is a
+  // property of a step, not an entry of the tuple.
+  const zSubs = new Set();
+  const zStore = {
+    get: () => ({ z }),
+    set(patch) {
+      if (!Number.isFinite(patch.z)) return { z };
+      const next = Math.min(Z_RANGE[1], Math.max(Z_RANGE[0], patch.z));
+      if (next !== z) { z = next; for (const fn of zSubs) fn({ z }, { z }); stage.invalidate(); }
+      return { z };
+    },
+    subscribe(fn, { immediate = true } = {}) {
+      zSubs.add(fn);
+      if (immediate) fn({ z }, { z });
+      return () => zSubs.delete(fn);
+    },
+    limits: { z: Z_RANGE },
+  };
 
   stage.onDraw(({ w, h, dpr }) => {
     const g = stage.ctx('plot');
@@ -50,18 +70,20 @@ export function mount(root, ctx) {
 
   const update = () => stage.invalidate();
 
-  zInput.addEventListener('input', () => { z = Number(zInput.value); zOut.textContent = z.toFixed(3); update(); }, { signal });
   const btn = (label, fn) => el('button', { class: 'btn', type: 'button', onclick: fn }, label);
   root.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'z, the ratio per step'), zOut), zInput),
     row(
       btn('Step', () => { n = Math.min(MAX_STEPS, n + 1); update(); }),
       btn('+10 steps', () => { n = Math.min(MAX_STEPS, n + 10); update(); }),
       btn('Reset', () => { n = 10; update(); }),
-      btn('z = 1.05', () => { z = 1.05; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
-      btn('z = 0.95', () => { z = 0.95; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
+      btn('z = 1.05', () => zStore.set({ z: 1.05 })),
+      btn('z = 0.95', () => zStore.set({ z: 0.95 })),
     ),
   ));
+
+  const article = root.closest('article') ?? root;
+  bindScrub(article, zStore, { signal });
+  bindMath(article, zStore, () => ({}), { signal });
 
   const unsub = store.subscribe((s, patch) => { if ('h' in patch) update(); }, { immediate: false });
   return { destroy() { unsub(); } };

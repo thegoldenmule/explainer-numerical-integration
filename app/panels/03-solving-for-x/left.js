@@ -8,20 +8,14 @@ import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPoint, drawPolyline, drawText, makeView } from 'shared/gfx/plot2d.js';
 import { exactSolution, acceleration } from 'shared/math/system.js';
 import { controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
+import { bindMath } from 'shared/ui/livemath.js';
 
 const SPAN = 4;        // seconds shown
 const SAMPLES = 800;   // of the exact curve
 const TANGENT = 0.2;   // half-length of the tangent segment, in seconds
 const BAR_H = 34;      // the local, canvas-drawn a-bar: no shared "thin bar" stage exists, so
                         // this pane sizes and draws its own bare canvas (see mount())
-
-/** A local slider (the scrubbed t is not part of the tuple). */
-function localSlider({ label, min, max, step = 'any', value, format = v => String(v), onInput, signal }) {
-  const input = el('input', { type: 'range', min, max, step, value });
-  const out = el('output', {}, format(value));
-  input.addEventListener('input', () => { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
-  return el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, label), out), input);
-}
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
@@ -107,10 +101,29 @@ export function mount(root, ctx) {
   });
 
   const invalidate = () => { xStage.invalidate(); vStage.invalidate(); };
-  root.append(controls(localSlider({
-    label: 't (this instant)', min: 0, max: SPAN, value: tScrub, format: v => `${v.toFixed(2)} s`, signal,
-    onInput: v => { tScrub = v; invalidate(); },
-  }), barBox));
+  root.append(controls(barBox));
+
+  // The instant itself is the control: t is dragged where it is written, in the prose.
+  // Local to the pane — the store's t belongs to the players.
+  const tSubs = new Set();
+  const tStore = {
+    get: () => ({ t: tScrub }),
+    set(patch) {
+      if (!Number.isFinite(patch.t)) return { t: tScrub };
+      const next = clamp(patch.t, 0, SPAN);
+      if (next !== tScrub) { tScrub = next; for (const fn of tSubs) fn({ t: tScrub }, { t: tScrub }); invalidate(); }
+      return { t: tScrub };
+    },
+    subscribe(fn, { immediate = true } = {}) {
+      tSubs.add(fn);
+      if (immediate) fn({ t: tScrub }, { t: tScrub });
+      return () => tSubs.delete(fn);
+    },
+    limits: { t: [0, SPAN] },
+  };
+  const article = root.closest('article') ?? root;
+  bindScrub(article, tStore, { signal });
+  bindMath(article, tStore, () => ({}), { signal });
 
   const unsub = store.subscribe(invalidate, { immediate: false });
   return { destroy() { unsub(); } };

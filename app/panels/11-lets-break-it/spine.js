@@ -10,7 +10,8 @@ import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { slider, methodPicker, presets, controls } from 'shared/ui/controls.js';
+import { methodPicker, presets, controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const SPAN = 6;   // seconds of run visible in the trajectory strip
 
@@ -46,14 +47,12 @@ export function mount(root, ctx) {
   });
   player.onChange(runStage.invalidate);
 
-  top.append(controls(
-    slider(store, 'h', { label: 'h (step)', min: 0.005, max: 0.25, format: v => v.toFixed(3), signal }),
-    transport(player, { signal }),
-  ));
+  top.append(controls(transport(player, { signal })));
   root.append(el('div', { class: 'controls-row' },
     methodPicker(store, { signal }),
     presets(store, { demo: 'Demo: m=1, k=100', essay: 'Essay: m=10, k=10' }),
   ));
 
-  return { destroy() {} };
+  const offScrub = bindScrub(root.closest('article') ?? root, store, { signal, limits: { h: [0.005, 0.25] } });
+  return { destroy() { offScrub(); } };
 }

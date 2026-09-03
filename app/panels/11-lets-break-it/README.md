@@ -4,9 +4,9 @@ Built. See `docs/idea.md` (section "11. Let’s break it") for the beat, and `do
 for the pane contract.
 
 - `spine.html` + `spine.js`: Let’s break it. The region under a draggable λ, the spring
-  running against the exact solution, transport, an `h` slider, the integrator picker, and
+  running against the exact solution, transport, a scrubbable `h` in the prose, the integrator picker, and
   presets. Laid out to fit beside the essay prose at 1280×800: the half plane beside the
-  slider and transport; the run strip; picker and presets in one row. No readout: the
+  scrubbed `h` and transport; the run strip; picker and presets in one row. No readout: the
   verdict/`|R|`, the predicted-vs-measured doubling time, and `t`/`x`/exact are `drawText` in
   the run strip's own top-right corner.
 - `left.html` + `left.js`: refresher, The exact solution, no method. A draggable λ on a plane

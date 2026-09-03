@@ -3,7 +3,8 @@
 // makes a torque r × F, the torques sum to T = I θ″ with I = m (w² + h²) / 12 the moment of
 // inertia of the rectangle, and θ is integrated locally (there is no rigid-body store; the
 // scene holds a point mass). The translational sum does not depend on where the forces
-// act; the torque does, which is the whole point of the lever-arm slider.
+// act; the torque does, which is the whole point of the lever arm d — a scrubbable number
+// inside its own equation, "at d = …".
 //
 // θ, θ′, t and the lever arm live in a pane-local store so the equations under the stage can
 // be ordinary live MathML: one bindMath over that store catches the integration, a second
@@ -14,8 +15,9 @@ import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawText } from 'shared/gfx/plot2d.js';
 import { scene } from 'shared/scene.js';
-import { slider, controls, row } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 import { FORCE_COLOR, SUM_COLOR, forceVectors, arrowMap, drawForceArrow } from './arrows.js';
 
 const BODY = { w: 1.6, h: 1 };
@@ -37,7 +39,7 @@ const EQUATIONS = `
   <munder><mo>∑</mo><mi>i</mi></munder><msub><mi>F</mi><mi>i</mi></msub><mo>=</mo>
   <mo>(</mo><mn data-var="Sx" data-digits="2">0</mn><mo>,</mo><mn data-var="Sy" data-digits="2">0</mn><mo>)</mo>
   <mspace width="1em"/><mtext>at</mtext><mspace width="0.4em"/>
-  <mi>d</mi><mo>=</mo><mn data-var="lever" data-digits="2">0</mn>
+  <mi>d</mi><mo>=</mo><mn data-var="lever" data-scrub="lever" data-digits="2">0</mn>
 </mrow></math>`;
 
 export function mount(root, ctx) {
@@ -150,10 +152,7 @@ export function mount(root, ctx) {
   const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
   resetBtn.addEventListener('click', () => rot.set({ theta: 0, omega: 0, t: 0 }), { signal });
 
-  root.append(controls(row(
-    slider(rot, 'lever', { label: 'lever arm d', format: v => fmt(v, 2), signal }),
-    el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn)),
-  )));
+  root.append(controls(el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
 
   // ---- live math: the rotation store drives the integration, the scene drives the forces ----
   const derive = () => {
@@ -162,11 +161,12 @@ export function mount(root, ctx) {
   };
   bindMath(article, rot, derive, { signal });
   bindMath(article, scene, derive, { signal });
+  const offScrub = bindScrub(article, rot, { signal });
 
   const unsubRot = rot.subscribe(stage.invalidate, { immediate: false });
   const unsubScene = scene.subscribe(stage.invalidate, { immediate: false });
   return {
     pause() { running = false; runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; },
-    destroy() { offFrame(); unsubRot(); unsubScene(); },
+    destroy() { offFrame(); unsubRot(); unsubScene(); offScrub(); },
   };
 }

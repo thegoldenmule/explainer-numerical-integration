@@ -8,7 +8,8 @@ pane contract. Panes in this directory:
   `|x − exact|` at every integrator step underneath on a **log** axis, so the growth reads as
   a slope. Two strips rather than `wide` + `strip` because a 16/9 top plot plus a strip runs
   past the fold at 1920×1080 and `.pane-body` clips; panel 9's spine pairs the same way. One
-  `dt` slider (0.0005 … 0.033 s, floored at `LIMITS.h` = 0.001 by the store) drives both.
+  `dt` is a scrubbable number in the prose (0.001 … 0.033 s, the store's own `LIMITS.h`
+  floor) and drives both.
   Hovering (or touching) either canvas picks the nearest step and highlights it on both
   graphs; the step's `|error|` is drawn on the strip, `t` on the top plot. The trajectory, its
   error array, and the error peak/floor are memoized on a `sweepKey`. There is no readout
@@ -16,7 +17,7 @@ pane contract. Panes in this directory:
   `bindMath`.
 - `left.html` + `left.js`: refresher, x, v, a: derivatives. Two `strip` stages plus a local
   a-bar; the scrubbed `t` is local to the pane, not the tuple. No readout: `t` is on the local
-  slider's own output, `x` and `v` are `drawText` in the corner of the strip that plots them
+  scrubbed `t` in the prose, `x` and `v` are `drawText` in the corner of the strip that plots them
   (opposite each strip's title), and `a` stays exactly where it was, the a-bar canvas — now
   sized from its own wrapper `<div>` instead of the removed box.
 - `right.html` + `right.js`: drill-down, ODEs vs PDEs; intractability. Two `strip` stages, the

@@ -12,7 +12,8 @@ import { exactSolution } from 'shared/math/system.js';
 import { decompose, project, modalFactors, simulateModal } from 'shared/math/modes.js';
 import { METHODS } from 'shared/math/integrators.js';
 import { sweepKey } from 'shared/math/sweep.js';
-import { slider, methodPicker, controls, row } from 'shared/ui/controls.js';
+import { methodPicker, controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const SPAN = 4;   // seconds of the modal run
 
@@ -103,11 +104,10 @@ export function mount(root, ctx) {
     g.restore();
   });
   top.append(controls(
-    row(slider(store, 'x0', { label: 'x₀', signal }), slider(store, 'v0', { label: 'v₀', signal })),
-    slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
     methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal }),
   ));
 
+  const offScrub = bindScrub(root.closest('article'), store, { signal, limits: { h: [0.002, 0.25] } });
   const unsub = store.subscribe(runStage.invalidate, { immediate: false });
-  return { destroy() { unsub(); } };
+  return { destroy() { unsub(); offScrub(); } };
 }

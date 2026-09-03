@@ -13,8 +13,9 @@ import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { createPlayer, stepCost } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { slider, presets, controls } from 'shared/ui/controls.js';
+import { presets, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 import { FRAME_MS, stepsPerFrame, fmtMs, fmtSteps, drawBudgetBar, plotSpan } from './cost.js';
 
 const CYCLES = 4;   // periods of the spring visible at once
@@ -72,13 +73,13 @@ export function mount(root, ctx) {
   });
 
   root.append(controls(
-    slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
     presets(store, { demo: 'Demo (m=1, c=0.1, k=100)', essay: 'Essay (m=10, c=0.1, k=10)' }),
     transport(player, { signal }),
   ));
 
+  const article = root.closest('article');
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
-  bindMath(root.closest('article'), store, state => {
+  bindMath(article, store, state => {
     const steps = stepsPerFrame(state.h);
     const perStep = stepCost(state).perStep;   // the same memoized benchmark the player reads
     return {
@@ -88,5 +89,6 @@ export function mount(root, ctx) {
       frame: fmtMs(FRAME_MS),
     };
   }, { signal });
-  return { destroy() { unsub(); } };
+  const offScrub = bindScrub(article, store, { signal, limits: { h: [0.002, 0.25] } });
+  return { destroy() { unsub(); offScrub(); } };
 }

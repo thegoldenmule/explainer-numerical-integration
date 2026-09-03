@@ -11,8 +11,8 @@
 // destroying and remounting this pane, and it opens at a nonzero THETA0 so rotation reads as
 // part of the state before anything has been touched.
 //
-// One facade over (scene position, local rotation) backs bindScrub, bindMath and the slider,
-// so the three numbers of (x, y, θ) printed in the prose are themselves the controls.
+// One facade over (scene position, local rotation) backs bindScrub and bindMath, so the three
+// numbers of (x, y, θ) printed in the prose are themselves the controls.
 
 import { clamp, fmt } from 'shared/dom.js';
 import { createStore } from 'shared/state.js';
@@ -21,7 +21,6 @@ import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawShape, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { rotation, apply } from 'shared/math/matrix2.js';
 import { scene, BODY_LIMITS } from 'shared/scene.js';
-import { slider, controls } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { BODY_RADIUS, worldPoints, grabSamples } from './body.js';
@@ -156,8 +155,6 @@ export function mount(root, ctx) {
       facade.set({ x: clamp(p.x + grab[0], -HALF_W, HALF_W), y: clamp(p.y + grab[1], -CLAMP_Y, CLAMP_Y) });
     },
   });
-
-  root.append(controls(slider(facade, 'theta', { label: 'θ (rotation)', format: v => `${fmt(v, 2)} rad`, signal })));
 
   const offScrub = bindScrub(article, facade, { signal });
   const offMath = bindMath(article, facade, undefined, { signal });

@@ -8,7 +8,7 @@ nothing animated. There is no left pane.
   `createDragHandles` through `scene.moveBody`, so the body panel 2 hangs its force arrows on
   and panel 5 scrubs its force models around is the body the reader just moved here. Its two
   coordinates are drawn as dashed drop lines onto the axes, `m` is a label beside the dot and a
-  `slider` over `scene.paramStore('body')`, and `(x, y)` and `m` are live `data-var` slots in the
+  scrubbable number in the prose over `scene.paramStore('body')`, and `(x, y)` and `m` are live `data-var` slots in the
   prose (`bindMath` over the scene). No readout: `x`, `y`, and `m` are each already drawn once,
   on the canvas beside the point they describe, so the box only ever repeated them.
   The dot's radius never moves with `m`: the panel's one sentence is "all the mass at one point,
@@ -18,8 +18,7 @@ nothing animated. There is no left pane.
   state before anything is touched. `(x, y, θ)` is printed in the prose as MathML and every one
   of the three numbers is scrubbable (`bindScrub` + `bindMath` over one facade); the body can
   also be dragged anywhere on its outline or interior, and a handle on its own axis spins it
-  about the centre of mass, with the reference ray, the arc and the θ label on the canvas. A `θ`
-  slider is the third way in. No readout: `x` and `y` were already implied by the body's drawn
+  about the centre of mass, with the reference ray, the arc and the θ label on the canvas. No readout: `x` and `y` were already implied by the body's drawn
   position and `θ` by the prose equation, but `m` was not shown anywhere on this pane before, so
   it now gets its own `drawText` beside the centre-of-mass label. Position lives in the shared
   scene, so dragging here moves the spine's point; `θ` lives in a pane-local `createStore` at

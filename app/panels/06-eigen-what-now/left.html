@@ -15,12 +15,15 @@
       <math><mrow><mo>[</mo><mn>0</mn><mn>0</mn><mn>1</mn><mo>]</mo></mrow></math>: bookkeeping
       that keeps the third coordinate at <math><mn>1</mn></math>. The first two columns are where
       the two unit arrows land; the third column is where the <em>origin</em> lands.</p>
-    <p>Three controls drive it — translate, rotate, scale, composing as
-      <math><mrow><mi>T</mi><mo>·</mo><mi>R</mi><mo>·</mo><mi>S</mi></mrow></math> — and the
-      matrix is the output. Drag one and the entries it writes light up: translate owns the third
-      column, rotate owns the whole top-left block, and scale owns the two diagonal entries, until
-      you have turned the shape, after which rotate and scale share all four, because
-      <math><mi>s</mi></math> multiplies every one of them.</p>
+    <p>Three transforms drive it — translate, rotate, scale, composing as
+      <math><mrow>
+        <mi>T</mi><mo>(</mo><mn data-scrub="tx" data-digits="2">0.00</mn><mo>,</mo><mn data-scrub="ty" data-digits="2">0.00</mn><mo>)</mo>
+        <mo>·</mo><mi>R</mi><mo>(</mo><mn data-scrub="theta" data-digits="0">0</mn><mo>°</mo><mo>)</mo>
+        <mo>·</mo><mi>S</mi><mo>(</mo><mn data-scrub="s" data-digits="2">1.00</mn><mo>)</mo>
+      </mrow></math> — and the matrix is the output. Drag one and the entries it writes light
+      up: translate owns the third column, rotate owns the whole top-left block, and scale owns
+      the two diagonal entries, until you have turned the shape, after which rotate and scale
+      share all four, because <math><mi>s</mi></math> multiplies every one of them.</p>
     <p>Grid lines stay straight and parallel under all of it. No eigenvectors, no invariant
       directions yet: matrices as transformations, nothing more.</p>
   </div>

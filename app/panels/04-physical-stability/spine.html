@@ -20,12 +20,14 @@
       next panel.</p>
     <p>Whether the neighbors converge or leave is decided by the damping. A real spring’s
       damping is never negative, so the spring’s own <math><mi>c</mi></math> stops at zero and
-      the failing case would be unreachable. The damping slider here is therefore <em>this
-      pane’s own</em>: it runs below zero into a what-if the spring itself cannot be put into,
-      and it is never written back. Drag <math><mi>ε</mi></math>, then drag the damping down
-      through zero and watch the neighbors stop converging and leave the tube.</p>
+      the failing case would be unreachable. The <math><mi>c</mi></math> below is therefore
+      <em>this pane’s own</em>: it runs below zero into a what-if the spring itself cannot be
+      put into, and it is never written back. Drag the tube’s
+      <math><mrow><mo>|</mo><mi>x</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>−</mo><mi>φ</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>|</mo><mo>≤</mo><mi>ε</mi><mo>=</mo><mn data-scrub="epsilon" data-digits="3" data-log>0.100</mn></mrow></math>,
+      then drag the damping down through zero and watch the neighbors stop converging and
+      leave the tube.</p>
     <p>Right now this case is <span data-var="verdict">stable</span>, since
-      <math><mrow><mi>Re</mi><mi>λ</mi><mo>=</mo><mo>−</mo><mi>c</mi><mo>/</mo><mn>2</mn><mi>m</mi><mo>=</mo><mn data-var="alpha" data-digits="3">0</mn></mrow></math>.
+      <math><mrow><mi>Re</mi><mi>λ</mi><mo>=</mo><mo>−</mo><mn data-var="localc" data-scrub="c" data-snap="0" data-digits="2">0.10</mn><mo>/</mo><mn>2</mn><mi>m</mi><mo>=</mo><mn data-var="alpha" data-digits="3">0</mn></mrow></math>.
       The farthest any neighbor has strayed from the exact curve is
       <math><mn data-var="maxDist" data-digits="4">0</mn></math>; at
       <math><mrow><mi>t</mi><mo>=</mo><mn>6</mn><mtext> s</mtext></mrow></math> it sits

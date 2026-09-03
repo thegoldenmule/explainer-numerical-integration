@@ -11,6 +11,13 @@
 // data-log attribute makes the drag multiplicative, for h and k. The text is written here
 // only when the element has no data-var, so it coexists with bindMath on the same
 // element: livemath owns the text, scrub owns the gesture.
+//
+// A data-snap="0" (or a comma list, "0,1") makes those values landable exactly, the way a
+// stepped <input type=range> guarantees its grid points: a move that would step past a
+// snap value, or land within one step of it, is replaced with the snap value itself. The
+// tolerance is the size of the gesture that produced the move, so a slow drag must still
+// come close and a fast one cannot skip over the value entirely. Nodes without data-snap
+// are unaffected — snaps is empty and move() returns exactly what it always did.
 
 import { fmt } from '../dom.js';
 
@@ -41,6 +48,7 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps 
     const ownsText = !node.hasAttribute('data-var');
     const clamp = v => Math.min(hi, Math.max(lo, v));
     const value = () => store.get()[key];
+    const snaps = node.dataset.snap != null ? node.dataset.snap.split(',').map(Number).filter(Number.isFinite) : [];
 
     node.classList.add('scrub');
     node.setAttribute('tabindex', '0');
@@ -51,7 +59,16 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps 
     // one unit of gesture: a pixel of drag or 1/keySteps of a key sweep, in the key's units
     const perPixel = v => (log ? Math.log(hi / lo) / pixelsPerRange : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / pixelsPerRange);
     const perKey = v => (log ? Math.log(hi / lo) / keySteps : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / keySteps);
-    const move = (v, amount) => clamp(log ? v * Math.exp(amount) : v + amount);
+    const move = (v, amount) => {
+      const next = clamp(log ? v * Math.exp(amount) : v + amount);
+      if (snaps.length === 0) return next;
+      const tol = Math.max(Math.abs(next - v), 1e-9);   // this move's own size: the snap window
+      for (const target of snaps) {
+        if (v === target) continue;   // already on the detent: let this move leave it
+        if (Math.abs(next - target) < tol || (v - target) * (next - target) <= 0) return target;
+      }
+      return next;
+    };
     const write = v => { if (v !== value()) store.set({ [key]: v }); };
 
     let drag = null;   // { id, lastX, v }

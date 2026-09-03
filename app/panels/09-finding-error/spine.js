@@ -8,7 +8,8 @@ import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { slider, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const SPAN = 6;   // seconds of run visible
 
@@ -44,11 +45,9 @@ export function mount(root, ctx) {
   });
   player.onChange(() => { runStage.invalidate(); errStage.invalidate(); });
 
-  root.append(controls(
-    slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
-    transport(player, { signal }),
-  ));
+  root.append(controls(transport(player, { signal })));
 
+  const offScrub = bindScrub(root.closest('article'), store, { signal, limits: { h: [0.002, 0.25] } });
   const unsub = store.subscribe(() => { runStage.invalidate(); errStage.invalidate(); }, { immediate: false });
-  return { destroy() { unsub(); } };
+  return { destroy() { unsub(); offScrub(); } };
 }

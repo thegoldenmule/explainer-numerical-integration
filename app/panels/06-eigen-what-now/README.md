@@ -47,8 +47,9 @@ Two things that are deliberate and must survive any rewrite:
    drags it down through critical to watch the directions converge and vanish. A write here
    used to leak into every later panel: the `c` slider on panels 7-13 landed on an overdamped
    spring after a reader passed through, killing the Euler blow-up Part II depends on. The
-   pane exposes `localC` to `bindMath` through a small read-only store-shaped adapter; nothing
-   in this directory calls `store.set`.
+   pane exposes `localC` through a small store-shaped adapter whose one writable key is
+   `localC` itself (range `C_RANGE`), so `bindScrub` can drag it where the prose prints it
+   and `bindMath` can read it; nothing in this directory calls the tuple's `store.set`.
 2. **`left` drives the matrix from the controls, not the other way round.** An earlier version
    had four scrubbable matrix entries and preset buttons; the entries are now read-only output.
 

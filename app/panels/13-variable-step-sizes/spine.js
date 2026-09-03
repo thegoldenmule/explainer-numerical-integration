@@ -12,7 +12,8 @@ import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { runAdaptive } from 'shared/math/adaptive.js';
 import { sweepKey } from 'shared/math/sweep.js';
 import { aux } from 'shared/aux.js';
-import { slider, toggleFn, methodPicker, presets, controls, row } from 'shared/ui/controls.js';
+import { toggleFn, methodPicker, presets, controls, row } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const T_END = 120;     // seconds simulated (the essay's RK4 peak of 2.1 s needs the spring to have quieted)
 const H_MAX = 16;      // the college paper's cap
@@ -80,12 +81,12 @@ export function mount(root, ctx) {
   const freeSwitch = toggleFn({ label: 'Constant force only', get: () => free, set: v => { free = v; invalidate(); }, signal });
 
   root.append(controls(
-    row(slider(aux, 'tol', { label: 'target local error', min: TOL_RANGE[0], max: TOL_RANGE[1], log: true, format: v => fmt(v, 4), signal }),
-      methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal })),
+    row(methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal })),
     row(presets(store, { demo: 'Demo (m=1, c=0.1, k=100)', essay: 'Essay (m=10, c=0.1, k=10)' }), freeSwitch),
   ));
 
+  const offScrub = bindScrub(root.closest('article') ?? root, aux, { signal, limits: { tol: TOL_RANGE } });
   const unsub = store.subscribe(invalidate, { immediate: false });
   const unsubAux = aux.subscribe((s, patch) => { if ('tol' in patch) invalidate(); }, { immediate: false });
-  return { destroy() { unsub(); unsubAux(); } };
+  return { destroy() { unsub(); unsubAux(); offScrub(); } };
 }

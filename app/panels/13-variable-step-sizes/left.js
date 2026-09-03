@@ -11,8 +11,9 @@ import { createStepper, simulate, METHODS } from 'shared/math/integrators.js';
 import { exactSolution } from 'shared/math/system.js';
 import { localTruncationError } from 'shared/math/taylor.js';
 import { sweepKey } from 'shared/math/sweep.js';
-import { slider, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const STEPS = 60;   // steps shown; the span is 60 h so a single step stays visible
 
@@ -69,10 +70,11 @@ export function mount(root, ctx) {
   atInput.addEventListener('input', () => { at = Number(atInput.value); atOut.textContent = `step ${at}`; stage.invalidate(); }, { signal });
   root.append(controls(
     el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'take one step from the exact curve at'), atOut), atInput),
-    slider(store, 'h', { label: 'h (step)', min: 0.002, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
   ));
 
+  const article = root.closest('article');
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
-  bindMath(root.closest('article'), store, () => ({}), { signal });
-  return { destroy() { unsub(); } };
+  bindMath(article, store, () => ({}), { signal });
+  const offScrub = bindScrub(article, store, { signal, limits: { h: [0.002, 0.25] } });
+  return { destroy() { unsub(); offScrub(); } };
 }

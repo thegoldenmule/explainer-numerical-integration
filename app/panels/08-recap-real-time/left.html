@@ -20,9 +20,9 @@
       <em>simulation</em>: “add in a physics simulation that may take a few milliseconds every
       frame, and now we’ve got even less time to do any processing.” A few milliseconds is many
       objects. Charge that one step to
-      <math><mtext data-var="objects">500 thousand</mtext></math> of them, each needing
+      <math><mtext data-var="objects" data-scrub="objects" data-log>500 thousand</mtext></math> of them, each needing
       <math><mn data-var="steps" data-digits="2">0.50</mn></math> steps of
-      <math><mrow><mi>h</mi><mo>=</mo><mn data-var="h" data-digits="3">0.033</mn><mtext> s</mtext></mrow></math>
+      <math><mrow><mi>h</mi><mo>=</mo><mn data-var="h" data-scrub="h" data-digits="3">0.033</mn><mtext> s</mtext></mrow></math>
       per frame, and the physics slice is <math><mtext data-var="sliceText">4.03 ms</mtext></math>
       of the <math><mtext data-var="frame">16.67 ms</mtext></math> frame.</p>
     <p>The frame fills at about <math><mtext data-var="fillAt">2.1 million</mtext></math> objects

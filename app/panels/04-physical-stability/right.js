@@ -9,7 +9,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText, drawVectorField, layoutGrid } from 'shared/gfx/plot2d.js';
 import { systemMatrix, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { apply } from 'shared/math/matrix2.js';
-import { slider, controls, row } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const SAMPLES = 400;
 const HALF = 1.6;   // x half-range; v is scaled by ω so an undamped orbit is a circle
@@ -17,6 +17,7 @@ const STARTS = [[1, 0], [-0.5, 0.6], [0.2, -1]];   // (x₀, v₀/ω)
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
+  const article = root.closest('article') ?? root;
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
 
@@ -58,10 +59,8 @@ export function mount(root, ctx) {
     });
   });
 
-  root.append(controls(row(
-    slider(store, 'c', { label: 'c (damping; the right portrait uses −c)', min: 0, max: 10, format: v => fmt(v, 2), signal }),
-  )));
+  const offScrub = bindScrub(article, store, { signal, limits: { c: [0, 10] } });
 
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
-  return { destroy() { unsub(); } };
+  return { destroy() { unsub(); offScrub(); } };
 }

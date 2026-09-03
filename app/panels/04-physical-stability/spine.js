@@ -19,19 +19,18 @@ import { cssVar, makeView, drawGrid, drawPolyline, drawBand, drawText } from 'sh
 import { exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { createStore } from 'shared/state.js';
 import { aux } from 'shared/aux.js';
-import { slider, controls, row } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const SPAN = 6;         // seconds shown
 const SAMPLES = 600;
 const NEIGHBORS = 6;    // started at equal angles around the ε-circle
 const C_RANGE = [-2, 50];   // this pane's own damping: below zero is the unstable what-if
-const C_SLIDER = [-2, 10];  // the useful stretch of it, on a linear slider
-const C_STEP = 0.05;    // puts c = 0 on the grid: the borderline verdict must be landable
+const C_SCRUB = [-2, 10];   // the useful stretch of it, for the drag
 const SLACK = 1.001;    // c = 0 rides the tube's edge by construction; don't call that an exit
 const CAP = 3;          // y-range cap, in multiples of the readable early amplitude
 
-/** This pane's own damping, in its own store so slider() and subscribe() work unchanged. */
+/** This pane's own damping, in its own store so bindScrub() and subscribe() work unchanged. */
 function localDamping(c0) {
   return createStore({ c: c0 }, {
     limits: { c: C_RANGE },
@@ -46,6 +45,26 @@ export function mount(root, ctx) {
 
   // seeded from the reader's actual case; re-seeded only when the tuple's own c changes
   const local = localDamping(store.get().c);
+
+  // one store-shaped view over this pane's two what-if numbers — local c and aux's epsilon —
+  // so bindScrub can bind both from the article in a single pass, the way panels 2 and 5 bind
+  // a facade over the scene. c never reaches C_RANGE's full stretch by drag; C_SCRUB narrows it
+  // to the readable range the old slider used.
+  const scrub = {
+    get: () => ({ c: local.get().c, epsilon: aux.get().epsilon }),
+    set(patch) {
+      if (Number.isFinite(patch.c)) local.set({ c: patch.c });
+      if (Number.isFinite(patch.epsilon)) aux.set({ epsilon: patch.epsilon });
+      return scrub.get();
+    },
+    subscribe(fn, opts) {
+      const relay = () => { const s = scrub.get(); fn(s, s); };
+      const offLocal = local.subscribe(relay, opts);
+      const offAux = aux.subscribe(relay, { immediate: false });
+      return () => { offLocal(); offAux(); };
+    },
+    limits: { c: C_SCRUB, epsilon: aux.limits.epsilon },
+  };
 
   const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
 
@@ -135,10 +154,7 @@ export function mount(root, ctx) {
     drawText(g, view, 'ε-tube around the exact solution', 0, exact[0] - eps, { color: cssVar('--exact'), size: 11, dx: 8, dy: 16 });
   });
 
-  root.append(controls(row(
-    slider(aux, 'epsilon', { label: 'ε (perturbation size)', log: true, format: v => fmt(v, 3), signal }),
-    slider(local, 'c', { label: 'this pane’s own c (damping): drag it below 0', min: C_SLIDER[0], max: C_SLIDER[1], step: C_STEP, format: v => fmt(v, 2), signal }),
-  )));
+  const offScrub = bindScrub(article, scrub, { signal });
 
   // the verdict sentence in the prose: the sign of Re λ = −c / 2m, and nothing else. Bound
   // to all three stores (the tuple for m, this pane's own c, and aux's ε) so it stays live
@@ -154,6 +170,7 @@ export function mount(root, ctx) {
     const cls = verdict === 'unstable' ? 'unstable' : 'stable';
     return {
       alpha, maxDist, endDist,
+      localc: sys.c,
       verdict: el('span', { class: cls }, verdict),
       tubeState: endDist > eps * SLACK ? 'outside' : 'inside',
     };
@@ -169,5 +186,5 @@ export function mount(root, ctx) {
   }, { immediate: false });
   const unsubLocal = local.subscribe(stage.invalidate, { immediate: false });
   const unsubAux = aux.subscribe((s, patch) => { if ('epsilon' in patch) stage.invalidate(); }, { immediate: false });
-  return { destroy() { unsub(); unsubLocal(); unsubAux(); } };
+  return { destroy() { unsub(); unsubLocal(); unsubAux(); offScrub(); } };
 }

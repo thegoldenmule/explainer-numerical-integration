@@ -10,8 +10,8 @@ import { drawTrajectory, nearestSample } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPoint, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { simulate } from 'shared/math/integrators.js';
 import { sweepKey } from 'shared/math/sweep.js';
-import { slider, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 
 const SPAN = 4;          // seconds of trajectory shown
 const HIT_PX = 24;       // css px within which a pointer picks a sample
@@ -148,14 +148,12 @@ export function mount(root, ctx) {
   bindPick(stage, () => view, () => [run.x, run.exact]);
   bindPick(errStage, () => errView, () => [run.err]);
 
-  root.append(controls(
-    slider(store, 'h', { label: 'dt (step)', min: 0.001, max: 0.033, format: v => `${v.toFixed(3)} s`, signal }),
-  ));
-
+  const article = root.closest('article');
   const unsub = store.subscribe(redraw, { immediate: false });
-  bindMath(root.closest('article'), store, state => {
+  bindMath(article, store, state => {
     const s = trajectory(state);
     return { steps: s.n - 1, maxerr: sig(s.peak) };
   }, { signal });
-  return { destroy() { unsub(); } };
+  const offScrub = bindScrub(article, store, { signal, limits: { h: [0.001, 0.033] } });
+  return { destroy() { unsub(); offScrub(); } };
 }

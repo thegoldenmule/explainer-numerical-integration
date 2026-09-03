@@ -17,7 +17,9 @@
       well in most situations but the RK4a method was so much more accurate that [the engine]
       attempted to set the step size as great as 16 seconds! This resulted in a frame rate of
       1/16 frames per second.</p></blockquote>
-    <p>Set the target error to 0.01 with RK4 and watch <math><mrow><mi>h</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>,
+    <p>Set the target local error
+      <math><mrow><mo>=</mo><mn data-scrub="tol" data-digits="4" data-log>0.0100</mn></mrow></math>
+      (try 0.01) with RK4 and watch <math><mrow><mi>h</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>,
       plotted as its own trajectory, climb to about 2 s on this spring; switch to a constant
       force only and, with no higher derivatives left to estimate, it runs straight to the
       16-second cap.</p>
