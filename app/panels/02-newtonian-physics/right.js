@@ -4,36 +4,61 @@
 // inertia of the rectangle, and θ is integrated locally (there is no rigid-body store; the
 // scene holds a point mass). The translational sum does not depend on where the forces
 // act; the torque does, which is the whole point of the lever-arm slider.
+//
+// θ, θ′, t and the lever arm live in a pane-local store so the equations under the stage can
+// be ordinary live MathML: one bindMath over that store catches the integration, a second
+// over the scene catches a force being toggled or dragged on the spine.
 
-import { el, fmt } from 'shared/dom.js';
+import { el, fmt, fragment } from 'shared/dom.js';
+import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawText } from 'shared/gfx/plot2d.js';
 import { scene } from 'shared/scene.js';
-import { readout, controls, row } from 'shared/ui/controls.js';
-import { FORCE_COLOR, SUM_COLOR, forceVectors, arrowScale, drawForceArrow, mag } from './arrows.js';
+import { slider, controls, row } from 'shared/ui/controls.js';
+import { bindMath } from 'shared/ui/livemath.js';
+import { FORCE_COLOR, SUM_COLOR, forceVectors, arrowMap, drawForceArrow } from './arrows.js';
 
 const BODY = { w: 1.6, h: 1 };
 const HALF_W = 4;
+const LEVER = [-0.8, 0.8];
 
-function localSlider({ label, min, max, value, format = v => String(v), onInput, signal }) {
-  const input = el('input', { type: 'range', min, max, step: 'any', value });
-  const out = el('output', {}, format(value));
-  input.addEventListener('input', () => { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
-  return el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, label), out), input);
-}
+const EQUATIONS = `
+<math display="block"><mrow>
+  <munder><mo>∑</mo><mi>i</mi></munder><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo>
+  <mi>r</mi><mo>×</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>F</mi><mi>i</mi></msub><mo>=</mo>
+  <mn data-var="T" data-digits="3">0</mn><mo>,</mo><mspace width="1em"/>
+  <mi>I</mi><mo>=</mo><mfrac><mrow><mi>m</mi><mo>(</mo><msup><mi>w</mi><mn>2</mn></msup><mo>+</mo><msup><mi>h</mi><mn>2</mn></msup><mo>)</mo></mrow><mn>12</mn></mfrac>
+  <mo>=</mo><mn data-var="I" data-digits="3">0</mn><mo>,</mo><mspace width="1em"/>
+  <msup><mi>θ</mi><mo>″</mo></msup><mo>=</mo>
+  <mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>T</mi><mi>i</mi></msub></mrow><mi>I</mi></mfrac>
+  <mo>=</mo><mn data-var="alpha" data-digits="3">0</mn>
+</mrow></math>
+<math display="block"><mrow>
+  <munder><mo>∑</mo><mi>i</mi></munder><msub><mi>F</mi><mi>i</mi></msub><mo>=</mo>
+  <mo>(</mo><mn data-var="Sx" data-digits="2">0</mn><mo>,</mo><mn data-var="Sy" data-digits="2">0</mn><mo>)</mo>
+  <mspace width="1em"/><mtext>at</mtext><mspace width="0.4em"/>
+  <mi>d</mi><mo>=</mo><mn data-var="lever" data-digits="2">0</mn>
+</mrow></math>`;
 
 export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
-  let theta = 0, omega = 0, t = 0;   // the body's rotation state, local to this pane
-  let lever = 0.5;                   // where the forces act: d along the body's own axis
+  const article = root.closest('article') ?? root;
   let running = false, carry = 0;
 
+  // the body's rotation state and where the forces act: local to this pane
+  const rot = createStore({ theta: 0, omega: 0, t: 0, lever: 0.5 }, {
+    limits: { theta: [-Infinity, Infinity], omega: [-Infinity, Infinity], t: [0, Infinity], lever: LEVER },
+    validate: () => undefined,
+    presets: {},
+  });
+
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  const out = readout({ label: 'ΣT = I θ″' });
+  root.append(fragment(EQUATIONS));
 
   /** The rotational sum at the current θ. */
   function torque() {
     const s = scene.get();
+    const { theta, lever } = rot.get();
     const { list, sum } = forceVectors(s);
     const r = [lever * Math.cos(theta), lever * Math.sin(theta)];
     const I = s.body.m * (BODY.w ** 2 + BODY.h ** 2) / 12;
@@ -42,9 +67,10 @@ export function mount(root, ctx) {
   }
 
   stage.onDraw(({ w, h, dpr }) => {
-    const { list, sum, r, I, T, alpha, s } = torque();
+    const { list, sum, r, T, alpha, s } = torque();
+    const { theta, omega, t, lever } = rot.get();
     const { body } = s;
-    const scale = arrowScale(list, [sum]);
+    const map = arrowMap(s);
     const g = stage.ctx('plane');
     const view = makeView({ w, h, dpr, halfW: HALF_W });
     g.clearRect(0, 0, w, h);
@@ -72,8 +98,8 @@ export function mount(root, ctx) {
     g.restore();
     drawText(g, view, `r, d = ${fmt(lever, 2)}`, (body.x[0] + at[0]) / 2, (body.x[1] + at[1]) / 2, { color: cssVar('--fg'), size: 10, dx: 6, dy: -6 });
 
-    for (const f of list) drawForceArrow(g, view, at, f.F, scale, { color: FORCE_COLOR[f.type], label: f.label });
-    drawForceArrow(g, view, at, sum, scale, { color: SUM_COLOR, width: 4, head: 11, label: 'ΣF' });
+    for (const f of list) drawForceArrow(g, view, at, f.F, map, { color: FORCE_COLOR[f.type], label: f.label });
+    drawForceArrow(g, view, at, sum, map, { color: SUM_COLOR, width: 4, head: 11, label: 'ΣF' });
 
     // the torque as an arc at the center: counter-clockwise for T > 0
     if (Math.abs(T) > 1e-6) {
@@ -94,20 +120,19 @@ export function mount(root, ctx) {
       drawText(g, view, 'T', body.x[0], body.x[1] + 0.55, { color: cssVar('--unstable'), size: 12, align: 'center', dx: T > 0 ? -14 : 14, dy: -6 });
     }
 
-    out.set([
-      `ΣT = r × ΣF = ${fmt(T, 3)}   I = m(w²+h²)/12 = ${fmt(I, 3)}   θ″ = ${fmt(alpha, 3)} rad/s²\n`,
-      `θ = ${fmt(theta, 3)} rad   θ′ = ${fmt(omega, 3)} rad/s   t = ${fmt(t, 2)} s${running ? '   running' : ''}\n`,
-      el('span', { class: 'label' }, `ΣF = (${fmt(sum[0], 2)}, ${fmt(sum[1], 2)}) no matter where the forces act; ΣT flips when the lever arm crosses zero`),
-    ]);
+    // the rotation state, and the point the lever arm is there to make
+    drawText(g, view, `θ = ${fmt(theta, 3)} rad   θ′ = ${fmt(omega, 3)} rad/s   t = ${fmt(t, 2)} s${running ? '   running' : ''}`,
+      view.xMin, view.yMin, { color: cssVar('--fg'), size: 11, dx: 8, dy: -20 });
+    drawText(g, view, 'ΣF is the same wherever the forces act; ΣT flips when the lever arm crosses zero',
+      view.xMin, view.yMin, { color: cssVar('--muted'), size: 10, dx: 8, dy: -6 });
   });
 
   // ---- integrate θ: one explicit Euler step of the tuple's h ----
   function step() {
     const h = store.get().h;
     const { alpha } = torque();
-    theta += h * omega;
-    omega += h * alpha;
-    t += h;
+    const { theta, omega, t } = rot.get();
+    rot.set({ theta: theta + h * omega, omega: omega + h * alpha, t: t + h });
   }
   const offFrame = loop.onFrame(dt => {
     if (!running) return;
@@ -116,25 +141,32 @@ export function mount(root, ctx) {
     let n = Math.min(Math.floor(carry / h), 200);
     carry -= n * h;
     while (n-- > 0) step();
-    stage.invalidate();
   });
 
   const runBtn = el('button', { class: 'btn', type: 'button', 'aria-pressed': 'false' }, 'Run');
   runBtn.addEventListener('click', () => { running = !running; carry = 0; runBtn.setAttribute('aria-pressed', String(running)); runBtn.textContent = running ? 'Pause' : 'Run'; stage.invalidate(); }, { signal });
   const stepBtn = el('button', { class: 'btn', type: 'button' }, 'Step');
-  stepBtn.addEventListener('click', () => { step(); stage.invalidate(); }, { signal });
+  stepBtn.addEventListener('click', step, { signal });
   const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
-  resetBtn.addEventListener('click', () => { theta = 0; omega = 0; t = 0; stage.invalidate(); }, { signal });
+  resetBtn.addEventListener('click', () => rot.set({ theta: 0, omega: 0, t: 0 }), { signal });
 
   root.append(controls(row(
-    localSlider({ label: 'lever arm d', min: -0.8, max: 0.8, value: lever, format: v => fmt(v, 2), onInput: v => { lever = v; stage.invalidate(); }, signal }),
+    slider(rot, 'lever', { label: 'lever arm d', format: v => fmt(v, 2), signal }),
     el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn)),
   )));
-  root.append(out.el);
 
-  const unsub = scene.subscribe(stage.invalidate, { immediate: false });
+  // ---- live math: the rotation store drives the integration, the scene drives the forces ----
+  const derive = () => {
+    const { sum, I, T, alpha } = torque();
+    return { I, T, alpha, Sx: sum[0], Sy: sum[1], lever: rot.get().lever };
+  };
+  bindMath(article, rot, derive, { signal });
+  bindMath(article, scene, derive, { signal });
+
+  const unsubRot = rot.subscribe(stage.invalidate, { immediate: false });
+  const unsubScene = scene.subscribe(stage.invalidate, { immediate: false });
   return {
     pause() { running = false; runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; },
-    destroy() { offFrame(); unsub(); },
+    destroy() { offFrame(); unsubRot(); unsubScene(); },
   };
 }

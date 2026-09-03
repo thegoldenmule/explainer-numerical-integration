@@ -1,22 +1,35 @@
-// Shared by panel 2's three panes: the force arrows of the scene, their colors, and the
-// scale that maps force units to plot units. Forces span two orders of magnitude (gravity
-// at the defaults is 1, the spring at x = 1 is 100), so the scale adapts to the largest
-// arrow; a pane freezes it for the duration of a drag so the tip stays under the pointer.
+// Shared by panel 2's three panes: the force arrows of the scene, their colors, and the map
+// between force units and plot units.
+//
+// Two problems the map has to solve at once. Forces here span two orders of magnitude (the
+// spring at x = 1 with k = 100 is ~100, gravity at the defaults is ~1, drag at v = 2 is 0.2),
+// so a linear scale that fits the spring leaves the other two invisible; and the scale must
+// not depend on *which* forces are switched on, or toggling one arrow off would move all the
+// others. So: the reference magnitude is taken over every force, on and off, and the length
+// is logarithmic in the magnitude —
+//
+//   len(F) = ARROW_LEN · ln(1 + |F| / F0) / ln(1 + ref / F0)
+//
+// which puts every arrow on screen at once while the numbers in the equations stay the truth.
+// `toForce` inverts it, so a dragged tip still reads back as a force; a pane freezes the whole
+// map for the duration of a drag so the tip stays under the pointer.
 
 import { cssVar, drawArrow, drawText } from 'shared/gfx/plot2d.js';
 import { MODELS, forceOf } from 'shared/math/forces.js';
 
 /** CSS variable per force type; the sum and the acceleration have their own. */
-export const FORCE_COLOR = Object.freeze({ wind: '--accent', gravity: '--axis', drag: '--muted', spring: '--region-edge' });
+export const FORCE_COLOR = Object.freeze({ wind: '--force-wind', gravity: '--force-gravity', drag: '--force-drag', spring: '--force-spring' });
 export const SUM_COLOR = '--approx';
 export const ACCEL_COLOR = '--exact';
 
 export const mag = ([x, y]) => Math.hypot(x, y);
-export const ARROW_LEN = 1.6;   // plot units for the largest arrow
+export const ARROW_LEN = 1.6;   // plot units for an arrow at the reference magnitude
+const F0 = 0.1;                 // the knee of the log: below this, length is ~linear in |F|
 
 /**
- * The active forces of a scene state as [{ i, type, label, F: [fx, fy] }] (real or linear
- * per `linear`; the scene's own flag by default), plus the sum.
+ * The active forces of a scene state as [{ i, type, label, F: [fx, fy], on }] (real or linear
+ * per `linear`; the scene's own flag by default), plus the sum of the ones that are on.
+ * With `all: true` the switched-off forces are in the list too (the sum still is not).
  */
 export function forceVectors(state, { linear = state.linear, all = false } = {}) {
   const list = [];
@@ -30,24 +43,68 @@ export function forceVectors(state, { linear = state.linear, all = false } = {})
   return { list, sum };
 }
 
-/** Plot units per force unit so the largest of `vectors` (and `extra`) is ARROW_LEN long. */
-export function arrowScale(vectors, extra = []) {
-  let m = 1;
-  for (const v of vectors) m = Math.max(m, mag(v.F ?? v));
-  for (const v of extra) m = Math.max(m, mag(v));
-  return ARROW_LEN / m;
+/**
+ * arrowMap(state, { linear }) → { ref, len(F), toPlot(F), toForce(p) }
+ *
+ * `ref` is the largest magnitude in the picture — every force, switched on or not, the sum of
+ * all of them, and that sum over m (the acceleration arrow) — so the map is a function of the
+ * scene's numbers only, never of which switches are up.
+ */
+export function arrowMap(state, { linear = state.linear } = {}) {
+  const { list } = forceVectors(state, { linear, all: true });
+  const all = [0, 0];
+  let ref = 1;
+  for (const v of list) {
+    all[0] += v.F[0]; all[1] += v.F[1];
+    ref = Math.max(ref, mag(v.F));
+  }
+  const m = Math.max(state.body.m, 1e-9);
+  ref = Math.max(ref, mag(all), mag(all) / m);
+  const span = Math.log1p(ref / F0);
+  const len = F => ARROW_LEN * Math.log1p(mag(F) / F0) / span;
+  return {
+    ref,
+    len,
+    /** A force as the plot-space offset from the arrow's tail. */
+    toPlot(F) {
+      const q = mag(F);
+      if (q < 1e-12) return [0, 0];
+      const l = len(F);
+      return [F[0] / q * l, F[1] / q * l];
+    },
+    /** The inverse: a plot-space offset (a dragged tip) back as a force. */
+    toForce(p) {
+      const l = mag(p);
+      if (l < 1e-12) return [0, 0];
+      const q = F0 * Math.expm1(l / ARROW_LEN * span);
+      return [p[0] / l * q, p[1] / l * q];
+    },
+  };
 }
 
-/** Draw one arrow from `from` along F·scale, with an optional label at the tip. */
-export function drawForceArrow(g, view, from, F, scale, { color, width = 2, label, head = 8, alpha = 1 } = {}) {
-  const tip = [from[0] + F[0] * scale, from[1] + F[1] * scale];
-  if (mag(F) * scale < 1e-3) return tip;
+/**
+ * The map for a pane whose arrows are already in plot units and need no compression: the
+ * left pane's two free vectors, where the axes *are* the numbers.
+ */
+export const IDENTITY_MAP = Object.freeze({
+  ref: 1,
+  len: F => mag(F),
+  toPlot: F => [F[0], F[1]],
+  toForce: p => [p[0], p[1]],
+});
+
+/** Draw one arrow from `from` along the mapped F, with an optional label at the tip. */
+export function drawForceArrow(g, view, from, F, map, { color, width = 2, label, head = 8, alpha = 1 } = {}) {
+  const d = map.toPlot(F);
+  const tip = [from[0] + d[0], from[1] + d[1]];
+  const l = mag(d);
+  if (l < 1e-3) return tip;
   g.save();
   g.globalAlpha = alpha;
   drawArrow(g, view, from[0], from[1], tip[0], tip[1], { color: cssVar(color), width, head });
-  if (label && mag(F) * scale >= 0.3) {   // an arrow too short to read gets no label, or they pile up
-    const dx = F[0] >= 0 ? 8 : -8;
-    drawText(g, view, label, tip[0], tip[1], { color: cssVar(color), size: 11, align: F[0] >= 0 ? 'left' : 'right', dx, dy: F[1] >= 0 ? -6 : 14 });
+  if (label && l >= 0.3) {   // an arrow too short to read gets no label, or they pile up
+    const dx = d[0] >= 0 ? 8 : -8;
+    drawText(g, view, label, tip[0], tip[1], { color: cssVar(color), size: 11, align: d[0] >= 0 ? 'left' : 'right', dx, dy: d[1] >= 0 ? -6 : 14 });
   }
   g.restore();
   return tip;

@@ -194,10 +194,13 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 **2. Newtonian physics, `F = ma`.** Concrete; `t` stepped by hand.
 - *Spine viz:* force arrows on the point mass (wind, gravity, drag), the summed vector, the
   resulting `a`. Toggle each force; drag an arrow's head to scale it; tap to step time once.
-- *Left, step down (drop the mass):* vectors alone. Two arrows and their sum. Drag the tip
-  of either arrow and the sum, its components, and its magnitude update live; drag one arrow
-  around the other to see the parallelogram close. The arrows are the same ones the reviewer
-  just dragged on the spine, minus the mass.
+- *Left, step down (drop the mass):* vectors alone. Two arrows and their sum, `b` drawn from
+  `a`'s tip so the picture *is* the decomposition. Drag the tip of either arrow, or scrub any
+  of the four components, and the sum, its components, and its magnitude update live; the
+  dashed copies close the parallelogram. The arrows are the spine's picture with the force
+  models taken away, not the spine's actual forces: a force can only be scaled along the
+  direction its model gives it (gravity has one parameter and always points at the
+  attractor), and a vector refresher needs two arrows that turn freely.
 - *Right, step up (add `θ`):* the rotational half. A point mass has no `θ`, so this pane
   needs the rigid body from panel 1's drill-down. Torque, moment of inertia `I` as the
   rotational mass, the second sum feeding `θ''`. Same forces, one more dimension.
