@@ -1,0 +1,159 @@
+<!--
+  Conclusion page: the row below panel 13, route #/14 (panelCount + 1). main.js fetches
+  this fragment into the closing cell and mounts ./conclusion.js on it; it is not a manifest
+  panel and does not go through the pane loader, mirroring title/. The background collage is
+  the title's own — conclusion.js re-mounts title.js's gif drift onto this section's .gifs
+  layer rather than duplicating it.
+-->
+<section class="conclusion" aria-label="Conclusion">
+<style>
+  .conclusion {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    isolation: isolate;
+  }
+
+  /* ---- background collage (driven by title.js, re-mounted here) ---- */
+  .conclusion .gifs {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .conclusion .gifs img {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    height: auto;
+    max-width: 90vw;
+    translate: -50% -50%;
+    border-radius: 6px;
+    opacity: 0;
+    will-change: opacity, transform;
+    animation: conclusion-drift var(--dur) ease-in-out forwards;
+    filter: saturate(0.85);
+  }
+  @keyframes conclusion-drift {
+    0%   { opacity: 0; transform: scale(1); }
+    18%  { opacity: 1; }
+    82%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(var(--grow)); }
+  }
+
+  /* wash between gifs and text so the text always reads */
+  .conclusion .wash {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 40% at 50% 48%, rgba(251, 250, 247, 0.9), rgba(251, 250, 247, 0.45) 70%, rgba(251, 250, 247, 0.18));
+  }
+
+  /* ---- foreground ---- */
+  .conclusion .hero {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  .conclusion h1 {
+    margin: 0;
+    font-size: clamp(2.4rem, 7vw, 6rem);
+    font-weight: 650;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    text-shadow: 0 0 24px rgba(251, 250, 247, 0.9), 0 0 60px rgba(251, 250, 247, 0.8);
+  }
+
+  .conclusion .source {
+    position: relative;
+    z-index: 2;
+    margin: 0.75rem auto 0;
+    max-width: none;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .conclusion .source a {
+    color: inherit;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 0.15em;
+  }
+  .conclusion .source a:hover {
+    color: var(--fg);
+  }
+
+  /* ---- references footer ---- */
+  .conclusion .refs {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.5rem 1.5rem 2rem;
+    background: linear-gradient(to top, rgba(251, 250, 247, 0.95), rgba(251, 250, 247, 0));
+  }
+  .conclusion .refs h2 {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .conclusion .refs ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem clamp(1.25rem, 4vw, 2.5rem);
+  }
+  .conclusion .refs li {
+    white-space: nowrap;
+  }
+  .conclusion .refs a {
+    color: var(--fg);
+    font-size: 0.95rem;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 0.15em;
+  }
+  .conclusion .refs a:hover {
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .conclusion .gifs img { animation: none; opacity: 0.35; }
+  }
+</style>
+
+  <div class="gifs" aria-hidden="true"></div>
+  <div class="wash" aria-hidden="true"></div>
+
+  <div class="hero">
+    <div>
+      <h1>Fin</h1>
+      <p class="source">Adapted from a <a href="https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2" target="_blank" rel="noopener">two-part series</a> on physical and numerical stability.</p>
+    </div>
+  </div>
+
+  <footer class="refs" aria-label="References">
+    <h2>References</h2>
+    <ul>
+      <li><a href="https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2" target="_blank" rel="noopener">Physics engines explained (Part I)</a></li>
+      <li><a href="https://thegoldenmule.medium.com/physics-engine-deep-dive-part-ii-cb8d1fda1f9b" target="_blank" rel="noopener">Physics engine deep dive (Part II)</a></li>
+      <li><a href="https://www.sciencedirect.com/book/monograph/9781558607408/game-physics" target="_blank" rel="noopener">David Eberly, <em>Game Physics</em></a></li>
+      <li><a href="https://www.researchgate.net/publication/228548521_Stable_Rigid-body_Physics" target="_blank" rel="noopener">Graham Rhodes, “Stable Rigid-Body Physics”</a></li>
+    </ul>
+  </footer>
+</section>

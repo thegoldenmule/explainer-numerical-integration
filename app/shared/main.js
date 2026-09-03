@@ -16,13 +16,16 @@ const spine = document.getElementById('spine');
 const rail = document.getElementById('rail');
 const hrail = document.getElementById('hrail');
 
-const KIND = { left: 'Refresher · step down', right: 'Drill-down · step up' };
+const KIND = { left: 'Surface', right: 'Dive' };
 const SITE = 'Why physics engines blow up';
 
 // Row 0: the title page. Not a manifest entry; one cell, no side panes, mounted below from
-// title/ directly rather than through the pane manager.
+// title/ directly rather than through the pane manager. The last row, panelCount + 1, is its
+// bookend: the conclusion page, mounted the same way from conclusion/.
 const TITLE = 0;
 const TITLE_TEXT = 'Why do physics engines break?';
+const END = panelCount + 1;
+const END_TEXT = 'Fin';
 
 // Ordered list of panes for one manifest entry: an optional left, always spine, then the
 // right chain in order. Each item carries `id` (the file basename / cell key), `pane` (the
@@ -74,6 +77,16 @@ for (const entry of manifest) {
   }));
 }
 
+{
+  const body = el('div', { class: 'pane-body' });
+  const cell = el('div', { class: 'pane pane-spine pane-title', 'data-index': END, 'data-pane': 'spine', 'data-depth': 1 }, body);
+  const row = el('section', { class: 'panel', id: `panel-${END}`, 'data-index': END, 'aria-label': END_TEXT }, cell);
+  cells.set(key(END, 'spine'), { cell, body, pane: 'spine', depth: 1 });
+  rows.set(END, row);
+  spine.append(row);
+  rail.append(el('a', { href: `#/${END}`, title: END_TEXT, 'aria-label': END_TEXT }));
+}
+
 // ---- horizontal rail: one dot per pane of the current panel, rebuilt on every route ----
 function updateHrail(index, side, depth) {
   const entry = panelAt(index);
@@ -119,25 +132,29 @@ function alignRow(index, side, depth, instant) {
 // every row starts on its spine pane, not its left pane
 for (const entry of manifest) alignRow(entry.index, null, 1, true);
 
-// ---- the title page ----
-// Fetched and mounted once at boot, in place; resumed only while #/0 is on screen so its
-// collage never downloads or decodes behind another panel.
-const title = (async () => {
-  const body = cells.get(key(TITLE, 'spine')).body;
-  const base = new URL('../title/title', import.meta.url);
-  try {
-    const [mod, html] = await Promise.all([
-      import(`${base}.js`),
-      fetch(`${base}.html`).then(r => { if (!r.ok) throw new Error(`${r.status} ${r.statusText} for ${base}.html`); return r.text(); }),
-    ]);
-    body.replaceChildren(fragment(html));
-    return mod.mount(body.firstElementChild, { signal: new AbortController().signal });
-  } catch (err) {
-    console.warn('[title]', err);
-    body.replaceChildren(el('div', { class: 'pane-missing' }, el('p', {}, el('strong', {}, TITLE_TEXT)), el('p', { class: 'muted' }, String(err?.message ?? err))));
-    return { pause() {}, resume() {}, destroy() {} };
-  }
-})();
+// ---- the title and conclusion pages ----
+// Each is fetched and mounted once at boot, in place; resumed only while its own row is on
+// screen so its collage never downloads or decodes behind another panel.
+function mountBookend(index, text, dir) {
+  return (async () => {
+    const body = cells.get(key(index, 'spine')).body;
+    const base = new URL(`../${dir}/${dir}`, import.meta.url);
+    try {
+      const [mod, html] = await Promise.all([
+        import(`${base}.js`),
+        fetch(`${base}.html`).then(r => { if (!r.ok) throw new Error(`${r.status} ${r.statusText} for ${base}.html`); return r.text(); }),
+      ]);
+      body.replaceChildren(fragment(html));
+      return mod.mount(body.firstElementChild, { signal: new AbortController().signal });
+    } catch (err) {
+      console.warn(`[${dir}]`, err);
+      body.replaceChildren(el('div', { class: 'pane-missing' }, el('p', {}, el('strong', {}, text)), el('p', { class: 'muted' }, String(err?.message ?? err))));
+      return { pause() {}, resume() {}, destroy() {} };
+    }
+  })();
+}
+const title = mountBookend(TITLE, TITLE_TEXT, 'title');
+const conclusion = mountBookend(END, END_TEXT, 'conclusion');
 
 // ---- router ----
 const panes = createPaneManager({ store, manifest, containerFor: (i, pane, depth) => cells.get(key(i, paneFileId(pane, depth))).body });
@@ -152,7 +169,7 @@ function setInert(index, activeId) {
 }
 
 const router = createRouter({
-  count: panelCount,
+  count: END,
   first: TITLE,
   canOpen: (index, side, depth) => {
     const entry = panelAt(index);
@@ -164,7 +181,7 @@ const router = createRouter({
   onRoute({ index, side, depth }, source) {
     const entry = panelAt(index);
     const sideTitle = side ? (side === 'left' ? entry.left.title : entry.right[depth - 1].title) : null;
-    document.title = entry ? `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : ''} · ${SITE}` : TITLE_TEXT;
+    document.title = entry ? `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : ''} · ${SITE}` : (index === END ? END_TEXT : TITLE_TEXT);
     for (const a of rail.children) {
       if (a.getAttribute('href') === `#/${index}`) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
     }
@@ -183,6 +200,7 @@ const router = createRouter({
 
     panes.activate(index, side, depth);
     title.then(h => (index === TITLE ? h.resume() : h.pause()));
+    conclusion.then(h => (index === END ? h.resume() : h.pause()));
     last = { index, side, depth };
   },
 });

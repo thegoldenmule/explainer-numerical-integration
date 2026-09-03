@@ -174,6 +174,12 @@ which `main.js` applies in `onRoute`.
   `title/title.js` (`mount(root, { signal }) → { pause, resume, destroy }`) directly, outside
   the pane manager; `onRoute` resumes it on `#/0` and pauses it everywhere else. The title
   ships its own scoped `<style>` and imports nothing from `shared/`.
+- The conclusion page is its bookend: row `panelCount + 1`, below the last panel, same
+  non-manifest treatment (`main.js`'s `mountBookend` builds both from one function). It
+  fetches `conclusion/conclusion.html` and mounts `conclusion/conclusion.js`, which has no
+  logic of its own — it re-exports title.js's `mount` so the one gif-collage engine, and the
+  20 filenames it knows about, is not duplicated. Its own `<style>` is scoped under
+  `.conclusion` and swaps the title's directions footer for a references list.
 - Two kinds of `IntersectionObserver` map scroll to route: one on the spine watching rows
   (ignored while a side pane is open), one per row watching its cells. Programmatic scrolls
   set a `navigating` flag cleared on `scrollend` (or a timeout) so the observers ignore them.

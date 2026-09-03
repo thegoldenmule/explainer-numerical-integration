@@ -409,6 +409,9 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - A title page sits above panel 1 at `#/0` and is where the reader lands with no deep link:
   the title over a slow collage of game physics glitches, and the three directions (left is
   the surface, down is the next page, right is the deep dive).
+- A conclusion page sits below the last panel, same collage, reading "Fin" and linking the
+  two-part series it's adapted from plus the sources the panels cite throughout: Eberly's
+  *Game Physics* and Graham Rhodes' *Stable Rigid-Body Physics*.
 
 ## Rendering research: how to run the Mathematica math in a browser
 

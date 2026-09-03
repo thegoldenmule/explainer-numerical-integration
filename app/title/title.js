@@ -41,9 +41,20 @@ const DURATION = [14, 22];   // seconds on screen, min..max
 const STAGGER = [2, 5];      // seconds between spawns, min..max
 const WIDTH_VW = [22, 44];   // width as a share of the viewport, min..max
 const GROW = [1.08, 1.22];   // end scale, min..max
+const MAX_OVERLAP = 0.10;    // a new gif may cover at most this fraction of a live one's area
+const PLACEMENT_TRIES = 30;  // random candidates sampled per spawn before settling for the best
 
 const GIF_BASE = new URL('./gifs/', import.meta.url);
 const rand = (lo, hi) => lo + Math.random() * (hi - lo);
+
+// Fraction of rect `a`'s area covered by rect `b`; both are {x, y, w, h} in px, x/y centered.
+function overlapFraction(a, b) {
+  const ax0 = a.x - a.w / 2, ax1 = a.x + a.w / 2, ay0 = a.y - a.h / 2, ay1 = a.y + a.h / 2;
+  const bx0 = b.x - b.w / 2, bx1 = b.x + b.w / 2, by0 = b.y - b.h / 2, by1 = b.y + b.h / 2;
+  const ox = Math.max(0, Math.min(ax1, bx1) - Math.max(ax0, bx0));
+  const oy = Math.max(0, Math.min(ay1, by1) - Math.max(ay0, by0));
+  return (ox * oy) / (a.w * a.h);
+}
 
 export function mount(root, { signal } = {}) {
   const layer = root.querySelector('.gifs');
@@ -78,6 +89,24 @@ export function mount(root, { signal } = {}) {
   let live = 0;
   let running = false;
   let timer = 0;
+  const liveRects = new Set();   // {x, y, w, h} px, one per gif currently on screen
+
+  // Sample candidate centers uniformly over the whole viewport (minus a margin so a gif
+  // mostly stays on screen) and keep the one that overlaps existing gifs least, so arrivals
+  // spread out evenly instead of clumping. Best-effort: with only MAX_LIVE on screen this
+  // reliably lands under MAX_OVERLAP, but a crowded viewport still gets the least-bad spot.
+  function pickRect(w, h) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const marginX = Math.min(w / 2, vw * 0.06);
+    const marginY = Math.min(h / 2, vh * 0.08);
+    let best = null, bestOverlap = Infinity;
+    for (let i = 0; i < PLACEMENT_TRIES && bestOverlap > MAX_OVERLAP; i++) {
+      const cand = { x: rand(marginX, vw - marginX), y: rand(marginY, vh - marginY), w, h };
+      const worst = Math.max(0, ...[...liveRects].map(r => overlapFraction(cand, r)));
+      if (worst < bestOverlap) { best = cand; bestOverlap = worst; }
+    }
+    return best;
+  }
 
   async function spawn() {
     if (!running || GIFS.length === 0) return;
@@ -95,21 +124,22 @@ export function mount(root, { signal } = {}) {
     }
     if (!running) { live--; return; }
 
-    // Keep the middle band mostly clear: bias positions toward the edges so the title stays
-    // legible even before the wash does its work.
-    const edge = Math.random() < 0.5;
-    const x = edge ? rand(4, 32) : rand(68, 96);
-    const y = rand(8, 92);
+    const wVw = rand(...WIDTH_VW);
+    const wPx = (wVw / 100) * window.innerWidth;
+    const hPx = wPx * (img.naturalHeight / img.naturalWidth);
+    const rect = pickRect(wPx, hPx);
+    liveRects.add(rect);
 
     img.alt = '';
-    img.style.setProperty('--x', `${x}vw`);
-    img.style.setProperty('--y', `${y}vh`);
-    img.style.setProperty('--w', `${rand(...WIDTH_VW)}vw`);
+    img.style.setProperty('--x', `${(rect.x / window.innerWidth) * 100}vw`);
+    img.style.setProperty('--y', `${(rect.y / window.innerHeight) * 100}vh`);
+    img.style.setProperty('--w', `${wVw}vw`);
     img.style.setProperty('--dur', `${rand(...DURATION)}s`);
     img.style.setProperty('--grow', rand(...GROW).toFixed(3));
 
     img.addEventListener('animationend', () => {
       img.remove();
+      liveRects.delete(rect);
       live--;
       schedule();
     }, { once: true });
@@ -138,6 +168,7 @@ export function mount(root, { signal } = {}) {
     running = false;
     clearTimeout(timer);
     layer.replaceChildren();
+    liveRects.clear();
     live = 0;
   }
 
