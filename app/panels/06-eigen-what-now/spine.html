@@ -16,15 +16,15 @@
     <p>An eigen<em>value</em> is the magnitude of that scaling transformation, like 3 or 12 or
       <math><mi>π</mi></math>. It’s just a number that represents how far the matrix stretched or
       squished that invariant vector.</p>
-    <p>The matrix here is the spring’s own, built from the current <math><mi>m</mi></math> and
-      <math><mi>k</mi></math> with a damping <math><mi>c</mi></math> of this panel’s own — the
-      spring’s real <math><mi>c</mi></math> is left alone. Drag <math><mi>v</mi></math> around
-      the plane. <math><mrow><mi>R</mi><mo>=</mo><mover><mi>A</mi><mo>^</mo></mover><mi>v</mi></mrow></math>
+    <p>The matrix here opens at the spring’s own matrix, in natural units, overdamped enough
+      that both invariant directions are real from the start. Every number in it is
+      draggable, and so is <math><mi>v</mi></math> — drag either and
+      <math><mrow><mi>R</mi><mo>=</mo><mover><mi>A</mi><mo>^</mo></mover><mi>v</mi></mrow></math>
       is drawn split: the part of <math><mi>v</mi></math> that lies along an invariant direction,
       scaled by that direction’s eigenvalue, plus what is left over. Land on a direction and the
       leftover vanishes and <math><mrow><mi>R</mi><mo>=</mo><mi>λ</mi><mi>v</mi></mrow></math>.
-      Damp lightly and no real direction survives: the eigenvalues have gone complex, which is
-      the next panel.</p>
+      Drag the matrix’s bottom-right number down and no real direction survives: the
+      eigenvalues have gone complex, which is the next panel.</p>
   </div>
   <div class="viz"></div>
 </article>

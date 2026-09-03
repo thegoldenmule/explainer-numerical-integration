@@ -1,49 +1,41 @@
-// Panel 6, spine: three things, in order. A, the spring's own 2×2 system matrix; v, an arrow
-// you drag around the plane; and R = A v, drawn split into the part of v that lies along an
-// invariant direction — scaled by that direction's eigenvalue — plus whatever is left over.
-// Land v on a direction and the leftover is zero and R = λ v: an arrow that only changed
-// length. That split is the whole panel; there is no readout under the picture.
+// Panel 6, spine: three things, in order. Â, a 2×2 matrix — every one of its four numbers a
+// draggable number right in the equation; v, an arrow you drag around the plane (also
+// draggable as numbers in that same equation); and R = Â v, drawn split into the part of v
+// that lies along an invariant direction — scaled by that direction's eigenvalue — plus
+// whatever is left over. Land v on a direction and the leftover is zero and R = λ v: an
+// arrow that only changed length. That split is the whole panel; there is no readout under
+// the picture, and no tuple write — this pane never reads m, c, k past the first frame.
 //
-// At the demo defaults A = [[0, 1], [−k/m, −c/m]] = [[0, 1], [−100, −c]]: a unit vector's
-// image is a hundred units long and no single view holds both. So the grid is drawn in the
-// spring's natural units, (x, v/ω) per 1/ω seconds, where the same matrix reads
-// Â = [[0, 1], [−1, −2ζ]] with ζ = c / 2√(mk). Â is similar to A (a diagonal change of
-// units), so its eigenvectors are A's in those units and its eigenvalues are λ/ω; the prose
-// prints both.
-//
-// Per idea.md the panel wants an overdamped case to show real invariant directions, but the
-// tuple's own c is the demo's lightly-damped 0.1 and this panel must never write the tuple
-// (that write used to leak into every later panel — see the c slider on panels 7-13 landing
-// on an overdamped spring after a reader passed through here). So damping here is entirely
-// local to this pane: a `c` that defaults to an overdamped multiple of critical, recomputed
-// only when the tuple's m or k change, and otherwise left alone — including while the reader
-// drags it down through critical to watch the two directions converge and vanish.
+// Â opens at the spring's own matrix in natural units, overdamped (ζ = PRESET_FACTOR, always
+// −2·PRESET_FACTOR on the diagonal regardless of m and k — natural units is exactly what
+// makes that entry a plain constant), so both invariant directions are real and visible from
+// the first frame. From there every entry is the reader's own: drag one and Â stops being any
+// spring's matrix at all, which is the point of the panel's opening line — "forget all the
+// physics for a second," eigenvectors don't care where a matrix came from. A remount (this
+// pane's whole state is a closure, not the shared store) opens fresh at the same overdamped
+// default.
 
-import { fmt, fragment } from 'shared/dom.js';
+import { fmt, fragment, clamp } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawArrow, drawPolyline, drawText, drawPoint } from 'shared/gfx/plot2d.js';
-import { systemMatrix, regime, naturalFrequency, dampingRatio } from 'shared/math/system.js';
 import { eigen, apply } from 'shared/math/matrix2.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 
-/** This pane's own range for c. Fixed, not derived from m and k: bindScrub reads a key's
- *  limits once at bind time, and 2√(mk) over the tuple's own m and k stays inside this. */
-const C_RANGE = [0, 200];
-
 const HALF_W = 2.6;
 const NEAR_DEG = 4;        // within this angle of an eigenvector, it lights up
-const PRESET_FACTOR = 1.5; // this pane's own default: c = PRESET_FACTOR · 2√(mk), overdamped
+const PRESET_FACTOR = 1.5; // Â's default diagonal: ζ = PRESET_FACTOR, overdamped
+const M_RANGE = [-10, 10]; // this pane's own drag range for every entry of Â
+const V_RANGE = [-5, 5];   // and for v's own two components
+const MATRIX_KEYS = ['a00', 'a01', 'a10', 'a11'];
 const SUB = ['₁', '₂'];
-const DASH = '—';
 
 const deg = rad => rad * 180 / Math.PI;
 const angleBetweenLines = (u, v) => {
   const d = Math.abs(u[0] * v[0] + u[1] * v[1]) / (Math.hypot(u[0], u[1]) * Math.hypot(v[0], v[1]) || 1);
   return deg(Math.acos(Math.min(1, d)));
 };
-const fmtLam = ([re, im]) => (Math.abs(im) < 1e-12 ? fmt(re, 3) : `${fmt(re, 3)} ${im >= 0 ? '+' : '−'} ${fmt(Math.abs(im), 3)}i`);
 
 /**
  * v in the eigenbasis: v = c₁û₁ + c₂û₂, so Âv = λ̂₁c₁û₁ + λ̂₂c₂û₂ exactly (an oblique
@@ -68,18 +60,20 @@ function decompose(e, v) {
 const sup = (name, i) => `<msub><mover><mi>${name}</mi><mo>^</mo></mover><mn>${i}</mn></msub>`;
 const col = (a, b) => `<mrow><mo>[</mo><mtable><mtr><mtd>${a}</mtd></mtr><mtr><mtd>${b}</mtd></mtr></mtable><mo>]</mo></mrow>`;
 const slot = (name, digits, initial) => `<mn data-var="${name}" data-digits="${digits}">${initial}</mn>`;
+const scrub = (name, digits, initial) => `<mn data-var="${name}" data-scrub="${name}" data-digits="${digits}">${initial}</mn>`;
 
-/** Â, v and R as one equation, then the split of R, then the live numbers under both. */
+/** Â, v and R as one equation — every entry of Â and both of v draggable, R read-only,
+ *  since it is what they produce — then the split of R. No readout under either. */
 const equations = () => fragment(`
   <div>
     <math display="block">
       <mrow>
         <mover><mi>A</mi><mo>^</mo></mover><mi>v</mi><mo>=</mo>
         <mrow><mo>[</mo><mtable>
-          <mtr><mtd><mn>0</mn></mtd><mtd><mn>1</mn></mtd></mtr>
-          <mtr><mtd><mn>−1</mn></mtd><mtd>${slot('ahat11', 2, '−3.00')}</mtd></mtr>
+          <mtr><mtd>${scrub('a00', 2, '0.00')}</mtd><mtd>${scrub('a01', 2, '1.00')}</mtd></mtr>
+          <mtr><mtd>${scrub('a10', 2, '−1.00')}</mtd><mtd>${scrub('a11', 2, '−3.00')}</mtd></mtr>
         </mtable><mo>]</mo></mrow>
-        ${col(slot('vx', 2, '1.20'), slot('vy', 2, '0.90'))}
+        ${col(scrub('vx', 2, '1.20'), scrub('vy', 2, '0.90'))}
         <mo>=</mo>
         ${col(slot('rx', 2, '0.90'), slot('ry', 2, '−3.90'))}
         <mo>=</mo><mi>R</mi>
@@ -93,59 +87,34 @@ const equations = () => fragment(`
         ${sup('λ', 2)}<msub><mi>c</mi><mn>2</mn></msub>${sup('u', 2)}
       </mrow>
     </math>
-    <small class="muted">
-      <math><mrow>${sup('λ', 1)}<mo>=</mo><mn data-var="lam1">−0.382</mn></mrow></math>,
-      <math><mrow><msub><mi>c</mi><mn>1</mn></msub><mo>=</mo><mn data-var="c1" data-digits="2">0.00</mn></mrow></math>;
-      <math><mrow>${sup('λ', 2)}<mo>=</mo><mn data-var="lam2">−2.618</mn></mrow></math>,
-      <math><mrow><msub><mi>c</mi><mn>2</mn></msub><mo>=</mo><mn data-var="c2" data-digits="2">0.00</mn></mrow></math>.
-      Natural units <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>v</mi><mo>/</mo><mi>ω</mi><mo>)</mo></mrow></math>
-      per <math><mrow><mn>1</mn><mo>/</mo><mi>ω</mi></mrow></math> s: the raw
-      <math><mrow><mi>A</mi><mo>=</mo><mo>[</mo><mo>[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>]</mo><mo>,</mo><mo>[</mo>${slot('a10', 2, '−100.00')}<mo>,</mo>${slot('a11', 2, '−30.00')}<mo>]</mo><mo>]</mo></mrow></math>,
-      <math><mrow><mi>ω</mi><mo>=</mo>${slot('omega', 2, '10.00')}</mrow></math> /s. This pane’s own
-      <math><mrow><mi>c</mi><mo>=</mo><mn data-var="localC" data-scrub="localC" data-digits="2">30.00</mn></mrow></math> against
-      <math><mrow><mn>2</mn><msqrt><mrow><mi>m</mi><mi>k</mi></mrow></msqrt><mo>=</mo>${slot('critical', 2, '20.00')}</mrow></math>
-      (<math><mi data-var="regime">overdamped</mi></math>) — the spring’s
-      <math><mrow><mi>c</mi><mo>=</mo>${slot('c', 2, '0.10')}</mrow></math> is never written from
-      here. Drag it below critical and the two directions meet and vanish.
-    </small>
   </div>`);
 
 export function mount(root, ctx) {
-  const { store, signal } = ctx;
+  const { signal } = ctx;
   const article = root.closest('article') ?? root;
-  let vec = [1.2, 0.9];     // the dragged vector, in (x, v/ω) units
+  // Â, opened at the spring's own natural-units matrix, overdamped; v, the dragged vector.
+  // Both are this pane's own from the first frame — nothing here reads the tuple at all.
+  let matrix = { a00: 0, a01: 1, a10: -1, a11: -2 * PRESET_FACTOR };
+  let vec = [1.2, 0.9];     // in (x, v/ω) units
   let view = null;
 
-  // This pane's own damping (never written to the tuple). Seeded from the tuple's current
-  // m, k; recomputed only when either changes, otherwise preserved while the pane stays
-  // mounted (dragging the slider below critical must not get overwritten on the next frame).
-  const s0 = store.get();
-  let mkKey = `${s0.m}/${s0.k}`;
-  let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
-
-  function ensureLocalC(s) {
-    const key = `${s.m}/${s.k}`;
-    if (key === mkKey) return;
-    mkKey = key;
-    const critical = 2 * Math.sqrt(s.m * s.k);
-    localC = PRESET_FACTOR * critical;
-  }
-
-  // The pane's own read-only view of the world: the tuple, plus the local damping and the
-  // dragged vector. Shaped like a store so bindMath can bind to it; nothing here writes back.
+  // A store-shaped view over every draggable number (Â's four entries, v's two): unique
+  // keys, so bindScrub and bindMath take the article once and every slot follows. R is not
+  // here — it is what these produce, read-only in the equation (livemath's slot() below).
   const subs = new Set();
-  const snapshot = () => {
-    const s = store.get();
-    ensureLocalC(s);
-    return { ...s, localC, vx: vec[0], vy: vec[1] };
-  };
+  const snapshot = () => ({ ...matrix, vx: vec[0], vy: vec[1] });
   const local = {
     get: snapshot,
-    /** Only localC is writable, and only into this pane: the tuple's c is never touched. */
     set(patch) {
-      if (!('localC' in patch) || !Number.isFinite(patch.localC)) return snapshot();
-      const next = Math.min(C_RANGE[1], Math.max(C_RANGE[0], patch.localC));
-      if (next !== localC) { localC = next; notify({ localC: next }); }
+      let changed = false;
+      for (const k of MATRIX_KEYS) {
+        if (!Number.isFinite(patch[k])) continue;
+        const v = clamp(patch[k], M_RANGE[0], M_RANGE[1]);
+        if (v !== matrix[k]) { matrix = { ...matrix, [k]: v }; changed = true; }
+      }
+      if (Number.isFinite(patch.vx)) { const v = clamp(patch.vx, V_RANGE[0], V_RANGE[1]); if (v !== vec[0]) { vec = [v, vec[1]]; changed = true; } }
+      if (Number.isFinite(patch.vy)) { const v = clamp(patch.vy, V_RANGE[0], V_RANGE[1]); if (v !== vec[1]) { vec = [vec[0], v]; changed = true; } }
+      if (changed) notify(patch);
       return snapshot();
     },
     subscribe(fn, { immediate = true } = {}) {
@@ -153,26 +122,18 @@ export function mount(root, ctx) {
       if (immediate) { const s = snapshot(); fn(s, s); }
       return () => subs.delete(fn);
     },
-    limits: { localC: C_RANGE },
+    limits: { a00: M_RANGE, a01: M_RANGE, a10: M_RANGE, a11: M_RANGE, vx: V_RANGE, vy: V_RANGE },
   };
 
-  /** Everything both the picture and the prose read, from one snapshot. */
+  /** Everything the picture reads, from one snapshot. */
   function model(s) {
-    const zeta = dampingRatio(s.m, s.localC, s.k);
-    const Ahat = [[0, 1], [-1, -2 * zeta]];
+    const Ahat = [[s.a00, s.a01], [s.a10, s.a11]];
     const e = eigen(Ahat);
     const v = [s.vx, s.vy];
     const dirs = e.vectors ? (e.defective ? [e.vectors[0]] : e.vectors) : [];
     let near = -1, off = Infinity;
     dirs.forEach((u, i) => { const a = angleBetweenLines(u, v); if (a < off) { off = a; near = i; } });
-    return {
-      zeta, Ahat, e, v, dirs, near, off,
-      omega: naturalFrequency(s.m, s.k),
-      A: systemMatrix(s.m, s.localC, s.k),
-      R: apply(Ahat, v),
-      split: decompose(e, v),
-      r: regime(s.m, s.localC, s.k),
-    };
+    return { Ahat, e, v, dirs, near, off, R: apply(Ahat, v), split: decompose(e, v) };
   }
 
   root.append(equations());
@@ -243,21 +204,13 @@ export function mount(root, ctx) {
     },
   });
 
-  // The picture is the argument; the slots carry only what a picture cannot print. The
-  // verdict sentence and the eigen-directions live on the canvas (drawText), not here.
+  // The picture is the argument; the slots carry only Â's own numbers, v, and R = Â v (read-
+  // only). The verdict sentence and the eigen-directions live on the canvas (drawText), not here.
   bindScrub(article, local, { signal });
   bindMath(article, local, s => {
-    const d = model(s);
-    return {
-      a10: d.A[1][0], a11: d.A[1][1], ahat11: d.Ahat[1][1],
-      omega: d.omega, localC: s.localC, critical: 2 * Math.sqrt(s.m * s.k),
-      regime: d.r === 'critical' ? 'critically damped' : d.r,
-      vx: d.v[0], vy: d.v[1], rx: d.R[0], ry: d.R[1],
-      lam1: fmtLam(d.e.values[0]), lam2: fmtLam(d.e.values[1]),
-      c1: d.split ? d.split.c[0] : DASH, c2: d.split ? d.split.c[1] : DASH,
-    };
+    const { R } = model(s);
+    return { ...s, rx: R[0], ry: R[1] };
   }, { signal });
 
-  const unsub = store.subscribe(notify, { immediate: false });
-  return { destroy() { unsub(); subs.clear(); } };
+  return { destroy() { subs.clear(); } };
 }
