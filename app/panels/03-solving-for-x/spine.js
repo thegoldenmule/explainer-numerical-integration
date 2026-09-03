@@ -11,7 +11,7 @@ import { sweepKey } from 'shared/math/sweep.js';
 import { slider, readout, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
-const SPAN = 6;         // seconds of trajectory shown
+const SPAN = 4;         // seconds of trajectory shown
 const HIT_PX = 24;      // css px within which a touch picks a sample
 
 export function mount(root, ctx) {
@@ -85,7 +85,7 @@ export function mount(root, ctx) {
   canvas.addEventListener('pointercancel', end, { signal });
 
   root.append(controls(
-    slider(store, 'h', { label: 'dt (step)', min: 0.005, max: 0.25, format: v => `${v.toFixed(3)} s`, signal }),
+    slider(store, 'h', { label: 'dt (step)', min: 0.0005, max: 0.033, format: v => `${v.toFixed(3)} s`, signal }),
   ));
   root.append(out.el);
 
