@@ -1,12 +1,34 @@
 <article>
   <h2>Rigid bodies: extent and rotation</h2>
   <div class="prose">
-    <p class="muted">Placeholder drill-down. Step up: add extent, add <math><mi>θ</mi></math>.</p>
-    <p>A rigid body has mass and dimensions that do not change. Its state on the plane is a
-      position and a rotation,
-      <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>θ</mi><mo>)</mo></mrow></math>.
-      Nothing moves yet.</p>
-    <p>Drag the body to move it.</p>
+    <p>A rigid body is simply an object that has mass and dimensions that do not change. Step up
+      from the point mass and the point grows into a shape. The mass spreads out over that shape,
+      but it still has one centre — the centre of mass — and that centre is exactly where the
+      point was. Drag the body and the point on the spine moves with it; they are the same body,
+      seen at two rungs.</p>
+    <p>Extent buys the body something a point could never have: it can face a direction. So a
+      third number joins the state, the rotation <math><mi>θ</mi></math>, measured in radians
+      from the <math><mi>x</mi></math> axis to the body’s own axis:</p>
+    <math display="block">
+      <mrow>
+        <mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>θ</mi><mo>)</mo>
+        <mo>=</mo>
+        <mo>(</mo>
+        <mn data-var="x" data-scrub="x" data-digits="2">1.00</mn><mo>,</mo>
+        <mn data-var="y" data-scrub="y" data-digits="2">0.50</mn><mo>,</mo>
+        <mn data-var="theta" data-scrub="theta" data-digits="2">0.60</mn>
+        <mo>)</mo>
+      </mrow>
+    </math>
+    <p>The body arrives already turned. <math><mi>θ</mi></math> is not a special state you switch
+      on; it is a coordinate like the other two, and zero is nothing more than one of its values.
+      Drag any of the three numbers above sideways to scrub it, drag the body itself to move it,
+      or drag the handle on its axis to spin it about the centre of mass.</p>
+    <p>The essay starts here, with the whole rigid body. This piece drops
+      <math><mi>θ</mi></math> and keeps the state at <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>v</mi><mo>)</mo></mrow></math>:
+      everything that breaks in a physics engine breaks in the translational half already, and
+      one coordinate is enough to show it. Panel 2’s drill-down picks this body up again and
+      turns forces into rotation.</p>
   </div>
   <div class="viz"></div>
 </article>
