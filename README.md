@@ -2,10 +2,7 @@
 
 An interactive, in-browser explainer of physical and numerical stability.
 
-The site is `docs/`; the notes behind it (`idea.md`, `plan.md`, the proof of concept, the
-source essays) are in `design/`. GitHub Pages publishes `main`'s `docs/` folder as-is —
-`docs/.nojekyll` turns Jekyll off, and every path in the page is relative, so it works from
-a project subpath.
+Live at https://thegoldenmule.com/explainer-numerical-integration
 
 ## Quickstart
 
