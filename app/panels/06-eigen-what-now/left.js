@@ -16,13 +16,12 @@
 //               drag, so it never flickers.
 // No eigenvectors here.
 
-import { el, fragment } from 'shared/dom.js';
+import { fragment } from 'shared/dom.js';
 import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawShape, drawArrow, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
-import { controls } from 'shared/ui/controls.js';
 import { trs, applyPoint, areaFactor, drawAffineGrid } from './affine.js';
 
 const HALF_W = 3.4;
@@ -44,11 +43,7 @@ const numberMatrix = () => fragment(`
         <mtr><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd><mtd><mn>1</mn></mtd></mtr>
       </mtable><mo>]</mo></mrow>
     </mrow>
-  </math>
-  <small class="muted">
-    <math><mrow><mtext>det</mtext><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mo>=</mo>
-      <mn data-var="det" data-digits="2">1.00</mn></mrow></math>: every area is multiplied by that.
-  </small>`);
+  </math>`);
 
 export function mount(root, ctx) {
   const { signal } = ctx;
@@ -60,12 +55,10 @@ export function mount(root, ctx) {
   });
   const M = () => { const { tx, ty, theta, s } = local.get(); return trs({ tx, ty, theta: theta * D2R, s }); };
 
-  // ---- the picture: a shape under M, the images of the two unit arrows, the moved origin ----
-  const box = el('div', { class: 'viz-row' });
-  root.append(box);
-  const stage = createStage(box, { layers: ['plane'], aspect: 'half', signal });
-  const side = controls();
-  box.append(side);
+  // ---- the matrix (output), above the picture: a shape under M, the images of the two unit
+  // arrows, the moved origin. Stacked, not side by side, so the picture runs full width. ----
+  root.append(numberMatrix());
+  const stage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
 
   stage.onDraw(({ w, h, dpr }) => {
     const m = M();
@@ -88,8 +81,7 @@ export function mount(root, ctx) {
     drawText(g, view, 'before', SHAPE[4][0], SHAPE[4][1], { color: cssVar('--muted'), size: 11, dx: 6, dy: -4 });
   });
 
-  // ---- the matrix (output) and the prose's own T(tx,ty)·R(θ)·S(s) (input) ----
-  side.append(numberMatrix());
+  // ---- the matrix's own cells, and the prose's own T(tx,ty)·R(θ)·S(s) (input) ----
   const cells = Object.fromEntries(CELLS.map(key => [key, article.querySelector(`[data-var="${key}"]`)]));
 
   // Which entries a scrub writes. Translate and rotate are fixed; scale spills into the
