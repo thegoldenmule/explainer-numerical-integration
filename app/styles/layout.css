@@ -101,7 +101,9 @@ body { overflow: hidden; }
   z-index: 5;
 }
 #rail  { right: 1.1rem; top: 50%; translate: 0 -50%; flex-direction: column; }
-#hrail { bottom: 1.1rem; left: 50%; translate: -50% 0; flex-direction: row; }
+/* raised above the plain 1.1rem the vertical rail uses, to leave room below the dots for the
+   down-caret that marks which one drops to the next panel, without it getting clipped */
+#hrail { bottom: 1.8rem; left: 50%; translate: -50% 0; flex-direction: row; }
 
 .rail a {
   display: block;
@@ -114,3 +116,17 @@ body { overflow: hidden; }
 .rail a:hover { background: var(--muted); }
 .rail a[aria-current="true"] { background: var(--accent); scale: 1.35; }
 .rail a[hidden] { display: block; visibility: hidden; }  /* keeps the center dot centered */
+
+/* the hrail dot for the spine pane is the one you can scroll down from; a caret under it
+   says so regardless of which pane is current */
+#hrail a[data-pane="spine"] { position: relative; }
+#hrail a[data-pane="spine"]::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 0.3rem;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--muted);
+}
