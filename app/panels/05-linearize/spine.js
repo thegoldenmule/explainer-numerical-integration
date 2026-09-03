@@ -140,7 +140,7 @@ export function mount(root, ctx) {
   root.append(el('div', { class: 'controls' }, rows));
 
   // ---- the stage: body, arrows, a, and the look-ahead ----
-  const stage = createStage(root, { layers: ['plane'], aspect: 'strip', signal });
+  const stage = createStage(root, { layers: ['plane'], aspect: 'tall', signal });
   root.append(fragment(ASSEMBLY));
 
   /** One arrow from the body along F, at its own static length, with its name at the tip. */

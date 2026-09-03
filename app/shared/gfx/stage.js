@@ -13,7 +13,7 @@
 import { el } from '../dom.js';
 import { fitCanvas, observeResize } from './plot2d.js';
 
-const ASPECT_CLASS = { square: '', wide: 'wide', strip: 'strip', half: 'half' };
+const ASPECT_CLASS = { square: '', wide: 'wide', strip: 'strip', half: 'half', tall: 'tall' };
 
 /**
  * createStage(root, { layers = ['2d'], aspect = 'square', signal, grab, draw })
