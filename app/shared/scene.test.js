@@ -1,20 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createSceneStore, defaultScene, FORCE_LIMITS, BODY_LIMITS } from './scene.js';
+import { createSceneStore, defaultScene, SCENE_MASS, FORCE_LIMITS, BODY_LIMITS } from './scene.js';
 import { createStore, DEFAULTS } from './state.js';
 import { netForce, assemble } from './math/forces.js';
 
-test('the default scene starts consistent with the tuple defaults', () => {
+test('the default scene starts consistent with the tuple defaults, mass aside', () => {
   const s = createSceneStore();
   const { body, forces, linear } = s.get();
-  assert.equal(body.m, DEFAULTS.m);
+  assert.equal(body.m, SCENE_MASS, 'the scene has its own mass; the tuple default is not it');
   assert.deepEqual(body.x, [1, 0.5], 'displaced, so the spring arrow has a length');
   assert.deepEqual(body.v, [0, 2], 'moving, so the drag arrow has a length');
   assert.equal(linear, false);
   assert.deepEqual(forces.map(f => f.type), ['wind', 'gravity', 'drag', 'spring']);
   assert.equal(forces[s.forceIndex('drag')].c, DEFAULTS.c);
   assert.equal(forces[s.forceIndex('spring')].k, DEFAULTS.k);
-  assert.deepEqual(assemble(s.get()), { M: DEFAULTS.m, C: DEFAULTS.c, K: DEFAULTS.k });
+  assert.deepEqual(assemble(s.get()), { M: SCENE_MASS, C: DEFAULTS.c, K: DEFAULTS.k });
   assert.ok(Object.isFrozen(s.get().forces) && Object.isFrozen(s.get().body));
 });
 

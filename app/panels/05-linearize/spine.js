@@ -11,7 +11,7 @@
 // beside panels 4 and 6, and panel 6 sets the tuple's c for its own overdamped preset.
 //
 // Arrow length is a *static* log map of force magnitude (see LEN): the four forces span
-// three orders of magnitude at the defaults (spring 112, wind 1, gravity 0.9, drag 0.2), so
+// three orders of magnitude at the defaults (spring 112, gravity 38, wind 2.2, drag 0.2), so
 // a linear scale off the largest active force both hides the small arrows and — the bug the
 // map removes — resizes every other arrow whenever one is switched off or a parameter is
 // dragged. Here an arrow's length depends on nothing but its own magnitude, so a toggle

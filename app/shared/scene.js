@@ -38,19 +38,27 @@ const finite = v => typeof v === 'number' && Number.isFinite(v);
 const pair = (p, lim, fallback) => (Array.isArray(p) && finite(p[0]) && finite(p[1]) ? [clamp(p[0], lim), clamp(p[1], lim)] : fallback);
 
 /**
- * The scene every 2D panel starts from: the demo mass with all four force models.
+ * The scene every 2D panel starts from: all four force models on one body.
  * The body is displaced and moving, not at rest at the origin: drag is −c v and the spring
  * is −k x, so a body at rest at the origin makes two of the four arrows zero vectors and
  * panels 2 and 5 open on a picture that cannot show what they are about.
+ *
+ * The gravity parameters are picked so panel 5's real-vs-linear switch has something to
+ * show. Nonlinearity is the gap between dist² and r², so the attractor sits at r = 5 rather
+ * than far enough away that the body's own displacement rounds off; and G m₁ m₂ = 1200
+ * makes gravity a force in the same league as the spring instead of a whisper under it.
+ * The scene's mass is its own number, not the tuple's DEFAULTS.m: panel 5 pushes it into
+ * the tuple as M when the reader gets there.
  */
+export const SCENE_MASS = 10;
 export function defaultScene() {
   return createScene({
-    m: DEFAULTS.m,
+    m: SCENE_MASS,
     x: [1, 0.5],
     v: [0, 2],
     forces: [
       createForce('wind', { fx: 2, fy: 1 }),
-      createForce('gravity'),
+      createForce('gravity', { G: 1, m2: 120, r: 5 }),
       createForce('drag', { c: DEFAULTS.c }),
       createForce('spring', { k: DEFAULTS.k }),
     ],
