@@ -1,15 +1,17 @@
 // Panel 12, right 2: implicit Euler. Its region |1 − hλ| ≥ 1 on the plane, and an exploded
 // h: a small bundle of implicit runs against the exact curve, one per step size in the
-// range, with the store's h highlighted. A discrete slider walks the range by setting h.
-// Never explodes, always lies: the over-damping grows with the step.
+// range, with the store's h highlighted. h is dragged right in the prose's own equation
+// (bindScrub, clamped to the bundle's own range); nearestIndex picks whichever bundled run
+// that continuous h is closest to. Never explodes, always lies: the over-damping grows with
+// the step.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawBundle } from 'shared/gfx/bundle.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 import { eigenvalues, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { simulate } from 'shared/math/integrators.js';
 import { ampFactor } from 'shared/math/stability.js';
@@ -26,11 +28,10 @@ const spanFor = s => Math.min(120, Math.max(2, 60 / Math.max(naturalFrequency(s.
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
+  const article = root.closest('article') ?? root;
   const current = s => nearestIndex(HS, s.h);
 
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
+  const planeStage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal });
   createComplexPlane({
     stage: planeStage, store, signal, labels: false,
     // implicit Euler's region and verdict, whatever the store's method is
@@ -38,13 +39,6 @@ export function mount(root, ctx) {
     verdict: 'implicit',
     halfRange: s => Math.max(3, 1.3 * Math.max(2 / s.h, ...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
   });
-
-  const input = el('input', { type: 'range', min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
-  const value = el('output');
-  input.addEventListener('input', () => store.set({ h: HS[Number(input.value)] }), { signal });
-  top.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'h along the range'), value), input),
-  ));
 
   // the bundle: one implicit run per h in the range, memoized on the system and the window
   const runs = s => {
@@ -71,7 +65,6 @@ export function mount(root, ctx) {
     drawPolyline(g, view, fine.t, fine.x, { color: cssVar('--exact'), width: 1.75, dash: [6, 4] });
     drawBundle(g, view, series.map(r => ({ xs: r.result.t, ys: r.result.x })), { highlight: i, width: 2, dimWidth: 1.25 });
 
-    value.textContent = `${fmt(HS[i], 3)} s`;
     // the highlighted run's own endpoint against the exact one, top-right: the rest of the
     // bundle's spread is the over-damping, visible without a row per h
     const exactEnd = sol.x(tEnd);
@@ -82,11 +75,13 @@ export function mount(root, ctx) {
   });
   const unsubscribe = store.subscribe(runStage.invalidate, { immediate: false });
 
-  bindMath(root.closest('article') ?? root, store, s => {
+  bindMath(article, store, s => {
     const ls = eigenvalues(s.m, s.c, s.k);
     const z = cscale(ls.reduce((a, b) => (b[1] > a[1] ? b : a)), s.h);
     return { 'abs-implicit': ampFactor('implicit', z), 'abs-exact': Math.exp(z[0]) };
   }, { signal, digits: 4 });
+  // h drags continuously; the bundle just highlights whichever of its own steps is nearest
+  const offScrub = bindScrub(article, store, { signal, limits: { h: [HS[0], HS[HS.length - 1]] } });
 
-  return { destroy() { unsubscribe(); } };
+  return { destroy() { unsubscribe(); offScrub(); } };
 }
