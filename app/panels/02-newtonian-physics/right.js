@@ -58,7 +58,17 @@ export function mount(root, ctx) {
   });
 
   // ---- the same four force rows as the spine's: drag or toggle a force here too ----
-  root.append(controls(forceRows(signal)));
+  // Run/Step/Reset sit above the stage (not after the equations, where they'd fall below
+  // the fold on a short pane): `stage` isn't assigned until after these run, but nothing
+  // here calls stage.invalidate() until a click, by which point it is.
+  const runBtn = el('button', { class: 'btn', type: 'button', 'aria-pressed': 'false' }, 'Run');
+  runBtn.addEventListener('click', () => { running = !running; carry = 0; runBtn.setAttribute('aria-pressed', String(running)); runBtn.textContent = running ? 'Pause' : 'Run'; stage.invalidate(); }, { signal });
+  const stepBtn = el('button', { class: 'btn', type: 'button' }, 'Step');
+  stepBtn.addEventListener('click', step, { signal });
+  const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
+  resetBtn.addEventListener('click', () => rot.set({ theta: 0, omega: 0, t: 0 }), { signal });
+
+  root.append(controls(forceRows(signal), el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
 
   const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
   root.append(fragment(EQUATIONS));
@@ -150,15 +160,6 @@ export function mount(root, ctx) {
     carry -= n * h;
     while (n-- > 0) step();
   });
-
-  const runBtn = el('button', { class: 'btn', type: 'button', 'aria-pressed': 'false' }, 'Run');
-  runBtn.addEventListener('click', () => { running = !running; carry = 0; runBtn.setAttribute('aria-pressed', String(running)); runBtn.textContent = running ? 'Pause' : 'Run'; stage.invalidate(); }, { signal });
-  const stepBtn = el('button', { class: 'btn', type: 'button' }, 'Step');
-  stepBtn.addEventListener('click', step, { signal });
-  const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
-  resetBtn.addEventListener('click', () => rot.set({ theta: 0, omega: 0, t: 0 }), { signal });
-
-  root.append(controls(el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
 
   // ---- live math: the rotation store drives the integration, the scene drives the forces
   // and the force rows' own equations (forceComponents: Fgx/Fgy, Fdx/Fdy, Fsx/Fsy) ----
