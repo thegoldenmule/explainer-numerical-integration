@@ -2,7 +2,8 @@
 // eigenvalues from panel 7 sitting on it in green or red and Rhodes' reading in the margins.
 // The panel is about explicit Euler, so the region and the verdict are Euler's whatever
 // integrator the store currently holds (cplane's verdict is pinned to 'euler'); the store's
-// method is not written here.
+// method is not written here. The view is centered on the disk itself, not the origin, so
+// its whole circle is visible instead of just the sliver nearest the eigenvalues.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -31,7 +32,11 @@ export function mount(root, ctx) {
     verdict: 'euler',
     labels: factor => `|1 + hλ| = ${fmt(factor, 4)}`,
     region: s => ({ method: 'euler', h: s.h }),
-    halfRange: s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
+    // centered on the disk itself (center −1/h, radius 1/h), not the origin, with enough
+    // margin (1.15×) to show the whole circle rather than cropping it — it is usually much
+    // bigger than the eigenvalues, which only widen the frame at a small h or a large λ
+    cx: s => -1 / s.h,
+    halfRange: s => Math.max(1.15 / s.h, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
     onDraw(g, view) {
       // Rhodes' reading in the margins: real axis is growth or decay, imaginary is oscillation
       const c = cssVar('--muted');
