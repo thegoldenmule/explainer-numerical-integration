@@ -1,14 +1,17 @@
-// Panel 10, left: Euler as follow-the-tangent, one step at a time. A local explicit-Euler
+// Panel 10, left: Euler as follow-the-tangent, walked automatically. A local explicit-Euler
 // stepper walks the spring from the store's state; each step draws the tangent it followed
 // and the point it landed on, over the exact curve. Then |1 + hλ| by hand in the prose.
+//
+// No buttons: the walk always shows AUTO_STEPS steps, and changing h (or m, c, k, x0, v0)
+// clears it and retakes them automatically, so the picture is always "what ten Euler steps
+// look like from here" for whatever the reader just dragged, not a manual crank.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
-import { controls, row } from 'shared/ui/controls.js';
 import { createStepper } from 'shared/math/integrators.js';
 import { eigenvalues, exactSolution } from 'shared/math/system.js';
 import { handleIndex } from 'shared/gfx/cplane.js';
@@ -16,6 +19,7 @@ import { ampFactor } from 'shared/math/stability.js';
 import { cscale } from 'shared/math/complex.js';
 
 const TUPLE = ['method', 'h', 'm', 'c', 'k', 'x0', 'v0'];
+const AUTO_STEPS = 10;        // retaken automatically on every reset
 const MIN_STEPS_SHOWN = 15;   // the window always has room for this many steps
 const FINE = 600;             // samples of the exact curve across the window
 const CAP = 10;               // a blow-up stops stretching the y range here
@@ -42,6 +46,7 @@ export function mount(root, ctx) {
     for (let i = 0; i < n && series.n < 2000; i++) { stepper.step(); push(); }
     stage.invalidate();
   }
+  function resetAndWalk() { reset(); step(AUTO_STEPS); }
 
   // ---- the plot: the fine exact curve on a layer beneath the walk. No readout beside it
   // any more, so a tangent walk gets the taller 'wide' stage instead of a 'strip'. ----
@@ -76,17 +81,8 @@ export function mount(root, ctx) {
     drawText(g, view, `error ${fmt(err, 4)}${prevErr > 0 ? `   ratio to last step ${fmt(err / prevErr, 3)}` : ''}`, view.xMax, view.yMax, { ...corner, color: cssVar('--approx'), size: 12, dy: 48 });
   });
 
-  const btn = (label, fn, title) => el('button', { class: 'btn', type: 'button', title, onclick: fn }, label);
-  root.append(controls(
-    row(
-      btn('Step', () => step(1), 'Follow the tangent for one h'),
-      btn('Step ×10', () => step(10)),
-      btn('Reset', reset),
-    ),
-  ));
-
-  reset();
-  const unsubscribe = store.subscribe((s, patch) => { if (TUPLE.some(k => k in patch)) reset(); }, { immediate: false });
+  resetAndWalk();
+  const unsubscribe = store.subscribe((s, patch) => { if (TUPLE.some(k => k in patch)) resetAndWalk(); }, { immediate: false });
 
   const article = root.closest('article') ?? root;
   bindMath(article, store, s => {
