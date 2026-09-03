@@ -186,6 +186,9 @@ which `main.js` applies in `onRoute`.
   Leaving a panel whose side pane was open snaps that row back to its spine cell.
 - Cell targets are computed from the cell's index times the row width, not `offsetLeft`,
   which shifts with the row's own scroll offset.
+- A fixed `#vignette` frame under the rails reads depth: `main.js` sets its opacity from the
+  current row's horizontal scroll offset on every scroll event, so it tracks the swipe. The
+  spine sits at a baseline the left pane lifts and each right pane presses further down.
 
 ## Rendering conventions
 

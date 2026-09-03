@@ -70,6 +70,10 @@
      scroll-snaps horizontally between its left pane, spine pane, and right pane. -->
 <main id="spine" aria-label="Explainer"></main>
 
+<!-- Depth: a frame that darkens with how far right the current row is scrolled. Decoration
+     only; layout.css owns the gradient, main.js drives its opacity from the scroll offset. -->
+<div id="vignette" aria-hidden="true"></div>
+
 <!-- Rails: one dot per panel on the right edge (up/down), one dot per pane on the bottom
      edge (left/right). Same dots, same meaning: filled is where you are. -->
 <nav id="rail" class="rail" aria-label="Panels"></nav>

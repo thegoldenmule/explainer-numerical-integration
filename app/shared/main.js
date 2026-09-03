@@ -15,6 +15,7 @@ import { el, fragment } from './dom.js';
 const spine = document.getElementById('spine');
 const rail = document.getElementById('rail');
 const hrail = document.getElementById('hrail');
+const vignette = document.getElementById('vignette');
 
 const KIND = { left: 'Surface', right: 'Dive' };
 const SITE = 'Why physics engines blow up';
@@ -118,6 +119,24 @@ function scrollToPanel(index, instant) {
   spine.scrollTo({ top: row.offsetTop, behavior: instant ? 'instant' : 'smooth' });
 }
 
+// ---- depth vignette ----
+// Going right is going deeper, so the frame darkens with the current row's horizontal scroll
+// offset, read continuously rather than per route: the vignette follows the swipe itself,
+// including a half-finished one. The spine already sits under a soft frame, so a left pane
+// lifts it as visibly as a right pane presses it down. Steps shrink as they go: the first
+// dive is the big one, and panel 12's third still adds to it.
+// One level per cell offset from the spine, -1 (left) through +3 (the deepest right).
+const LEVELS = [0, 0.42, 0.76, 0.9, 1];
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c => c.dataset.pane === 'spine');
+  const at = Math.max(0, Math.min(LEVELS.length - 1,
+    row.scrollLeft / row.clientWidth - spineIndex + 1));
+  const i = Math.min(Math.floor(at), LEVELS.length - 2);   // lerp between the two it sits between
+  vignette.style.opacity = (LEVELS[i] + (LEVELS[i + 1] - LEVELS[i]) * (at - i)).toFixed(3);
+}
+
 function alignRow(index, side, depth, instant) {
   const row = rows.get(index);
   const id = side ? paneFileId(side, depth) : 'spine';
@@ -198,6 +217,7 @@ const router = createRouter({
     if (last && changedPanel) setInert(last.index, null);
     setInert(index, side ? paneFileId(side, depth) : 'spine');
 
+    updateVignette(index);
     panes.activate(index, side, depth);
     title.then(h => (index === TITLE ? h.resume() : h.pause()));
     conclusion.then(h => (index === END ? h.resume() : h.pause()));
@@ -230,6 +250,9 @@ for (const [index, row] of rows) {
     }
   }, { root: row, threshold: 0.5 });
   for (const cell of row.children) observer.observe(cell);
+  // the vignette reads the *current* row, whichever row emitted this: a row snapping back to
+  // its spine cell as you leave it must not repaint the panel you have arrived at
+  row.addEventListener('scroll', () => updateVignette(router.current.index), { passive: true });
 }
 
 // a resize changes cell widths: re-align every row instantly to the pane it is showing
@@ -239,6 +262,7 @@ window.addEventListener('resize', () => {
     alignRow(entry.index, entry.index === index ? side : null, entry.index === index ? depth : 1, true);
   }
   scrollToPanel(index, true);
+  updateVignette(index);
 });
 
 // ---- keyboard ----

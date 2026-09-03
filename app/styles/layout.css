@@ -130,3 +130,24 @@ body { overflow: hidden; }
   border-right: 4px solid transparent;
   border-top: 5px solid var(--muted);
 }
+
+/* ---- depth vignette: the frame darkens the further right (deeper) the row is scrolled ---- */
+
+/* Under the rails (z-index 5) so the dots stay crisp, over the panes, and never a hit
+   target. The opacity is written per scroll frame by main.js, so there is no transition: the
+   frame tracks the swipe itself. Weight sits in the last quarter of the radius, and
+   `farthest-corner` puts the darkest stop at the four corners alone, so the mid-edges — where
+   the prose column and the stage actually reach — stay well short of it. */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+  background: radial-gradient(ellipse farthest-corner at 50% 50%,
+    rgba(29, 29, 27, 0) 38%,
+    rgba(29, 29, 27, 0.06) 60%,
+    rgba(29, 29, 27, 0.20) 80%,
+    rgba(29, 29, 27, 0.50) 100%);
+}
