@@ -146,8 +146,8 @@ body { overflow: hidden; }
   opacity: 0;
   will-change: opacity;
   background: radial-gradient(ellipse farthest-corner at 50% 50%,
-    rgba(29, 29, 27, 0) 38%,
-    rgba(29, 29, 27, 0.06) 60%,
-    rgba(29, 29, 27, 0.20) 80%,
-    rgba(29, 29, 27, 0.50) 100%);
+    rgba(29, 29, 27, 0) 32%,
+    rgba(29, 29, 27, 0.10) 58%,
+    rgba(29, 29, 27, 0.30) 80%,
+    rgba(29, 29, 27, 0.70) 100%);
 }
