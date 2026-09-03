@@ -23,7 +23,10 @@ import { fmtMs, plotSpan } from './cost.js';
 
 const CYCLES = 5;   // periods of the spring visible at once
 const COUNT = 9;    // step sizes in the bundle; the middle one is the spine's h
-const SPREAD = 4;   // h/SPREAD … h·SPREAD
+// h/SPREAD … h·SPREAD: wide enough that a stiff spring's bundle reaches down near
+// LIMITS.h's floor (where Euler is at least marginally stable) and up toward its ceiling
+// (clearly unstable) — a narrower spread left every sample unstable for the demo spring.
+const SPREAD = 30;
 const CENTER = (COUNT - 1) / 2;
 
 /** aux.highlight is shared by every sweep: clamp to this one, and −1 means the spine's h. */
