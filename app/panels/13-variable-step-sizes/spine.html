@@ -17,12 +17,20 @@
       well in most situations but the RK4a method was so much more accurate that [the engine]
       attempted to set the step size as great as 16 seconds! This resulted in a frame rate of
       1/16 frames per second.</p></blockquote>
+    <p>The spring here is</p>
+    <math display="block">
+      <mrow><mi>m</mi><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo><mi>c</mi><msup><mi>x</mi><mo>′</mo></msup><mo>+</mo><mi>k</mi><mi>x</mi><mo>=</mo><mn>0</mn></mrow>
+    </math>
+    <p>with <math><mrow><mi>m</mi><mo>=</mo><mn data-scrub="m" data-digits="2">1.00</mn></mrow></math>,
+      <math><mrow><mi>c</mi><mo>=</mo><mn data-scrub="c" data-digits="2">0.10</mn></mrow></math>,
+      <math><mrow><mi>k</mi><mo>=</mo><mn data-scrub="k" data-digits="1">100.0</mn></mrow></math> —
+      drag any of them and watch how far RK4's step can climb.</p>
     <p>Set the target local error
       <math><mrow><mo>=</mo><mn data-scrub="tol" data-digits="4" data-log>0.0100</mn></mrow></math>
       (try 0.01) with RK4 and watch <math><mrow><mi>h</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>,
-      plotted as its own trajectory, climb to about 2 s on this spring; switch to a constant
-      force only and, with no higher derivatives left to estimate, it runs straight to the
-      16-second cap.</p>
+      plotted as its own trajectory, climb to about 2 s on this spring. Drag
+      <math><mi>k</mi></math> down toward zero and, with fewer higher derivatives left to
+      estimate, it climbs further still, toward the 16-second cap.</p>
   </div>
   <div class="viz"></div>
 </article>

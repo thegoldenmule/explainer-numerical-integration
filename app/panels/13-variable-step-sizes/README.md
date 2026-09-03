@@ -4,9 +4,12 @@ Built. See `docs/idea.md` (section "13. Variable step sizes") for the beat, and 
 pane contract. Panes in this directory:
 
 - `spine.html` + `spine.js`: Variable step sizes. One `wide` stage, the run on top and `h(t)`
-  underneath. No readout: the target/step-count/rejected tally, the h-peak-vs-cap verdict,
-  the max error, and the free-force note are all `drawText` in the `h(t)` subplot's own
-  top-right corner.
+  underneath; no presets — `m`, `c`, `k` are draggable in the prose's own equation instead
+  (one facade, `scrub`, over aux's `tol` and the tuple's `m`/`c`/`k`, since bindScrub binds
+  every `[data-scrub]` node under the article it is given regardless of which store owns the
+  key, so two calls over the same article would double-bind). No readout: the
+  target/step-count/rejected tally, the h-peak-vs-cap verdict, and the max error are all
+  `drawText` in the `h(t)` subplot's own top-right corner.
 - `left.html` + `left.js`: refresher, Local vs global error. No readout: the local and global
   error lines are `drawText` top-right on the plot, colored to match the point each one
   measures, instead of a swatch icon beside text in a box.
