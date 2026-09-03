@@ -23,6 +23,14 @@
   --stable: #1a9c4a;
   --unstable: #d43a2f;
 
+  /* the four force models of Part I, one hue each (panels 2 and 5). Deliberately clear of
+     --exact/--approx/--stable/--unstable, which mean something else everywhere in the piece,
+     and far enough apart to tell four arrows apart on one plot. */
+  --force-wind: #0f8a92;
+  --force-gravity: #6b3fa0;
+  --force-drag: #b3701a;
+  --force-spring: #b5218f;
+
   /* the stability region (shader fill and edge) */
   --region: #4079d9;
   --region-edge: #0d3399;

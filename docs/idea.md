@@ -238,10 +238,12 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - *Left, step down (one function):* what linear means. One function, two inputs, the sum of
   outputs equals the output of the sum. Then a squared term, and the same check fails.
 - *Right, step up (add nonlinearity, add terms):* Taylor expansion of `1/r²` around an
-  operating point with a slider for how many terms to keep. Then the payoff beat: run the
-  nonlinear simulation next to the *linearized* stability prediction and find the cases
-  where the prediction says stable and the simulation explodes. Victor's "details that have
-  fallen through the cracks of an abstraction," live.
+  operating point with a sweep for how many terms to keep, every term count drawn at once
+  against the true curve. The payoff beat that once sat under it — the nonlinear simulation
+  beside the *linearized* stability prediction, finding the cases where the prediction says
+  stable and the simulation explodes — was cut: two stacked graphs and a bank of parameter
+  sliders buried the one picture the pane is for. Victor's "details that have fallen through
+  the cracks of an abstraction" is still owed a home; panel 11 is the candidate.
 
 **6. Eigen-what-now.** Concrete matrix from the current `(m, c, k)`.
 - *Spine viz:* the 2×2 system matrix acting on a grid. Drag a vector; it skews and rotates.

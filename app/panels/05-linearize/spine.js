@@ -1,28 +1,51 @@
 // Panel 5, spine: each force as its equation with every parameter a scrubbable number, a
 // real-vs-linear switch (only gravitation differs: G m₁ m₂ / r² against m₁ g), the force
 // arrows, a, and a short predicted trajectory updating live; below, M, C, K assembling from
-// the scene's linear models into M x″ + C x′ + K x = 0 and pushed into the tuple's m, c, k.
+// the scene's linear models into M x″ + C x′ + K x = 0 (the MathML block under the stage and
+// the equation in the prose) and pushed into the tuple's m, c, k.
 //
 // The scrubs bind to one facade over the scene store (unique keys per parameter, each routed
 // to scene.setForceParam / setMass), so bindScrub and bindMath take the article once. The
 // bridge to Part II, scene.pushToTuple(), runs on resume and on every scene change while this
 // pane is on screen; not on mount, because the pane manager mounts this spine off-screen
 // beside panels 4 and 6, and panel 6 sets the tuple's c for its own overdamped preset.
+//
+// Arrow length is a *static* log map of force magnitude (see LEN): the four forces span
+// three orders of magnitude at the defaults (spring 112, wind 1, gravity 0.9, drag 0.2), so
+// a linear scale off the largest active force both hides the small arrows and — the bug the
+// map removes — resizes every other arrow whenever one is switched off or a parameter is
+// dragged. Here an arrow's length depends on nothing but its own magnitude, so a toggle
+// only removes its own arrow. The numbers beside each equation stay the literal force.
 
 import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText, drawArrow } from 'shared/gfx/plot2d.js';
-import { netForce, forceOf, gravityG, assemble } from 'shared/math/forces.js';
+import { netForce, forceOf, gravityG, assemble, MODELS } from 'shared/math/forces.js';
 import { scene, FORCE_LIMITS, BODY_LIMITS } from 'shared/scene.js';
-import { toggleFn, readout, controls } from 'shared/ui/controls.js';
+import { toggleFn } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
 const HALF_W = 3;
-const ARROW_LEN = 1.2;
 const PREDICT = { dt: 1 / 60, steps: 120 };   // a 2 s look-ahead, RK4 in 2D
-const COLOR = { wind: '--accent', gravity: '--axis', drag: '--muted', spring: '--region-edge' };
+
+/** One hue per force, all four far apart in light mode; the net force is neutral. */
+const COLOR = { wind: '--force-wind', gravity: '--force-gravity', drag: '--force-drag', spring: '--force-spring' };
+const SUM_COLOR = '--fg';
+const PATH_COLOR = '--muted';   // neutral: the four force hues carry the colour here
+
+/**
+ * The static length map: |F| in force units → plot units, log across [LO, HI]. Nothing but
+ * |F| enters, so toggling a force off or scrubbing k leaves every other arrow where it was.
+ */
+const LEN = { LO: 0.05, HI: 500, MIN: 0.2, MAX: 0.75 };
+const LOG_LO = Math.log10(LEN.LO), LOG_SPAN = Math.log10(LEN.HI) - LOG_LO;
+function arrowLength(magnitude) {
+  if (!(magnitude > 1e-9)) return 0;   // a genuinely zero force (drag at v = 0) draws nothing
+  const f = Math.min(1, Math.max(0, (Math.log10(magnitude) - LOG_LO) / LOG_SPAN));
+  return LEN.MIN + (LEN.MAX - LEN.MIN) * f;
+}
 
 /** One store-shaped view over every scrubbable parameter of the scene, keyed uniquely. */
 function paramFacade() {
@@ -94,15 +117,16 @@ export function mount(root, ctx) {
   let view = null;
 
   // ---- the force rows: switch, equation, value ----
-  const s0 = scene.get();
   const rows = [];
   const values = {};
   const forceRow = (type, label, ...math) => {
     const i = scene.forceIndex(type);
     const on = toggleFn({ label, get: () => scene.get().forces[i].on, set: v => scene.toggleForce(i, v), subscribe: scene.subscribe, signal });
+    // the legend: the same colour as this force's arrow, keyed to its equation
+    const swatch = el('span', { class: `swatch ${type}`, title: `${label} arrow` });
     const value = el('span', { class: 'mono muted' });
     values[type] = value;
-    const row = el('div', { class: 'transport' }, on, ...math, value);
+    const row = el('div', { class: 'transport' }, swatch, on, ...math, value);
     rows.push(row);
     return row;
   };
@@ -118,8 +142,21 @@ export function mount(root, ctx) {
   // ---- the stage: body, arrows, a, and the look-ahead ----
   const stage = createStage(root, { layers: ['plane'], aspect: 'strip', signal });
   root.append(fragment(ASSEMBLY));
-  const out = readout({ label: 'the bridge to the tuple' });
-  root.append(out.el);
+
+  /** One arrow from the body along F, at its own static length, with its name at the tip. */
+  function drawForce(g, from, F, { color, label, width, head }) {
+    const m = Math.hypot(F[0], F[1]);
+    const len = arrowLength(m);
+    if (len === 0) return;
+    const tip = [from[0] + F[0] / m * len, from[1] + F[1] / m * len];
+    drawArrow(g, view, from[0], from[1], tip[0], tip[1], { color: cssVar(color), width, head });
+    if (!label) return;
+    const right = F[0] >= 0;
+    drawText(g, view, label, tip[0], tip[1], {
+      color: cssVar(color), size: 11, align: right ? 'left' : 'right',
+      dx: right ? 7 : -7, dy: F[1] >= 0 ? -6 : 14,
+    });
+  }
 
   stage.onDraw(({ w, h, dpr }) => {
     const s = scene.get();
@@ -129,22 +166,28 @@ export function mount(root, ctx) {
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y', ticks: 4 });
 
-    const list = s.forces.map((f, i) => ({ f, i, F: forceOf(f, body, { linear }) })).filter(v => v.f.on);
+    // every force, on or off: the off ones only fill their row's number, but computing them
+    // all keeps the picture's geometry independent of which switches are set
+    const all = s.forces.map((f, i) => ({ f, i, F: forceOf(f, body, { linear }) }));
+    const list = all.filter(v => v.f.on);
     const sum = list.reduce((acc, v) => [acc[0] + v.F[0], acc[1] + v.F[1]], [0, 0]);
     const a = [sum[0] / body.m, sum[1] / body.m];
-    let big = 1;
-    for (const v of list) big = Math.max(big, Math.hypot(...v.F));
-    const scale = ARROW_LEN / Math.max(big, Math.hypot(...sum));
 
     const path = predict(s);
-    drawPolyline(g, view, path.xs, path.ys, { color: cssVar('--exact'), width: 1.5, dash: [5, 4], alpha: 0.8 });
-    for (const v of list) {
-      values[v.f.type].textContent = `= (${fmt(v.F[0], 2)}, ${fmt(v.F[1], 2)})`;
-      if (Math.hypot(...v.F) * scale < 1e-3) continue;
-      drawArrow(g, view, body.x[0], body.x[1], body.x[0] + v.F[0] * scale, body.x[1] + v.F[1] * scale, { color: cssVar(COLOR[v.f.type]), width: 2, head: 7 });
-    }
-    for (const f of s.forces) if (!f.on) values[f.type].textContent = 'off';
-    if (Math.hypot(...sum) * scale > 1e-3) drawArrow(g, view, body.x[0], body.x[1], body.x[0] + sum[0] * scale, body.x[1] + sum[1] * scale, { color: cssVar('--approx'), width: 3.5, head: 10 });
+    drawPolyline(g, view, path.xs, path.ys, { color: cssVar(PATH_COLOR), width: 1.5, dash: [5, 4], alpha: 0.8 });
+
+    // the net force first and neutral, so the four coloured arrows read on top of it
+    g.save();
+    g.globalAlpha = 0.5;
+    drawForce(g, body.x, sum, { color: SUM_COLOR, width: 4, head: 11 });
+    g.restore();
+
+    for (const v of all) values[v.f.type].textContent = v.f.on ? `= (${fmt(v.F[0], 2)}, ${fmt(v.F[1], 2)})` : 'off';
+    // longest first: gravity and drag are nearly collinear here, so the shorter arrow must
+    // land on top of the longer one or it disappears inside it
+    const drawn = list.slice().sort((p, q) => Math.hypot(...q.F) - Math.hypot(...p.F));
+    for (const v of drawn) drawForce(g, body.x, v.F, { color: COLOR[v.f.type], label: MODELS[v.f.type].label, width: 2, head: 7 });
+
     drawPoint(g, view, body.x[0], body.x[1], { r: 7, fill: cssVar('--fg') });
     drawText(g, view, `a = (${fmt(a[0], 2)}, ${fmt(a[1], 2)})   ${linear ? 'linear' : 'real'} models   next 2 s dashed   (drag the mass)`, view.xMin, view.yMax, { color: cssVar('--muted'), size: 11, dx: 8, dy: 16 });
   });
@@ -174,25 +217,15 @@ export function mount(root, ctx) {
     const s = scene.get();
     realEq.hidden = s.linear;
     linEq.hidden = !s.linear;
-    const t = store.get();
-    const { M, C, K } = assemble(s);
-    const synced = t.m === M && t.c === C && t.k === K;
-    out.set([
-      `M x″ + C x′ + K x = 0 with M = ${fmt(M, 2)}, C = ${fmt(C, 2)}, K = ${fmt(K, 1)}\n`,
-      `tuple now: m = ${fmt(t.m, 2)}, c = ${fmt(t.c, 2)}, k = ${fmt(t.k, 1)}   `,
-      synced ? el('span', { class: 'stable' }, 'in sync') : el('span', { class: 'unstable' }, 'out of sync (a later panel moved the tuple; it resyncs while this panel is on screen)'), '\n',
-      el('span', { class: 'label' }, `wind and m₁g are constant terms and never reach C or K; G, m₂, r survive only inside g = ${fmt(gravityG(s.forces[scene.forceIndex('gravity')]), 2)}`),
-    ]);
     stage.invalidate();
   }
   const push = () => { if (active) scene.pushToTuple(); };
 
   const unsub = scene.subscribe(() => { push(); refresh(); }, { immediate: false });
-  const unsubTuple = store.subscribe((t, patch) => { if ('m' in patch || 'c' in patch || 'k' in patch) refresh(); }, { immediate: false });
   refresh();
   return {
     resume() { active = true; scene.pushToTuple(); refresh(); },
     pause() { active = false; },
-    destroy() { unsub(); unsubTuple(); },
+    destroy() { unsub(); },
   };
 }

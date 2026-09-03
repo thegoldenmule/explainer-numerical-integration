@@ -1,6 +1,7 @@
 // Panel 5, left: what linear means. One function f, two draggable inputs a and b, and the
-// check f(a + b) = f(a) + f(b) drawn on the graph: the two outputs stacked on the y axis
-// against the output of the sum. f(x) = 2x passes; f(x) = x² fails by exactly 2ab.
+// check f(a + b) = f(a) + f(b): a, b, and a + b sit on the x axis with their outputs dropped
+// to the curve, and the readout does the arithmetic. f(x) = 2x passes; f(x) = x² fails by
+// exactly 2ab.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -36,22 +37,13 @@ export function mount(root, ctx) {
     drawPolyline(g, view, xs, ys, { color: cssVar('--fg'), width: 1.5 });
 
     const fa = f(a), fb = f(b), fab = f(a + b), sum = fa + fb;
-    const blue = cssVar('--exact'), green = cssVar('--stable'), red = cssVar('--approx'), muted = cssVar('--muted');
+    const blue = cssVar('--exact'), green = cssVar('--stable'), red = cssVar('--approx');
     // drops from the three points to the axes
     for (const [x, y, color] of [[a, fa, blue], [b, fb, green], [a + b, fab, red]]) {
       drawPolyline(g, view, [x, x], [0, y], { color, width: 1, dash: [3, 3], alpha: 0.6 });
       drawPolyline(g, view, [x, 0], [y, y], { color, width: 1, dash: [3, 3], alpha: 0.6 });
       drawPoint(g, view, x, y, { r: 5, fill: color });
     }
-    // the sum of outputs, stacked on the y axis beside the origin
-    const xStack = -HALF_W * 0.78;
-    drawPolyline(g, view, [xStack, xStack], [0, fa], { color: blue, width: 6 });
-    drawPolyline(g, view, [xStack, xStack], [fa, sum], { color: green, width: 6 });
-    drawPolyline(g, view, [xStack + 0.18, xStack + 0.18], [0, fab], { color: red, width: 6 });
-    drawText(g, view, 'f(a)+f(b)', xStack, sum, { color: muted, size: 10, align: 'center', dy: -8 });
-    drawText(g, view, 'f(a+b)', xStack + 0.18, fab, { color: red, size: 10, align: 'left', dx: 6, dy: 4 });
-    if (Math.abs(sum - fab) > 1e-9) drawPolyline(g, view, [xStack + 0.09, xStack + 0.09], [Math.min(sum, fab), Math.max(sum, fab)], { color: cssVar('--unstable'), width: 2, dash: [2, 2] });
-
     // handles on the axis
     drawPoint(g, view, a, 0, { r: 7, fill: blue });
     drawPoint(g, view, b, 0, { r: 7, fill: green });

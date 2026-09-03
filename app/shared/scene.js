@@ -49,7 +49,7 @@ export function defaultScene() {
     x: [1, 0.5],
     v: [0, 2],
     forces: [
-      createForce('wind', { on: false }),
+      createForce('wind'),
       createForce('gravity'),
       createForce('drag', { c: DEFAULTS.c }),
       createForce('spring', { k: DEFAULTS.k }),

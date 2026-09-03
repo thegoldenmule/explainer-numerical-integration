@@ -102,6 +102,10 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .swatch.stable { background: var(--stable); }
 .swatch.unstable { background: var(--unstable); }
 .swatch.region { background: var(--region); opacity: 0.55; }
+.swatch.wind { background: var(--force-wind); }
+.swatch.gravity { background: var(--force-gravity); }
+.swatch.drag { background: var(--force-drag); }
+.swatch.spring { background: var(--force-spring); }
 
 /* player transport: play/pause, step, reset, optional speed buttons */
 .transport { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
