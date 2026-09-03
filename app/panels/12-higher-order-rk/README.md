@@ -14,11 +14,14 @@ deep": its right pane is a three-long chain (`#/12/right`, `#/12/right/2`, `#/12
   method's verdict and `t`/`x`/exact are `drawText` in the run's own corner.
 - `left.html` + `left.js`: refresher, Taylor series. Partial sums of eˣ added one term at a
   time (a local slider), against the exponential, with |Sₙ(hλ)| for the current spring. No
-  readout: the graph title already carries `Sₙ(x): n+1 terms`, now also drawing the
-  polynomial `Sₙ(z) = …` beneath it; `|Sₙ(hλ)|` against the exact factor and the grow/shrink
-  verdict moved into a live prose sentence, bound with `bindMath` on both the tuple store and
-  `aux` (the strip's `n` lives in `aux.highlight`), reading `n` fresh from `aux` each time
-  rather than a closure variable, so it owes nothing to subscription order.
+  readout: the graph title already carries `Sₙ(x): n+1 terms`; the expansion itself,
+  `eᶻ = 1 + z + z²/2 + …` to degree `n`, prints under the strip as an `mtable` (`seriesMathML`)
+  — one term per row, so growing `n` adds exactly one row instead of one long inline formula
+  wrapping wherever the browser runs out of width, same pattern as panel 5 right's series.
+  `|Sₙ(hλ)|` against the exact factor and the grow/shrink verdict are a live prose sentence,
+  bound with `bindMath` on both the tuple store and `aux` (the strip's `n` lives in
+  `aux.highlight`), reading `n` fresh from `aux` each time rather than a closure variable, so
+  it owes nothing to subscription order.
 - `right.html` + `right.js`: drill-down, depth 1, Explode order. RK1–RK4 regions as Taylor
   `order` layers in one shader pass; a local slider highlights one order and its polynomial.
   No readout: only the highlighted order's own polynomial and `|S|` verdict survive, `drawText`

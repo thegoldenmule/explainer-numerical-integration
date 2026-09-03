@@ -3,8 +3,12 @@
 // modulus of the degree-n sum at the current hλ next to the exact |e^{hλ}|. Euler is n = 1,
 // RK4 is n = 4. The term count is the sweep strip's index, kept in aux.highlight so it
 // survives a remount (the key is shared by every sweep, so it is clamped on read).
+//
+// The expansion itself prints below the strip, one term per row of an mtable (same pattern
+// as panel 5 right's series): growing the term count adds exactly one row each time instead
+// of one long inline formula the browser wraps wherever it runs out of width.
 
-import { el, clamp } from 'shared/dom.js';
+import { el, clamp, fragment } from 'shared/dom.js';
 import { aux } from 'shared/aux.js';
 import { sweepStrip } from 'shared/ui/sweep.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -12,7 +16,7 @@ import { drawBundle } from 'shared/gfx/bundle.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { controls } from 'shared/ui/controls.js';
-import { expPartialSums, polynomialText } from 'shared/math/taylor.js';
+import { expPartialSums } from 'shared/math/taylor.js';
 import { taylorAmplification } from 'shared/math/stability.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { handleIndex } from 'shared/gfx/cplane.js';
@@ -24,6 +28,19 @@ const NS = Array.from({ length: MAX_N + 1 }, (_, i) => i);
 const termsOf = h => (h < 0 ? DEFAULT_N : clamp(h, 0, MAX_N));
 const X_MIN = -5, X_MAX = 2, Y_MIN = -6, Y_MAX = 8;
 const SAMPLES = 400;
+
+/** eᶻ = 1 + z + z²/2 + … to degree n, one term per row: growing n adds a row, never a wrap. */
+function seriesMathML(n) {
+  const rows = ['<mtr><mtd><msup><mi>e</mi><mi>z</mi></msup><mo>=</mo></mtd><mtd><mn>1</mn></mtd></mtr>'];
+  let f = 1;
+  for (let i = 1; i <= n; i++) {
+    f *= i;
+    const term = i === 1 ? '<mi>z</mi>' : `<mfrac><msup><mi>z</mi><mn>${i}</mn></msup><mn>${f}</mn></mfrac>`;
+    rows.push(`<mtr><mtd></mtd><mtd><mo>+</mo>${term}</mtd></mtr>`);
+  }
+  return `<math display="block"><mtable columnalign="right left" rowspacing="0.3em">${rows.join('')}</mtable></math>`;
+}
+
 export function mount(root, ctx) {
   const { store, signal } = ctx;
   let n = termsOf(aux.get().highlight);
@@ -49,8 +66,6 @@ export function mount(root, ctx) {
     const name = n === 1 ? ' (Euler)' : n === 4 ? ' (RK4)' : '';
     drawText(g, view, `S${n}(x): ${n + 1} term${n ? 's' : ''}${name}`, X_MAX, Y_MAX,
       { color: cssVar('--approx'), size: 11, align: 'right', dx: -6, dy: 46 });
-    drawText(g, view, `S${n}(z) = ${polynomialText(n)}`, X_MAX, Y_MAX,
-      { color: cssVar('--muted'), size: 11, align: 'right', dx: -6, dy: 62 });
   });
 
   const strip = sweepStrip({
@@ -59,9 +74,18 @@ export function mount(root, ctx) {
     onSelect: i => aux.set({ highlight: i }),
   });
   root.append(controls(strip.el));
+
+  // the expansion itself, under the strip: rebuilt (not just re-numbered) on every change,
+  // since the number of terms — not just their values — is what the strip is choosing
+  const seriesEl = el('div');
+  root.append(seriesEl);
+  const renderSeries = () => seriesEl.replaceChildren(fragment(seriesMathML(n)));
+  renderSeries();
+
   const unsubscribeAux = aux.subscribe(a => {
     n = termsOf(a.highlight);
     strip.select(n, { notify: false });
+    renderSeries();
     stage.invalidate();
   }, { immediate: false });
 
