@@ -110,7 +110,7 @@ export function mount(root, ctx) {
     const values = targets(aux.get().tol);
     const next = sweepStrip({
       values, label: 'highlight one target error along the range', signal, initial: highlightIndex(),
-      format: v => `target ${fmt(v, 4)}${v === values[CENTER] ? ' (the spine’s target)' : ''}`,
+      format: v => `target ${fmt(v, 4)}${v === values[CENTER] ? ' (your own target)' : ''}`,
       onSelect: i => aux.set({ highlight: i }),
     });
     strip ? strip.el.replaceWith(next.el) : box.append(next.el);

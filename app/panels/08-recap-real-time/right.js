@@ -68,7 +68,7 @@ export function mount(root, ctx) {
     const blown = !Number.isFinite(err) || err > 10 * yMax;
     // called out in the top-right corner, clear of the grid's labels on the left
     const corner = { align: 'right', dx: -8 };
-    drawText(g, view, `h = ${fmt(r.value, 4)} s${r.value === hs[CENTER] ? ' — the spine’s h' : ''}`,
+    drawText(g, view, `h = ${fmt(r.value, 4)} s${r.value === hs[CENTER] ? ' — your own h' : ''}`,
       span, yMax, { ...corner, color: cssVar('--approx'), size: 13, dy: 16 });
     drawText(g, view, `cost: ${fmt(1 / r.value, 1)} steps per simulated second, ${fmtMs(perStep / r.value)} of compute`,
       span, yMax, { ...corner, color: cssVar('--fg'), size: 12, dy: 34 });
@@ -87,7 +87,7 @@ export function mount(root, ctx) {
     const hs = values(state);
     const next = sweepStrip({
       values: hs, label: 'highlight one h along the range', signal, initial: highlightIndex(),
-      format: v => `h = ${fmt(v, 4)} s${v === hs[CENTER] ? ' (the spine’s h)' : ''}`,
+      format: v => `h = ${fmt(v, 4)} s${v === hs[CENTER] ? ' (your own h)' : ''}`,
       onSelect: i => aux.set({ highlight: i }),
     });
     strip ? strip.el.replaceWith(next.el) : box.append(next.el);
