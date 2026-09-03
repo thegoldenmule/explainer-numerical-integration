@@ -2,6 +2,10 @@
 // multiples of Euler, RK4, and implicit Euler pinned to the same λ; the live spring against
 // the exact curve. The teaching contrast is implicit Euler: never explodes, visibly
 // over-damped (0.26 vs 0.71 at t = 60 with the essay preset).
+//
+// No transport: createPlayer's own autoplay (its default) is the only playback, with nothing
+// to pause it, and no preset buttons — m and k are draggable right in the prose's own
+// equation instead, the same data-scrub-into-the-tuple pattern panel 8 uses for h.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -10,8 +14,8 @@ import { drawRegion } from 'shared/gfx/region-gl.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
-import { transport } from 'shared/ui/transport.js';
-import { methodPicker, presets, controls } from 'shared/ui/controls.js';
+import { methodPicker } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { METHODS } from 'shared/math/integrators.js';
 import { stabilityReport } from 'shared/math/stability.js';
@@ -75,13 +79,11 @@ export function mount(root, ctx) {
     return stage;
   });
 
-  // ---- row 3: the picker, presets, and transport ----
-  root.append(el('div', { class: 'controls-row' },
-    methodPicker(store, { only: MULTIPLES, signal }),
-    presets(store, { demo: 'Demo: m=1, k=100', essay: 'Essay: m=10, k=10' }),
-    transport(player, { signal, speeds: [1, 4, 16] }),
-  ));
+  // ---- row 3: just the picker; the run plays on its own and never stops ----
+  root.append(el('div', { class: 'controls-row' }, methodPicker(store, { only: MULTIPLES, signal })));
 
+  const article = root.closest('article') ?? root;
+  const offScrub = bindScrub(article, store, { signal });
   const unsubscribe = store.subscribe(() => multiples.forEach(m => m.invalidate()), { immediate: false });
-  return { destroy() { unsubscribe(); } };
+  return { destroy() { unsubscribe(); offScrub(); } };
 }

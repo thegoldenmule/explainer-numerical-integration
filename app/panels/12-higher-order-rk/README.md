@@ -6,7 +6,10 @@ deep": its right pane is a three-long chain (`#/12/right`, `#/12/right/2`, `#/12
 
 - `spine.html` + `spine.js`: the region for the store's method beside the live run; three
   small multiples (Euler, RK4, implicit Euler) pinned to the same λ, each a stage blitted
-  from the one shared WebGL2 canvas; picker, presets, transport with speeds. The contrast:
+  from the one shared WebGL2 canvas; just the method picker below — no presets, no
+  transport. The run plays on `createPlayer`'s own autoplay with nothing to pause it, and
+  `m`, `k` are draggable in the prose's own equation (`data-scrub` straight into the tuple,
+  same pattern as panel 8's `h`) rather than a pick from two fixed cases. The contrast:
   implicit Euler never explodes and visibly over-damps the essay spring. No readout: the
   method's verdict and `t`/`x`/exact are `drawText` in the run's own corner.
 - `left.html` + `left.js`: refresher, Taylor series. Partial sums of eˣ added one term at a
