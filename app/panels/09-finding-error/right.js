@@ -3,7 +3,7 @@
 // stepping by |R| beside the reconstructed x against the exact curve. For a damped spring
 // the two λ are conjugates, so both modes share |R|; the prose says so.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawText } from 'shared/gfx/plot2d.js';
@@ -20,10 +20,9 @@ const SPAN = 4;   // seconds of the modal run
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  // the plane: both λ with their |R|, scaled to the current system
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const planeStage = createStage(top, { layers: ['plane'], aspect: 'half', signal });
+  // the picker, above the plane: both λ with their |R|, scaled to the current system
+  root.append(controls(methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal })));
+  const planeStage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
   const plane = createComplexPlane({
     stage: planeStage, store, signal,
     halfRange: s => { const [l] = decompose(s.m, s.c, s.k).lambdas; return Math.max(1.5, 1.4 * Math.hypot(l[0], l[1])); },
@@ -103,9 +102,6 @@ export function mount(root, ctx) {
     drawText(g, vR, `a₁ = ${cfmt(a1, 3)}   a₂ = ${cfmt(a2, 3)}`, SPAN, vR.yMax, { align: 'right', dx: -6, color: cssVar('--muted'), size: 11, dy: 28 });
     g.restore();
   });
-  top.append(controls(
-    methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal }),
-  ));
 
   const offScrub = bindScrub(root.closest('article'), store, { signal, limits: { h: [0.002, 0.25] } });
   const unsub = store.subscribe(runStage.invalidate, { immediate: false });
