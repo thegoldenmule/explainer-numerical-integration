@@ -12,16 +12,15 @@
       <mo>+</mo><mfrac><msup><mi>z</mi><mn>4</mn></msup><mrow><mn>4</mn><mo>!</mo></mrow></mfrac>
       <mo>+</mo><mo>…</mo></mrow>
     </math>
-    <p>Cut it after two terms and you have Euler’s <math><mrow><mn>1</mn><mo>+</mo><mi>h</mi><mi>λ</mi></mrow></math>.
-      Cut it after five and you have RK4’s <math><mrow><mi>q</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow></math>.
+    <p>Truncate it after two terms and you have Euler’s <math><mrow><mn>1</mn><mo>+</mo><mi>h</mi><mi>λ</mi></mrow></math>.
+      Truncate it after five terms and you have RK4’s <math><mrow><mi>q</mi><mo>(</mo><mi>h</mi><mi>λ</mi><mo>)</mo></mrow></math>.
       Each extra term matches one more derivative of the true curve at the start of the step.</p>
     <p>For the current spring at <math><mrow><mi>h</mi><mo>=</mo><mn data-var="h" data-digits="3">0.033</mn></mrow></math>
       the exact factor has modulus <math><mn data-var="abs-exact">0.9983</mn></math>. Two terms
-      give <math><mn data-var="abs-taylor-1">1.0525</mn></math>, too big, and the error grows;
-      five give <math><mn data-var="abs-taylor-4">0.9983</mn></math>, and it does not. The
+      give <math><mn data-var="abs-taylor-1">1.0525</mn></math>, which is too big and thus the error grows.
+      Five terms gives <math><mn data-var="abs-taylor-4">0.9983</mn></math>, and the error will now shrink. The
       polynomial only has to be close where <math><mrow><mi>h</mi><mi>λ</mi></mrow></math>
-      actually is, and a small step keeps it close to zero, where every polynomial agrees with
-      the exponential.</p>
+      actually is.</p>
     <p>Add terms to the expansion one at a time and watch the approximation of
       <math><msup><mi>e</mi><mrow><mi>h</mi><mi>λ</mi></mrow></msup></math> improve. Wherever the
       strip is set, its <math><mi>n</mi></math> terms give
