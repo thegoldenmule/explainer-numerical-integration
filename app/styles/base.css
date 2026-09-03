@@ -95,7 +95,10 @@ code { background: var(--accent-soft); padding: 0.05em 0.3em; border-radius: 3px
 
 /* Native MathML. No typesetting library. */
 math { font-size: 1.05em; }
-math[display="block"] { display: block; margin: 0.75em 0; }
+/* A live number (data-var/data-scrub) can grow a digit while a pane runs; MathML never
+   wraps its own content onto a second line, so without this a formula that grows past its
+   column just bleeds into whatever is beside it. Contained, not clipped: it scrolls. */
+math[display="block"] { display: block; margin: 0.75em 0; max-width: 100%; overflow-x: auto; }
 
 button { font: inherit; color: inherit; }
 

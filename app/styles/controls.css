@@ -117,16 +117,19 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .transport-group { display: inline-flex; gap: 0.35rem; }
 .transport .btn { min-width: 4rem; }
 
-/* a row of one toggle-driven force beside its live equation (panel 2 spine): a min-height
-   reserved for the wrap a wide dragged number or the off-hint can force keeps the row's
-   height fixed instead of shoving the stage below it up and down as you drag or toggle. */
-.force-row { min-height: 2.75rem; }
+/* a row of one toggle-driven force beside its live equation (panel 2 spine and right): a
+   fixed min-height so the row's height cannot change while it runs, `nowrap` so a live
+   number growing a digit (or the off-hint) cannot force a second line that would grow it
+   anyway, and `overflow-x: auto` so a row too wide for its column scrolls instead of
+   reflowing or bleeding into whatever is beside it. */
+.force-row { min-height: 2.75rem; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
 /* the off-hint stays in the DOM at its full width always, so toggling a force never itself
    changes the row's width; :has() reacts to the checkbox instead of a text swap doing it. */
 .force-row:has(input:checked) .force-off-hint { visibility: hidden; }
 
-/* the ΣF / a summary under a force stage (panel 2 spine): reserved height for the same reason */
-.totals { min-height: 3.25rem; }
+/* the ΣF / a summary under a force stage (panel 2 spine): reserved height, and horizontal
+   overflow contained the same way as .force-row, for the same reason */
+.totals { min-height: 3.25rem; overflow-x: auto; }
 
 /* a switch: toggle(store, key) / toggleFn(); the checkbox stays in the tree for keyboard and
    assistive tech, the track is what you see */
