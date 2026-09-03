@@ -1,32 +1,41 @@
-// Panel 11, spine: the region under the plane with a draggable λ, the spring running
-// against the exact solution, and transport. The viz must fit beside the essay prose at
-// 1280×800: a half plane beside the controls, a strip for the run, with the verdict and the
-// predicted-vs-measured doubling time called out in the run's own corner.
+// Panel 11, spine: transport above the plane, the region under it with a draggable λ, the
+// spring running against the exact solution below that, and the equation the reader can
+// drag m and k in directly (c comes from dragging the root instead: c and k together fix a
+// point in the plane, m does not move it, so it needs its own handle).
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { methodPicker, presets, controls } from 'shared/ui/controls.js';
+import { methodPicker, controls } from 'shared/ui/controls.js';
+import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 
 const SPAN = 6;   // seconds of run visible in the trajectory strip
 
+const EQUATION = `<math display="block"><mrow>
+  <mn data-scrub="m" data-digits="2">1.00</mn><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo>
+  <mn data-var="c" data-digits="2">0.10</mn><msup><mi>x</mi><mo>′</mo></msup><mo>+</mo>
+  <mn data-scrub="k" data-digits="1">100.0</mn><mi>x</mi><mo>=</mo><mn>0</mn>
+</mrow></math>`;
+
 export function mount(root, ctx) {
   const { store, signal, loop } = ctx;
+  const article = root.closest('article') ?? root;
+
+  // transport first, so the plane below it gets the full width instead of sharing a row
+  const player = createPlayer({ store, loop, signal });
+  root.append(controls(transport(player, { signal })));
 
   // the plane, with the region blitted underneath and the λ handle
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal, grab: true });
+  const planeStage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal, grab: true });
   const plane = createComplexPlane({ stage: planeStage, store, signal, halfRange: 15, region: true, drag: true });
 
   // the run
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  const player = createPlayer({ store, loop, signal });
   const secs = v => (v === Infinity ? '∞' : fmt(v, 2) + ' s');
   const short = v => (Math.abs(v) >= 100 ? v.toExponential(2).replace('-', '−') : fmt(v, 3));   // keeps the line short
   runStage.onDraw(size => {
@@ -47,12 +56,9 @@ export function mount(root, ctx) {
   });
   player.onChange(runStage.invalidate);
 
-  top.append(controls(transport(player, { signal })));
-  root.append(el('div', { class: 'controls-row' },
-    methodPicker(store, { signal }),
-    presets(store, { demo: 'Demo: m=1, k=100', essay: 'Essay: m=10, k=10' }),
-  ));
+  root.append(controls(methodPicker(store, { signal }), fragment(EQUATION)));
 
-  const offScrub = bindScrub(root.closest('article') ?? root, store, { signal, limits: { h: [0.005, 0.25] } });
+  bindMath(article, store, undefined, { signal });
+  const offScrub = bindScrub(article, store, { signal, limits: { h: [0.005, 0.25] } });
   return { destroy() { offScrub(); } };
 }
