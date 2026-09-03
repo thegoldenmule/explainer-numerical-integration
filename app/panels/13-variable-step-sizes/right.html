@@ -17,10 +17,8 @@
       <math><mrow><mi>h</mi><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math> profiles: loose targets
       race to large steps and stay there while the spring is quiet; tight targets crawl. This
       is where the cost-versus-accuracy tradeoff from panels 3 and 8 finally becomes a dial.</p>
-    <p>The 16-second step is the degenerate case: under a constant force every derivative past
-      <math><mi>a</mi></math> vanishes, RK4’s estimate reads zero, and the controller doubles
-      until its cap stops it. The converse also holds: a local-error tolerance never enforces
-      stability. Adaptive Euler on the demo spring is slowed, not saved.</p>
+    <p>A local-error tolerance never enforces stability: adaptive Euler on the demo spring is
+      slowed, not saved.</p>
     <p>Drag the target error along the range to highlight one profile and dim the rest.</p>
   </div>
   <div class="viz"></div>
