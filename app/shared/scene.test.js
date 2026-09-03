@@ -8,7 +8,8 @@ test('the default scene starts consistent with the tuple defaults', () => {
   const s = createSceneStore();
   const { body, forces, linear } = s.get();
   assert.equal(body.m, DEFAULTS.m);
-  assert.deepEqual(body.x, [0, 0]);
+  assert.deepEqual(body.x, [1, 0.5], 'displaced, so the spring arrow has a length');
+  assert.deepEqual(body.v, [0, 2], 'moving, so the drag arrow has a length');
   assert.equal(linear, false);
   assert.deepEqual(forces.map(f => f.type), ['wind', 'gravity', 'drag', 'spring']);
   assert.equal(forces[s.forceIndex('drag')].c, DEFAULTS.c);

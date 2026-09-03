@@ -37,10 +37,17 @@ const clamp = (v, [lo, hi]) => Math.min(hi, Math.max(lo, v));
 const finite = v => typeof v === 'number' && Number.isFinite(v);
 const pair = (p, lim, fallback) => (Array.isArray(p) && finite(p[0]) && finite(p[1]) ? [clamp(p[0], lim), clamp(p[1], lim)] : fallback);
 
-/** The scene every 2D panel starts from: the demo mass with all four force models. */
+/**
+ * The scene every 2D panel starts from: the demo mass with all four force models.
+ * The body is displaced and moving, not at rest at the origin: drag is −c v and the spring
+ * is −k x, so a body at rest at the origin makes two of the four arrows zero vectors and
+ * panels 2 and 5 open on a picture that cannot show what they are about.
+ */
 export function defaultScene() {
   return createScene({
     m: DEFAULTS.m,
+    x: [1, 0.5],
+    v: [0, 2],
     forces: [
       createForce('wind', { on: false }),
       createForce('gravity'),
