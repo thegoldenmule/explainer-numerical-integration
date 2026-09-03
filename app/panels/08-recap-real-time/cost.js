@@ -1,15 +1,43 @@
 // Local helpers for panel 8's three panes: the frame budget (which display we are budgeting
-// for, and the steps one frame needs at h) and the budget bar. The per-step cost itself
-// comes from shared/player.js (`player.cost`, or `stepCost(state)` for a pane without a
-// player): a warmed benchmark, since performance.now() cannot resolve a spring step.
+// for, and the steps one frame needs at h), the budget bar, how many seconds of run are
+// worth plotting for a given spring, and two formatters. The per-step cost itself comes
+// from shared/player.js (`player.cost`, or `stepCost(state)` for a pane without a player):
+// a warmed benchmark, since performance.now() cannot resolve a spring step.
 
 import { cssVar } from 'shared/gfx/plot2d.js';
+import { eigenvalues } from 'shared/math/system.js';
 
 export const FRAME_MS = 1000 / 60;
 export const BAR_MIN_MS = 1e-4;   // left edge of the log bar: 0.1 µs
 
 /** Steps of h that one frame of the display needs (fractional when h is longer than a frame). */
 export const stepsPerFrame = (h, frameMs = FRAME_MS) => frameMs / 1000 / h;
+
+/**
+ * Seconds of run worth showing for a spring: `cycles` periods of its damped oscillation, so
+ * the trace fills the frame instead of blurring into a band of 10 cycles. A system with
+ * nothing to oscillate (critical or overdamped) gets four decay times instead. Clamped to
+ * [min, max] so a very stiff or very slack spring still gives a usable window.
+ */
+export function plotSpan({ m, c, k }, { cycles = 4, min = 0.5, max = 12 } = {}) {
+  const [re, im] = eigenvalues(m, c, k)[0];
+  const w = Math.abs(im), decay = Math.abs(re);
+  const span = w > 1e-9 ? cycles * 2 * Math.PI / w : decay > 1e-9 ? 4 / decay : max;
+  return Math.min(max, Math.max(min, span));
+}
+
+/** A count with a thousands separator up to 99 999, then 2 significant figures and a suffix. */
+export function fmtCount(n) {
+  if (!Number.isFinite(n)) return '—';
+  if (n >= 1e9) return `${(n / 1e9).toPrecision(2)} billion`;
+  if (n >= 1e6) return `${(n / 1e6).toPrecision(2)} million`;
+  if (n >= 1e5) return `${Math.round(n / 1e3)} thousand`;
+  return Math.round(n).toLocaleString('en-US');
+}
+
+/** Steps per frame written for prose: "0.5 steps", or "one step every 2.0 frames" below one. */
+export const fmtSteps = (steps) =>
+  steps >= 1 ? `${steps.toFixed(steps < 10 ? 1 : 0)} steps` : `one step every ${(1 / steps).toFixed(1)} frames`;
 
 export function fmtMs(ms) {
   if (!Number.isFinite(ms)) return '—';

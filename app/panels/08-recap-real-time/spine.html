@@ -19,7 +19,18 @@
     <p>This is the tension from panel 3 with a clock on it. Raise <math><mi>h</mi></math> and the
       compute cost per frame falls while the error against the exact curve rises. At
       <math><mrow><mi>h</mi><mo>=</mo><mn data-var="h" data-digits="3">0.033</mn><mtext> s</mtext></mrow></math>
-      a 60 fps frame needs <mn data-var="steps" data-digits="1">0.5</mn> steps.</p>
+      a 60 fps frame needs <math><mtext data-var="stepText">0.5 steps</mtext></math>, and one step of
+      this integrator is measured at <math><mtext data-var="perStepText">16 ns</mtext></math> here,
+      so the spring costs <math><mtext data-var="frameCost">8 ns</mtext></math> of the
+      <math><mtext data-var="frame">16.67 ms</mtext></math> frame: the bar above the run, drawn
+      on a log scale because a linear bar would be empty. The error is on the run itself.</p>
+    <p class="muted">The run is windowed to a few periods of the current spring and scaled to its
+      own amplitude, so the oscillation fills the frame; when the approximation leaves the frame
+      it has blown up, and the error line says so. The two buttons are the springs this piece
+      drives from: the demo case, stiff enough that Euler blows up in seconds, and the essay’s
+      own <math><mrow><mi>m</mi><mo>=</mo><mn>10</mn></mrow></math>,
+      <math><mrow><mi>c</mi><mo>=</mo><mn>0.1</mn></mrow></math>,
+      <math><mrow><mi>k</mi><mo>=</mo><mn>10</mn></mrow></math>.</p>
   </div>
   <div class="viz"></div>
 </article>
