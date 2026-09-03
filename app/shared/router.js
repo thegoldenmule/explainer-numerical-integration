@@ -1,7 +1,8 @@
 // Hash routes:  #/N   #/N/left   #/N/right   #/N/right/2   #/N/right/3
 // A depth suffix only ever follows `right` (panel 12's three-pane chain); `left` never
 // chains, and depth defaults to 1 when the suffix is absent. Anything else normalizes to
-// #/1. The router owns `current`; main.js reacts in onRoute.
+// #/<first> (main.js passes 0, the title row). The router owns `current`; main.js reacts
+// in onRoute.
 
 export function parseRoute(hash) {
   const m = /^#\/(\d{1,2})(?:\/(left|right)(?:\/(\d+))?)?\/?$/.exec(hash || '');
@@ -13,16 +14,17 @@ export const formatRoute = ({ index, side, depth }) =>
   `#/${index}${side ? '/' + side + (depth > 1 ? '/' + depth : '') : ''}`;
 
 /**
- * createRouter({ count, canOpen(index, side, depth), onRoute(route, source) })
+ * createRouter({ count, first, canOpen(index, side, depth), onRoute(route, source) })
+ *   first: the lowest index, and the route everything unparseable normalizes to (default 1)
  *   source: 'initial' | 'hash' | 'scroll' | 'hscroll' | 'go'
  *   canOpen reports whether that exact depth exists for that side.
  */
-export function createRouter({ count, canOpen = () => true, onRoute }) {
-  let current = { index: 1, side: null, depth: 1 };
+export function createRouter({ count, first = 1, canOpen = () => true, onRoute }) {
+  let current = { index: first, side: null, depth: 1 };
 
   function normalize(route) {
-    if (!route) return { index: 1, side: null, depth: 1 };
-    const index = Math.min(count, Math.max(1, route.index | 0));
+    if (!route) return { index: first, side: null, depth: 1 };
+    const index = Math.min(count, Math.max(first, route.index | 0));
     let side = route.side || null;
     let depth = side ? Math.max(1, route.depth | 0 || 1) : 1;
     if (side) {

@@ -1,36 +1,15 @@
-<!doctype html>
 <!--
-  Title page. Standalone on purpose: no shared styles, no import map, no shared modules.
-  Serve from app/ and open http://127.0.0.1:8765/title/title.html
-  Not yet wired into index.html or the router.
+  Title page: row 0 of the spine, route #/0, the landing route when there is no hash.
+  main.js fetches this fragment into the title cell and mounts ./title.js on it; it is not
+  a manifest panel and does not go through the pane loader. Self-contained on purpose: its
+  styles live here, scoped under .title, and read only the tokens base.css defines.
 -->
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>Why do physics engines break?</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='13' cy='16' r='12' fill='%234079d9'/%3E%3Ccircle cx='23' cy='9' r='4' fill='%23d43a2f'/%3E%3C/svg%3E">
+<section class="title" aria-label="Title">
 <style>
-  /* Tokens copied from styles/base.css as literals, so this page never depends on it. */
-  :root {
-    color-scheme: light;
-    --bg: #fbfaf7;
-    --fg: #1d1d1b;
-    --muted: #6b6b66;
-    --accent: #2455c8;
-    --font: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  html { font: 16px/1.55 var(--font); color: var(--fg); background: var(--bg); }
-
   .title {
     position: relative;
     width: 100%;
-    height: 100dvh;
+    height: 100%;
     overflow: hidden;
     display: grid;
     grid-template-rows: 1fr auto;
@@ -38,14 +17,14 @@
   }
 
   /* ---- background collage ---- */
-  .gifs {
+  .title .gifs {
     position: absolute;
     inset: 0;
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
   }
-  .gifs img {
+  .title .gifs img {
     position: absolute;
     /* --x, --y, --w, --dur, --grow are set per element by title.js */
     left: var(--x);
@@ -57,10 +36,10 @@
     border-radius: 6px;
     opacity: 0;
     will-change: opacity, transform;
-    animation: drift var(--dur) ease-in-out forwards;
+    animation: title-drift var(--dur) ease-in-out forwards;
     filter: saturate(0.85);
   }
-  @keyframes drift {
+  @keyframes title-drift {
     0%   { opacity: 0; transform: scale(1); }
     18%  { opacity: 1; }
     82%  { opacity: 1; }
@@ -68,7 +47,7 @@
   }
 
   /* wash between gifs and text so the title always reads */
-  .wash {
+  .title .wash {
     position: absolute;
     inset: 0;
     z-index: 1;
@@ -78,7 +57,7 @@
   }
 
   /* ---- foreground ---- */
-  .hero {
+  .title .hero {
     position: relative;
     z-index: 2;
     display: grid;
@@ -86,7 +65,7 @@
     padding: 2rem;
     text-align: center;
   }
-  h1 {
+  .title h1 {
     margin: 0;
     font-size: clamp(2.4rem, 7vw, 6rem);
     font-weight: 650;
@@ -97,7 +76,7 @@
     text-shadow: 0 0 24px rgba(251, 250, 247, 0.9), 0 0 60px rgba(251, 250, 247, 0.8);
   }
 
-  .directions {
+  .title .directions {
     position: relative;
     z-index: 2;
     display: flex;
@@ -108,40 +87,38 @@
     font-size: 0.95rem;
     background: linear-gradient(to top, rgba(251, 250, 247, 0.95), rgba(251, 250, 247, 0));
   }
-  .directions div {
+  .title .directions div {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     white-space: nowrap;
   }
-  .directions .key {
+  .title .directions .key {
     display: inline-grid;
     place-items: center;
     width: 1.9rem;
     height: 1.9rem;
-    border: 1px solid #b8b5ac;
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
-    background: #fff;
+    background: var(--surface);
     color: var(--fg);
     font-family: var(--mono);
     font-size: 1rem;
-    box-shadow: 0 1px 0 #dcdad3;
+    box-shadow: 0 1px 0 var(--border);
   }
-  .directions .key.down { animation: nudge 2.4s ease-in-out infinite; }
-  @keyframes nudge {
+  .title .directions .key.down { animation: title-nudge 2.4s ease-in-out infinite; }
+  @keyframes title-nudge {
     0%, 100% { translate: 0 0; }
     50%      { translate: 0 3px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .gifs img { animation: none; opacity: 0.35; }
-    .directions .key.down { animation: none; }
+    .title .gifs img { animation: none; opacity: 0.35; }
+    .title .directions .key.down { animation: none; }
   }
 </style>
-</head>
-<body>
-<section class="title" aria-label="Title">
-  <div class="gifs" id="gifs" aria-hidden="true"></div>
+
+  <div class="gifs" aria-hidden="true"></div>
   <div class="wash" aria-hidden="true"></div>
 
   <div class="hero">
@@ -151,12 +128,8 @@
   </div>
 
   <footer class="directions" aria-label="How to navigate">
+    <div><span class="key" aria-hidden="true">←</span><span>surface</span></div>
     <div><span class="key down" aria-hidden="true">↓</span><span>next page</span></div>
-    <div><span class="key" aria-hidden="true">←</span><span>surface level</span></div>
-    <div><span class="key" aria-hidden="true">→</span><span>deeper</span></div>
+    <div><span class="key" aria-hidden="true">→</span><span>deep dive</span></div>
   </footer>
 </section>
-
-<script type="module" src="./title.js"></script>
-</body>
-</html>

@@ -1,9 +1,15 @@
-// title.js: the background collage for the title page. Standalone: imports nothing.
+// title.js: the background collage for the title page. Imports nothing.
+//
+//   export function mount(root, { signal }) → { pause, resume, destroy }
 //
 // A shuffled queue of gifs; at most MAX_LIVE are on screen at once. Each one is preloaded,
-// dropped at a random spot with a random width, and handed to the CSS `drift` animation
-// (fade in, slow scale up, fade out). When it ends the node is removed and the next one is
-// scheduled. Timing is staggered so arrivals never line up.
+// dropped at a random spot with a random width, and handed to the CSS `title-drift`
+// animation (fade in, slow scale up, fade out). When it ends the node is removed and the
+// next one is scheduled. Timing is staggered so arrivals never line up.
+//
+// Nothing loads on mount: the title is mounted at boot for every visitor, including one
+// deep-linking to #/7. The collage starts in resume() and pause() clears it, so no gif is
+// downloaded or decoded while another panel is on screen.
 
 // Filenames under ./gifs/. Kept as a literal because there is no build step and no
 // directory listing to trust. Regenerate from `ls gifs` when the set changes.
@@ -36,97 +42,115 @@ const STAGGER = [2, 5];      // seconds between spawns, min..max
 const WIDTH_VW = [22, 44];   // width as a share of the viewport, min..max
 const GROW = [1.08, 1.22];   // end scale, min..max
 
-const layer = document.getElementById('gifs');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+const GIF_BASE = new URL('./gifs/', import.meta.url);
 const rand = (lo, hi) => lo + Math.random() * (hi - lo);
 
-// Shuffled queue that refills itself; never plays the same gif twice in a row.
-const queue = [];
-let last = null;
-function next() {
-  if (queue.length === 0) {
-    queue.push(...GIFS);
-    for (let i = queue.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [queue[i], queue[j]] = [queue[j], queue[i]];
+export function mount(root, { signal } = {}) {
+  const layer = root.querySelector('.gifs');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Shuffled queue that refills itself; never plays the same gif twice in a row.
+  const queue = [];
+  let last = null;
+  function next() {
+    if (queue.length === 0) {
+      queue.push(...GIFS);
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+      }
+      if (queue.length > 1 && queue[queue.length - 1] === last) queue.unshift(queue.pop());
     }
-    if (queue.length > 1 && queue[queue.length - 1] === last) queue.unshift(queue.pop());
+    last = queue.pop();
+    return last;
   }
-  last = queue.pop();
-  return last;
-}
 
-function preload(name) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`gif failed to load: ${name}`));
-    img.src = `./gifs/${name}`;
-  });
-}
-
-let live = 0;
-let stopped = false;
-
-async function spawn() {
-  if (stopped || GIFS.length === 0) return;
-  if (live >= MAX_LIVE) return;
-  live++;
-
-  let img;
-  try {
-    img = await preload(next());
-  } catch (err) {
-    console.warn(err.message);
-    live--;
-    schedule();
-    return;
+  function preload(name) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`gif failed to load: ${name}`));
+      img.src = new URL(name, GIF_BASE).href;
+    });
   }
-  if (stopped) { live--; return; }
 
-  // Keep the middle band mostly clear: bias positions toward the edges and corners so the
-  // title stays legible even before the wash does its work.
-  const edge = Math.random() < 0.5;
-  const x = edge ? rand(4, 32) : rand(68, 96);
-  const y = rand(8, 92);
+  let live = 0;
+  let running = false;
+  let timer = 0;
 
-  img.alt = '';
-  img.style.setProperty('--x', `${x}vw`);
-  img.style.setProperty('--y', `${y}vh`);
-  img.style.setProperty('--w', `${rand(...WIDTH_VW)}vw`);
-  img.style.setProperty('--dur', `${rand(...DURATION)}s`);
-  img.style.setProperty('--grow', rand(...GROW).toFixed(3));
+  async function spawn() {
+    if (!running || GIFS.length === 0) return;
+    if (live >= MAX_LIVE) return;
+    live++;
 
-  img.addEventListener('animationend', () => {
-    img.remove();
-    live--;
+    let img;
+    try {
+      img = await preload(next());
+    } catch (err) {
+      console.warn(err.message);
+      live--;
+      schedule();
+      return;
+    }
+    if (!running) { live--; return; }
+
+    // Keep the middle band mostly clear: bias positions toward the edges so the title stays
+    // legible even before the wash does its work.
+    const edge = Math.random() < 0.5;
+    const x = edge ? rand(4, 32) : rand(68, 96);
+    const y = rand(8, 92);
+
+    img.alt = '';
+    img.style.setProperty('--x', `${x}vw`);
+    img.style.setProperty('--y', `${y}vh`);
+    img.style.setProperty('--w', `${rand(...WIDTH_VW)}vw`);
+    img.style.setProperty('--dur', `${rand(...DURATION)}s`);
+    img.style.setProperty('--grow', rand(...GROW).toFixed(3));
+
+    img.addEventListener('animationend', () => {
+      img.remove();
+      live--;
+      schedule();
+    }, { once: true });
+
+    layer.append(img);
     schedule();
-  }, { once: true });
+  }
 
-  layer.append(img);
-  schedule();
-}
+  function schedule() {
+    if (!running || live >= MAX_LIVE) return;
+    clearTimeout(timer);
+    timer = setTimeout(spawn, rand(...STAGGER) * 1000);
+  }
 
-let timer = 0;
-function schedule() {
-  if (stopped || live >= MAX_LIVE) return;
-  clearTimeout(timer);
-  timer = setTimeout(spawn, rand(...STAGGER) * 1000);
-}
+  function start() {
+    if (running) return;
+    running = true;
+    if (!reduced) {
+      spawn();   // the first one arrives immediately, the rest stagger in
+    } else {
+      for (let i = 0; i < Math.min(3, GIFS.length); i++) spawn();   // a few still frames
+    }
+  }
 
-// Pause the churn while the tab is hidden; browsers throttle timers anyway, but this keeps
-// the queue from bunching up on return.
-document.addEventListener('visibilitychange', () => {
-  stopped = document.hidden;
-  if (!stopped) schedule();
-});
+  function stop() {
+    running = false;
+    clearTimeout(timer);
+    layer.replaceChildren();
+    live = 0;
+  }
 
-if (!reduced) {
-  // First one arrives immediately, the rest stagger in.
-  spawn();
-} else {
-  // Reduced motion: a few still frames, no churn.
-  for (let i = 0; i < Math.min(3, GIFS.length); i++) spawn();
+  // The tab going to the background pauses the churn so the queue does not bunch up on
+  // return; coming back restarts only if the pane itself is still the one on screen.
+  let visible = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop(); else if (visible) start();
+  }, { signal });
+
+  return {
+    resume() { visible = true; start(); },
+    pause() { visible = false; stop(); },
+    destroy() { visible = false; stop(); },
+  };
 }

@@ -35,10 +35,11 @@ use, kill the stale process: `pkill -f "user-data-dir=/Users/benjaminjordan/.cac
 ## Architecture
 
 **The page is a 2D scroll-snap grid driven by a hash route.** `#spine` scrolls vertically
-between 13 panels (rows). Each row scrolls horizontally between its cells: `[left] [spine]
-[right] [right-2] …`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`, and
-`#/N/right/D` for a chain of right panes (panel 12 has three); an out-of-range depth clamps
-down. Every input
+between a title row and 13 panels (rows). Each row scrolls horizontally between its cells:
+`[left] [spine] [right] [right-2] …`, each a full viewport. Routes are `#/N`, `#/N/left`,
+`#/N/right`, and `#/N/right/D` for a chain of right panes (panel 12 has three); an
+out-of-range depth clamps down. `#/0` is the title page (`app/title/`, not a manifest
+entry, mounted by `main.js` itself) and is where an empty or unparseable hash lands. Every input
 (touchpad swipe, arrow keys, rail dots, deep link) ends as a route the router applies in
 `shared/main.js`'s `onRoute`; IntersectionObservers map user scrolling back to routes, with
 `navigating` flags so programmatic scrolls are ignored. While a side cell is showing, the spine

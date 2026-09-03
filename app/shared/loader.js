@@ -21,7 +21,7 @@ export function paneFileId(pane, depth = 1) {
 }
 
 function chainLength(entry, side) {
-  return Array.isArray(entry[side]) ? entry[side].length : 0;
+  return Array.isArray(entry?.[side]) ? entry[side].length : 0;
 }
 
 function paneExists(entry, side, depth) {

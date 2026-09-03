@@ -10,13 +10,19 @@ import { manifest, panelCount, panelAt } from './manifest.js';
 import { store } from './state.js';
 import { createRouter } from './router.js';
 import { createPaneManager, paneFileId } from './loader.js';
-import { el } from './dom.js';
+import { el, fragment } from './dom.js';
 
 const spine = document.getElementById('spine');
 const rail = document.getElementById('rail');
 const hrail = document.getElementById('hrail');
 
 const KIND = { left: 'Refresher · step down', right: 'Drill-down · step up' };
+const SITE = 'Why physics engines blow up';
+
+// Row 0: the title page. Not a manifest entry; one cell, no side panes, mounted below from
+// title/ directly rather than through the pane manager.
+const TITLE = 0;
+const TITLE_TEXT = 'Why do physics engines break?';
 
 // Ordered list of panes for one manifest entry: an optional left, always spine, then the
 // right chain in order. Each item carries `id` (the file basename / cell key), `pane` (the
@@ -37,6 +43,16 @@ const rows = new Map();   // index → row element
 const cells = new Map();  // "index/id" → { cell, body, pane, depth }
 const key = (index, id) => `${index}/${id}`;
 
+{
+  const body = el('div', { class: 'pane-body' });
+  const cell = el('div', { class: 'pane pane-spine pane-title', 'data-index': TITLE, 'data-pane': 'spine', 'data-depth': 1 }, body);
+  const row = el('section', { class: 'panel', id: `panel-${TITLE}`, 'data-index': TITLE, 'aria-label': TITLE_TEXT }, cell);
+  cells.set(key(TITLE, 'spine'), { cell, body, pane: 'spine', depth: 1 });
+  rows.set(TITLE, row);
+  spine.append(row);
+  rail.append(el('a', { href: `#/${TITLE}`, title: TITLE_TEXT, 'aria-label': TITLE_TEXT }));
+}
+
 for (const entry of manifest) {
   const row = el('section', { class: 'panel', id: `panel-${entry.index}`, 'data-index': entry.index, 'aria-label': entry.title });
   for (const p of paneList(entry)) {
@@ -55,13 +71,14 @@ for (const entry of manifest) {
 
   rail.append(el('a', {
     href: `#/${entry.index}`, title: `${entry.index}. ${entry.title}`, 'aria-label': `${entry.index}. ${entry.title}`,
-    class: entry.index > 1 && panelAt(entry.index - 1).part !== entry.part ? 'part-break' : null,
+    class: entry.index === 1 || panelAt(entry.index - 1).part !== entry.part ? 'part-break' : null,
   }));
 }
 
 // ---- horizontal rail: one dot per pane of the current panel, rebuilt on every route ----
 function updateHrail(index, side, depth) {
   const entry = panelAt(index);
+  if (!entry) { hrail.replaceChildren(); return; }   // the title row: its footer is the guide
   const activeId = side ? paneFileId(side, depth) : 'spine';
   hrail.replaceChildren(...paneList(entry).map(p => {
     const href = p.pane === 'spine' ? `#/${index}` : `#/${index}/${p.pane}${p.depth > 1 ? '/' + p.depth : ''}`;
@@ -103,6 +120,26 @@ function alignRow(index, side, depth, instant) {
 // every row starts on its spine pane, not its left pane
 for (const entry of manifest) alignRow(entry.index, null, 1, true);
 
+// ---- the title page ----
+// Fetched and mounted once at boot, in place; resumed only while #/0 is on screen so its
+// collage never downloads or decodes behind another panel.
+const title = (async () => {
+  const body = cells.get(key(TITLE, 'spine')).body;
+  const base = new URL('../title/title', import.meta.url);
+  try {
+    const [mod, html] = await Promise.all([
+      import(`${base}.js`),
+      fetch(`${base}.html`).then(r => { if (!r.ok) throw new Error(`${r.status} ${r.statusText} for ${base}.html`); return r.text(); }),
+    ]);
+    body.replaceChildren(fragment(html));
+    return mod.mount(body.firstElementChild, { signal: new AbortController().signal });
+  } catch (err) {
+    console.warn('[title]', err);
+    body.replaceChildren(el('div', { class: 'pane-missing' }, el('p', {}, el('strong', {}, TITLE_TEXT)), el('p', { class: 'muted' }, String(err?.message ?? err))));
+    return { pause() {}, resume() {}, destroy() {} };
+  }
+})();
+
 // ---- router ----
 const panes = createPaneManager({ store, manifest, containerFor: (i, pane, depth) => cells.get(key(i, paneFileId(pane, depth))).body });
 let last = null;
@@ -117,8 +154,10 @@ function setInert(index, activeId) {
 
 const router = createRouter({
   count: panelCount,
+  first: TITLE,
   canOpen: (index, side, depth) => {
     const entry = panelAt(index);
+    if (!entry) return false;
     if (side === 'left') return depth === 1 && Boolean(entry.left);
     if (side === 'right') return Array.isArray(entry.right) && depth >= 1 && depth <= entry.right.length;
     return false;
@@ -126,7 +165,7 @@ const router = createRouter({
   onRoute({ index, side, depth }, source) {
     const entry = panelAt(index);
     const sideTitle = side ? (side === 'left' ? entry.left.title : entry.right[depth - 1].title) : null;
-    document.title = `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : ''} · Why physics engines blow up`;
+    document.title = entry ? `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : ''} · ${SITE}` : TITLE_TEXT;
     for (const a of rail.children) {
       if (a.getAttribute('href') === `#/${index}`) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
     }
@@ -144,6 +183,7 @@ const router = createRouter({
     setInert(index, side ? paneFileId(side, depth) : 'spine');
 
     panes.activate(index, side, depth);
+    title.then(h => (index === TITLE ? h.resume() : h.pause()));
     last = { index, side, depth };
   },
 });
@@ -190,7 +230,7 @@ window.addEventListener('keydown', e => {
   const tag = e.target?.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target?.isContentEditable) return;
   const { index, side, depth } = router.current;
-  const entry = panelAt(index);
+  const entry = panelAt(index) ?? {};   // the title row has no side panes
   const rightLen = Array.isArray(entry.right) ? entry.right.length : 0;
   if (e.key === 'Escape' && side) { router.back(); e.preventDefault(); }
   else if (e.key === 'ArrowLeft') {

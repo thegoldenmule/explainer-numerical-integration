@@ -168,7 +168,12 @@ which `main.js` applies in `onRoute`.
   the browser's back/forward swipe from firing.
 - Only the visible cell of the current row is interactive; the others are `inert`.
 - Routes are the deep links in `idea.md`'s navigation rules; anything else normalizes to
-  `#/1`, and a side that a panel does not have drops to its spine.
+  `#/0`, the title row, and a side that a panel does not have drops to its spine.
+- The title page is row 0, above panel 1, and is not a manifest entry. `main.js` builds its
+  one cell (`.pane.pane-title`, no meta), fetches `title/title.html` into it, and mounts
+  `title/title.js` (`mount(root, { signal }) → { pause, resume, destroy }`) directly, outside
+  the pane manager; `onRoute` resumes it on `#/0` and pauses it everywhere else. The title
+  ships its own scoped `<style>` and imports nothing from `shared/`.
 - Two kinds of `IntersectionObserver` map scroll to route: one on the spine watching rows
   (ignored while a side pane is open), one per row watching its cells. Programmatic scrolls
   set a `navigating` flag cleared on `scrollend` (or a timeout) so the observers ignore them.

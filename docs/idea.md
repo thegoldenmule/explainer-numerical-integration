@@ -406,6 +406,9 @@ wildcards), then the left pane as a step down and the right pane as a step up.
   leaving any of them returns to panel 12.
 - Deep links: `#/7`, `#/7/left`, `#/7/right`, and `#/12/right/2`, `#/12/right/3` for the
   chain. The whole grid is addressable.
+- A title page sits above panel 1 at `#/0` and is where the reader lands with no deep link:
+  the title over a slow collage of game physics glitches, and the three directions (left is
+  the surface, down is the next page, right is the deep dive).
 
 ## Rendering research: how to run the Mathematica math in a browser
 

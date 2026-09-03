@@ -61,6 +61,10 @@ body { overflow: hidden; }
 }
 .pane-meta .kind { color: var(--accent); }
 
+/* the title row's one cell (#/0, mounted by main.js from title/): full bleed, no meta */
+.pane-title { display: block; padding: 0; }
+.pane-title > .pane-body { height: 100%; }
+
 /* ---- pane body: prose column + interactive column ---- */
 
 .pane-body { min-height: 0; overflow: hidden; }
