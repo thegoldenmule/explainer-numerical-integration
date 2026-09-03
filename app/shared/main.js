@@ -71,7 +71,6 @@ for (const entry of manifest) {
 
   rail.append(el('a', {
     href: `#/${entry.index}`, title: `${entry.index}. ${entry.title}`, 'aria-label': `${entry.index}. ${entry.title}`,
-    class: entry.index === 1 || panelAt(entry.index - 1).part !== entry.part ? 'part-break' : null,
   }));
 }
 
