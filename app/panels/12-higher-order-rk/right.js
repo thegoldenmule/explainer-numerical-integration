@@ -4,7 +4,7 @@
 // aux.highlight so it survives a remount (0 = every order lit; the key is shared by every
 // sweep, so it is clamped on read).
 
-import { el, fmt, clamp } from 'shared/dom.js';
+import { fmt, clamp } from 'shared/dom.js';
 import { aux } from 'shared/aux.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
@@ -25,9 +25,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   const highlight = () => highlightOf(aux.get().highlight);   // 0: every order lit; 1..4: that order
 
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const stage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
+  const stage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal });
   createComplexPlane({
     stage, store, signal, labels: false,
     region: s => ({ layers: ORDERS.map(order => ({ order, h: s.h })), highlight: highlight() - 1 }),
@@ -54,7 +52,7 @@ export function mount(root, ctx) {
     values: CHOICES, label: 'highlight an order', format: o => NAMES[o], initial: highlight(), signal,
     onSelect: i => aux.set({ highlight: i }),
   });
-  top.append(controls(strip.el));
+  root.append(controls(strip.el));
   const unsubscribe = store.subscribe(stage.invalidate, { immediate: false });
   const unsubscribeAux = aux.subscribe(() => { strip.select(highlight(), { notify: false }); stage.invalidate(); }, { immediate: false });
 
