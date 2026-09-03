@@ -123,10 +123,11 @@ function scrollToPanel(index, instant) {
 // Going right is going deeper, so the frame darkens with the current row's horizontal scroll
 // offset, read continuously rather than per route: the vignette follows the swipe itself,
 // including a half-finished one. The spine already sits under a soft frame, so a left pane
-// lifts it as visibly as a right pane presses it down. Steps shrink as they go: the first
-// dive is the big one, and panel 12's third still adds to it.
-// One level per cell offset from the spine, -1 (left) through +3 (the deepest right).
-const LEVELS = [0, 0.42, 0.76, 0.9, 1];
+// lifts it as visibly as a right pane presses it down, and a dive right goes all the way.
+// One level per cell offset from the spine: -1 (left), 0 (spine), +1 and deeper (right).
+// A single dive is already the bottom, so panel 12's chain stays there rather than reserving
+// headroom that twelve of the thirteen panels would never reach.
+const LEVELS = [0, 0.34, 1];
 function updateVignette(index) {
   const row = rows.get(index);
   if (!row?.clientWidth) return;

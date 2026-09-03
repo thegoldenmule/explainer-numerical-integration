@@ -188,7 +188,7 @@ which `main.js` applies in `onRoute`.
   which shifts with the row's own scroll offset.
 - A fixed `#vignette` frame under the rails reads depth: `main.js` sets its opacity from the
   current row's horizontal scroll offset on every scroll event, so it tracks the swipe. The
-  spine sits at a baseline the left pane lifts and each right pane presses further down.
+  spine sits at a baseline the left pane lifts off and any right pane presses to the floor.
 
 ## Rendering conventions
 
