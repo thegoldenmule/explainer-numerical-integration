@@ -271,9 +271,11 @@ wildcards), then the left pane as a step down and the right pane as a step up.
 - *Spine viz:* the quadratic formula assembled from the sliders, and the two roots drawn as
   points in the complex plane. Drag `m`, `c`, `k` and the points move live. The complex plane
   appears here for the first time and stays for the rest of the piece.
-- *Left, step down (real line, one number):* the quadratic formula on the real line with the
-  discriminant highlighted; then one complex number as a point, its real part, imaginary
-  part, and modulus.
+- *Left, step down (one number):* the quadratic formula with the discriminant highlighted on
+  the plane — the centre `−c/2m` and the `±√(c²−4mk)/2m` that carries the roots away from it;
+  then one complex number as a point, its real part, imaginary part, and modulus. The real
+  line the discriminant was first drawn on is gone: once the discriminant goes negative the
+  roots leave that line, so it could only ever show half the story.
 - *Right, step up (`(m, c, k) = *` along a path):* sweep the discriminant through zero. The
   roots collide on the real axis and split into the plane; beside them the closed-form
   solution switches between overdamped, critically damped, and underdamped.

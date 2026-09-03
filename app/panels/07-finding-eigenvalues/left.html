@@ -3,11 +3,11 @@
   <div class="prose">
     <p>The characteristic polynomial of the spring is a quadratic in <math><mi>λ</mi></math>,
       and you actually know how to find its roots. It’s the one equation you remember from high
-      school:</p>
+      school. Drag the numbers:</p>
     <math display="block">
       <mrow><mi>λ</mi><mo>=</mo><mfrac>
-        <mrow><mo>−</mo><mn data-var="c" data-digits="2">0.10</mn><mo>±</mo><msqrt><mrow><msup><mn data-var="c" data-digits="2">0.10</mn><mn>2</mn></msup><mo>−</mo><mn>4</mn><mo>·</mo><mn data-var="m" data-digits="2">1.00</mn><mo>·</mo><mn data-var="k" data-digits="1">100.0</mn></mrow></msqrt></mrow>
-        <mrow><mn>2</mn><mo>·</mo><mn data-var="m" data-digits="2">1.00</mn></mrow>
+        <mrow><mo>−</mo><mo>(</mo><mn data-var="c" data-scrub="c" data-digits="2">0.10</mn><mo>)</mo><mo>±</mo><msqrt><mrow><msup><mrow><mo>(</mo><mn data-var="c" data-scrub="c" data-digits="2">0.10</mn><mo>)</mo></mrow><mn>2</mn></msup><mo>−</mo><mn>4</mn><mo>·</mo><mn data-var="m" data-scrub="m" data-digits="2" data-log>1.00</mn><mo>·</mo><mn data-var="k" data-scrub="k" data-digits="1" data-log>100.0</mn></mrow></msqrt></mrow>
+        <mrow><mn>2</mn><mo>·</mo><mn data-var="m" data-scrub="m" data-digits="2" data-log>1.00</mn></mrow>
       </mfrac></mrow>
     </math>
     <p>Everything hangs on the part under the root, the discriminant
@@ -21,8 +21,14 @@
       is its distance from the origin. For the current spring,
       <math><mrow><mi>λ</mi><mo>=</mo><mn data-var="lambda-re">−0.05</mn><mo>±</mo><mn data-var="lambda-im">10.00</mn><mi>i</mi></mrow></math>,
       with modulus <math><mn data-var="lambda-abs">10.00</mn></math>.</p>
-    <p>Drag <math><mi>c</mi></math> and watch the discriminant change sign; then drag the point
-      on the plane and read off its real part, imaginary part, and modulus.</p>
+    <p>Both halves of the formula are drawn on the plane. The blue mark at
+      <math><mrow><mo>−</mo><mi>c</mi><mo>/</mo><mn>2</mn><mi>m</mi><mo>=</mo><mn data-var="centre" data-digits="2">−0.05</mn></mrow></math>
+      is where the roots would sit if the discriminant were zero; the
+      <math><mrow><mo>±</mo><msqrt><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>−</mo><mn>4</mn><mi>m</mi><mi>k</mi></mrow></msqrt><mo>/</mo><mn>2</mn><mi>m</mi></mrow></math>
+      is what carries them away from it — <span data-var="offset-says">off the real axis,
+      because the discriminant is negative</span>.</p>
+    <p>Drag <math><mi>c</mi></math> in the formula and watch the discriminant change sign; then
+      drag the point on the plane and read off its real part, imaginary part, and modulus.</p>
   </div>
   <div class="viz"></div>
 </article>

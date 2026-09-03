@@ -6,20 +6,22 @@
       means we need to solve for our eigenvalues <math><msub><mi>λ</mi><mi>i</mi></msub></math>
       when <math><mrow><mi>p</mi><mo>(</mo><mi>λ</mi><mo>)</mo><mo>=</mo><mi>m</mi><msup><mi>λ</mi><mn>2</mn></msup><mo>+</mo><mi>c</mi><mi>λ</mi><mo>+</mo><mi>k</mi><mo>=</mo><mn>0</mn></mrow></math>.
       You actually know how to find these roots. It’s the one equation you remember from high
-      school: the quadratic equation! With the current sliders:</p>
+      school: the quadratic equation,
+      <math><mrow><mi>λ</mi><mo>=</mo><mo>(</mo><mo>−</mo><mi>c</mi><mo>±</mo><msqrt><mrow><msup><mi>c</mi><mn>2</mn></msup><mo>−</mo><mn>4</mn><mi>m</mi><mi>k</mi></mrow></msqrt><mo>)</mo><mo>/</mo><mn>2</mn><mi>m</mi></mrow></math>.
+      Drag the numbers:</p>
     <math display="block">
       <mrow>
         <mi>λ</mi><mo>=</mo>
         <mfrac>
           <mrow>
-            <mo>−</mo><mn data-var="c" data-digits="2">0.10</mn>
+            <mo>−</mo><mo>(</mo><mn data-var="c" data-scrub="c" data-digits="2">0.10</mn><mo>)</mo>
             <mo>±</mo>
             <msqrt><mrow>
-              <msup><mn data-var="c" data-digits="2">0.10</mn><mn>2</mn></msup>
-              <mo>−</mo><mn>4</mn><mo>·</mo><mn data-var="m" data-digits="2">1.00</mn><mo>·</mo><mn data-var="k" data-digits="1">100.0</mn>
+              <msup><mrow><mo>(</mo><mn data-var="c" data-scrub="c" data-digits="2">0.10</mn><mo>)</mo></mrow><mn>2</mn></msup>
+              <mo>−</mo><mn>4</mn><mo>·</mo><mn data-var="m" data-scrub="m" data-digits="2" data-log>1.00</mn><mo>·</mo><mn data-var="k" data-scrub="k" data-digits="1" data-log>100.0</mn>
             </mrow></msqrt>
           </mrow>
-          <mrow><mn>2</mn><mo>·</mo><mn data-var="m" data-digits="2">1.00</mn></mrow>
+          <mrow><mn>2</mn><mo>·</mo><mn data-var="m" data-scrub="m" data-digits="2" data-log>1.00</mn></mrow>
         </mfrac>
       </mrow>
     </math>
@@ -35,8 +37,20 @@
       parts, the system is unstable.” (Eberly). If and only if this is true, our solution is
       going to stick close to the explicit solution. Both roots here have real part
       <math><mrow><mo>−</mo><mfrac><mi>c</mi><mrow><mn>2</mn><mi>m</mi></mrow></mfrac><mo>=</mo><mn data-var="alpha" data-digits="3">−0.050</mn></mrow></math>,
-      which is <span data-var="verdict">negative: the spring settles</span>. Choose force
-      parameters that push a real part above zero and nothing downstream can save the engine.</p>
+      which is <span data-var="verdict">negative: every mode decays and the spring settles</span>.</p>
+    <p>“If we choose force parameters that, downstream, result in eigenvalues with real parts
+      greater than 0, we cannot guarantee stability of our physics engine.” Drag
+      <math><mi>c</mi></math> below zero and watch it happen: negative damping is a force that
+      pumps energy in instead of taking it out, both roots slide into the shaded right
+      half-plane, and the oscillation grows without bound. Nothing downstream — no integrator,
+      no step size — can save an engine whose physics is already doing that.</p>
+    <p class="muted">This is a local what-if. The
+      <math><mi>c</mi></math> you drag here is this pane’s own copy,
+      <math><mn data-var="localc" data-digits="2">0.10</mn></math>, with its own range down to
+      <math><mn data-var="clo" data-digits="0">−5</mn></math>; the spring the rest of the piece
+      integrates keeps <math><mrow><mi>c</mi><mo>=</mo><mn data-var="springc" data-digits="2">0.10</mn></mrow></math>.
+      <math><mi>m</mi></math> and <math><mi>k</mi></math> are the real spring’s, and dragging
+      them does change it.</p>
   </div>
   <div class="viz"></div>
 </article>

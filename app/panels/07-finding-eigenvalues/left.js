@@ -1,133 +1,84 @@
-// Panel 7, left: the quadratic formula on the real line with the discriminant highlighted,
-// then one complex number as a point on the plane with its real part, imaginary part, and
-// modulus drawn in. Step down: one number, checkable by hand.
+// Panel 7, left: one complex number as a point on the plane, with its real part, imaginary
+// part and modulus drawn in — and the quadratic formula's two halves drawn on the same plane:
+// the centre −c/2m, and the ±√(c² − 4mk)/2m that carries the roots away from it, along the
+// real axis when the discriminant is positive and off it when it is not. Step down: one
+// number, checkable by hand.
+//
+// There are no sliders: the numbers in the formula above are the control (bindScrub), and the
+// root itself is draggable (cplane inverts λ back to c and k). Everything here reads and
+// writes the tuple — this pane shows the reader's actual spring, no what-if.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane, handleIndex } from 'shared/gfx/cplane.js';
-import { cssVar, makeView, drawText, drawPolyline } from 'shared/gfx/plot2d.js';
+import { cssVar, drawText, drawPoint, drawPolyline } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
-import { slider, controls } from 'shared/ui/controls.js';
+import { bindScrub } from 'shared/ui/scrub.js';
 import { discriminant, regime, eigenvalues } from 'shared/math/system.js';
 import { cabs } from 'shared/math/complex.js';
 
+/** The caption under the plane: what the ±√disc/2m offset does to the roots. */
+function offsetCaption(m, c, k) {
+  const d = discriminant(m, c, k);
+  const off = Math.sqrt(Math.abs(d)) / (2 * m);
+  if (regime(m, c, k) === 'critical') return 'c² − 4mk = 0 → the offset vanishes: one repeated root';
+  if (d < 0) return `c² − 4mk = ${fmt(d, 1)} < 0 → ±${fmt(off, 2)}i: off the real axis`;
+  return `c² − 4mk = ${fmt(d, 1)} > 0 → ±${fmt(off, 2)}: along the real axis`;
+}
+
 export function mount(root, ctx) {
   const { store, signal } = ctx;
+  const article = root.closest('article') ?? root;
 
-  // ---- the real line: center −c/2m, offset ±√disc / 2m ----
-  const line = createStage(root, { layers: ['line'], aspect: 'strip', signal });
-  line.onDraw(({ w, h, dpr }) => {
-    const s = store.get();
-    const g = line.ctx('line');
-    const d = discriminant(s.m, s.c, s.k), r = regime(s.m, s.c, s.k);
-    const center = -s.c / (2 * s.m);
-    const offset = Math.sqrt(Math.abs(d)) / (2 * s.m);
-    const half = Math.max(2, 1.4 * (Math.abs(center) + offset));
-    const view = makeView({ w, h, dpr, halfW: half, cy: 0, halfH: half * h / w });
-    g.clearRect(0, 0, w, h);
-
-    // the axis, with ticks
-    const y0 = h * 0.62;
-    g.save();
-    g.strokeStyle = cssVar('--axis'); g.lineWidth = dpr;
-    g.beginPath(); g.moveTo(0, y0); g.lineTo(w, y0); g.stroke();
-    g.fillStyle = cssVar('--tick'); g.font = `${11 * dpr}px ${cssVar('--font')}`;
-    g.textAlign = 'center';
-    const step = half > 20 ? 10 : half > 8 ? 5 : half > 3 ? 2 : 1;
-    for (let v = Math.ceil(-half / step) * step; v <= half; v += step) {
-      const X = view.X(v);
-      g.beginPath(); g.moveTo(X, y0 - 4 * dpr); g.lineTo(X, y0 + 4 * dpr); g.stroke();
-      g.fillText(String(v).replace('-', '−'), X, y0 + 17 * dpr);
-    }
-    g.textAlign = 'right';
-    g.fillStyle = cssVar('--axis');
-    g.fillText('real line', w - 8 * dpr, y0 - 8 * dpr);
-    g.restore();
-
-    // the discriminant: a bracket of ±√|disc| / 2m around the center, drawn on the line when
-    // it is real and lifted off it when it is not
-    const accent = cssVar('--accent');
-    const Xc = view.X(center), Xl = view.X(center - offset), Xr = view.X(center + offset);
-    const dot = (X, r, fill) => {
-      g.beginPath(); g.arc(X, y0, r * dpr, 0, Math.PI * 2);
-      g.fillStyle = fill; g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2 * dpr; g.stroke();
-    };
-    g.save();
-    g.lineWidth = 2.5 * dpr;
-    if (r === 'overdamped') {
-      g.strokeStyle = accent;
-      g.beginPath(); g.moveTo(Xl, y0); g.lineTo(Xr, y0); g.stroke();
-      dot(Xl, 5.5, cssVar('--stable'));
-      dot(Xr, 5.5, cssVar('--stable'));
-    } else if (r === 'critical') {
-      dot(Xc, 6.5, cssVar('--stable'));
-    } else {
-      // √(negative): the offset leaves the line. Dotted stubs up and down of length |offset|.
-      const stub = Math.min(h * 0.4, offset * view.sx);
-      g.strokeStyle = cssVar('--unstable');
-      g.setLineDash([3 * dpr, 4 * dpr]);
-      g.beginPath(); g.moveTo(Xc, y0 - stub); g.lineTo(Xc, y0 + stub); g.stroke();
-      g.setLineDash([]);
-      dot(Xc, 4.5, accent);
-    }
-    g.restore();
-
-    // labels
-    g.save();
-    g.font = `${11.5 * dpr}px ${cssVar('--font')}`;
-    g.fillStyle = accent; g.textAlign = 'center';
-    g.fillText(`−c / 2m = ${fmt(center, 2)}`, Xc, y0 - 34 * dpr);
-    g.fillStyle = r === 'underdamped' ? cssVar('--unstable') : accent;
-    const label = r === 'underdamped'
-      ? `√(${fmt(d, 1)}) / 2m is not a real number: ±${fmt(offset, 2)} i`
-      : r === 'critical' ? '√0 / 2m = 0: one repeated root' : `±√(${fmt(d, 1)}) / 2m = ±${fmt(offset, 2)}`;
-    g.fillText(label, w / 2, h - 10 * dpr);
-    g.restore();
-  });
-
-  // ---- the plane: one root as a point with its parts drawn in ----
-  const row = el('div', { class: 'viz-row' });
-  root.append(row);
-  const planeStage = createStage(row, { layers: ['plane'], aspect: 'half', signal, grab: true });
+  const stage = createStage(root, { layers: ['plane'], aspect: 'square', signal, grab: true });
   const plane = createComplexPlane({
-    stage: planeStage, store, signal, drag: true, verdict: 'physical',
+    stage, store, signal, drag: true, verdict: 'physical',
     halfRange: s => Math.max(3, 1.35 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
     onDraw(g, view, s) {
       const ls = eigenvalues(s.m, s.c, s.k);
       const l = ls[handleIndex(ls)];
       const [a, b] = l;
-      const muted = cssVar('--muted'), accent = cssVar('--accent');
+      const muted = cssVar('--muted'), accent = cssVar('--accent'), edge = cssVar('--region-edge');
       // modulus: a radius from the origin
       drawPolyline(g, view, [0, a], [0, b], { color: accent, width: 1.5 });
       // real and imaginary parts: dashed drops to the axes
       drawPolyline(g, view, [a, a], [0, b], { color: muted, width: 1, dash: [4, 4] });
       drawPolyline(g, view, [0, a], [b, b], { color: muted, width: 1, dash: [4, 4] });
+
+      // the two halves of the quadratic formula: the centre −c/2m, and the offset from it.
+      // Underdamped, a = −c/2m exactly, so the dashed drop above *is* √(4mk − c²)/2m.
+      const centre = -s.c / (2 * s.m);
+      const caption = offsetCaption(s.m, s.c, s.k);
+      if (Math.abs(a - centre) > 1e-12) drawPolyline(g, view, [centre, a], [0, 0], { color: edge, width: 3 });
+      drawPoint(g, view, centre, 0, { r: 3.5, fill: edge, stroke: null });
+
       // labels sit on the side of the Im axis away from its tick labels (which hang to its right)
       const left = a < 0 || Math.abs(a) < 0.08 * (view.xMax - view.xMin);
       const side = { align: left ? 'right' : 'left', dx: left ? -10 : 12 };
-      drawText(g, view, `a = ${fmt(a, 2)}`, a, 0, { color: muted, size: 11, align: 'center', dy: b >= 0 ? 16 : -8 });
       // a real root: everything sits on the axis, so spread the labels above and below it
       const flat = Math.abs(b) < 0.04 * (view.yMax - view.yMin);
+      drawText(g, view, `a = ${fmt(a, 2)}`, a, 0, { color: muted, size: 11, align: 'center', dy: b >= 0 ? 16 : -8 });
       drawText(g, view, `b = ${fmt(b, 2)}`, 0, b, { color: muted, size: 11, ...(flat ? { align: 'left', dx: 12, dy: -8 } : { ...side, dy: 4 }) });
       drawText(g, view, `|λ| = ${fmt(cabs(l), 2)}`, a / 2, b / 2, { color: accent, size: 11, ...(flat ? { align: 'center', dy: -10 } : { ...side, dy: 4 }) });
+      drawText(g, view, `−c/2m = ${fmt(centre, 2)}`, centre, 0, { color: edge, size: 11, align: 'center', dy: b >= 0 ? -10 : 18 });
+      drawText(g, view, caption, view.xMin, view.yMin, { color: edge, size: 11, dx: 8, dy: -10 });
     },
   });
 
-  row.append(controls(
-    slider(store, 'c', { label: 'c (drag)', min: 0, max: 30, signal }),
-    slider(store, 'k', { label: 'k (spring)', min: 0, max: 400, signal }),
-  ));
-  line.invalidate();
-  const unsubscribe = store.subscribe(line.invalidate, { immediate: false });
-
-  bindMath(root.closest('article') ?? root, store, s => {
+  bindScrub(article, store, { signal });
+  bindMath(article, store, s => {
     const ls = eigenvalues(s.m, s.c, s.k);
     const l = ls[handleIndex(ls)];
+    const r = regime(s.m, s.c, s.k);
     return {
       disc: discriminant(s.m, s.c, s.k),
       'lambda-re': l[0], 'lambda-im': Math.abs(l[1]), 'lambda-abs': cabs(l),
+      centre: -s.c / (2 * s.m),
+      'offset-says': r === 'critical' ? 'nowhere, because the discriminant is zero'
+        : r === 'underdamped' ? 'off the real axis, because the discriminant is negative'
+        : 'along the real axis, because the discriminant is positive',
     };
   }, { signal });
 
-  return { destroy() { unsubscribe(); plane.destroy(); } };
+  return { destroy() { plane.destroy(); } };
 }
