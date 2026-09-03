@@ -2,11 +2,9 @@
   <h2>Point masses</h2>
   <div class="prose">
     <p>There are loads of physics engines out there that you may not realize are physics engines.
-      Most particle systems are one. They don’t generally care about fine-grain collision
-      detection, and they treat each physical object as a dimension-less point. That point is
+      Particle systems are some of the simplest, as they treat each physical object as a dimension-less point.<br><br>That point is
       where we start.</p>
-    <p>A point mass is all the mass at one point: no extent, no rotation, no near side and far
-      side, nothing to spin. Its entire state is a position on the plane and a number,</p>
+    <p>A point mass is all the mass at one point. Its entire state is a position and a number,</p>
     <math display="block">
       <mrow>
         <mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>)</mo>
@@ -16,12 +14,6 @@
         <mi>m</mi><mo>=</mo><mn data-var="m" data-scrub="m" data-digits="2">1.00</mn>
       </mrow>
     </math>
-    <p>Drag it anywhere you like. Nothing else moves: there are no forces yet, so the position is
-      whatever you last set it to, and the mass only starts to matter once something pushes on it.
-      Every panel after this one is about what happens next to exactly this object.</p>
-    <p>A real body has dimensions, and a body with dimensions can also turn. That is the step up,
-      to the right: the rigid body, with a rotation <math><mi>θ</mi></math> alongside its position.
-      This piece drops <math><mi>θ</mi></math> and keeps the point.</p>
   </div>
   <div class="viz"></div>
 </article>

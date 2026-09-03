@@ -4,11 +4,8 @@
     <p>A rigid body is simply an object that has mass and dimensions that do not change. Step up
       from the point mass and the point grows into a shape. The mass spreads out over that shape,
       but it still has one centre — the centre of mass — and that centre is exactly where the
-      point was. Drag the body and the point mass moves with it; they are the same body, seen
-      at two rungs.</p>
-    <p>Extent buys the body something a point could never have: it can face a direction. So a
-      third number joins the state, the rotation <math><mi>θ</mi></math>, measured in radians
-      from the <math><mi>x</mi></math> axis to the body’s own axis:</p>
+      point was.</p>
+    <p>Rigid bodies also have a rotation <math><mi>θ</mi></math>, measured in radians:</p>
     <math display="block">
       <mrow>
         <mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>θ</mi><mo>)</mo>
@@ -20,15 +17,9 @@
         <mo>)</mo>
       </mrow>
     </math>
-    <p>The body arrives already turned. <math><mi>θ</mi></math> is not a special state you switch
-      on; it is a coordinate like the other two, and zero is nothing more than one of its values.
+    <p><math><mi>θ</mi></math> is just a coordinate like x and y.
       Drag any of the three numbers above sideways to scrub it, drag the body itself to move it,
       or drag the handle on its axis to spin it about the centre of mass.</p>
-    <p>The essay starts here, with the whole rigid body. This piece drops
-      <math><mi>θ</mi></math> and keeps the state at <math><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>v</mi><mo>)</mo></mrow></math>:
-      everything that breaks in a physics engine breaks in the translational half already, and
-      one coordinate is enough to show it. Panel 2’s drill-down picks this body up again and
-      turns forces into rotation.</p>
   </div>
   <div class="viz"></div>
 </article>
