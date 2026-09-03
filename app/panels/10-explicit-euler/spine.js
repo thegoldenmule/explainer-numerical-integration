@@ -25,9 +25,7 @@ function eulerVerdicts(s) {
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const stage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
+  const stage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal });
   createComplexPlane({
     stage, store, signal,
     verdict: 'euler',
