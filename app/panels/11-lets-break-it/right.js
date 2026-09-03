@@ -16,6 +16,7 @@ import { updateMatrix, spectralRadius } from 'shared/math/stability.js';
 import { sweep, sweepKey } from 'shared/math/sweep.js';
 import { cfmt } from 'shared/math/complex.js';
 import { aux } from 'shared/aux.js';
+import { methodPicker } from 'shared/ui/controls.js';
 
 const ROWS = 3, COLS = 3, COUNT = ROWS * COLS;
 const PERIODS = 4;                 // of the exact solution per mini run
@@ -140,13 +141,14 @@ export function mount(root, ctx) {
   const runs = (state, pts) => sweep(pts.map((_, i) => i), i => miniRun(state, pts[i].lambda),
     { key: sweepKey({ panel: '11-right-runs', method: state.method, h: state.h, m: state.m, x0: state.x0, v0: state.v0 }) });
 
-  // ---- row 1: the plane with the nine points. No readout beside it any more, but the
-  // .viz-row wrapper stays: standalone, .stage.half loses the 48%-of-row-width cap that keeps
-  // it beside the 'wide' grid stage below without pushing it past the fold. An empty second
-  // column costs nothing. ----
+  // ---- row 1: the plane with the nine points, the method picker beside it (the .viz-row
+  // wrapper's second column, otherwise empty: .stage.half loses the 48%-of-row-width cap
+  // that keeps it beside the 'wide' grid stage below without pushing it past the fold). The
+  // nine points, their kinds, and the region all redraw on any method change already. ----
   const top = el('div', { class: 'viz-row' });
   root.append(top);
   const planeStage = createStage(top, { layers: ['region', 'plane'], aspect: 'half', signal });
+  top.append(methodPicker(store, { signal }));
   const plane = createComplexPlane({
     stage: planeStage, store, signal, region: true, labels: false,
     halfRange: s => geom(s).half / s.h,
