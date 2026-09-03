@@ -110,5 +110,5 @@ export function readout({ label } = {}) {
   };
 }
 
-export const controls = (...children) => el('div', { class: 'controls' }, children);
-export const row = (...children) => el('div', { class: 'controls-row' }, children);
+export const controls = (...children) => el('div', { class: 'controls' }, ...children);
+export const row = (...children) => el('div', { class: 'controls-row' }, ...children);
