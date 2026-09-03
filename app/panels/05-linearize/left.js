@@ -5,7 +5,9 @@
 //
 // a, b, and a + b are all draggable only along the positive x axis (the check makes no
 // special use of negative inputs), so the view shows only that quadrant — the other three
-// would just be unused plot.
+// would just be unused plot. The view still opens a hair before 0 on both axes (MARGIN) so a
+// point sitting near the origin has canvas on every side of it to grab, not just clipped
+// against the plot's own edge.
 
 import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -14,6 +16,7 @@ import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 's
 import { controls } from 'shared/ui/controls.js';
 
 const X_MAX = 3.2;    // the plot shows only x ≥ 0: the drag range, and the only quadrant used
+const MARGIN = 0.1;   // a hair of room past 0 on both axes, so a point near it is still grabbable
 const FUNCTIONS = {
   linear: { label: 'f(x) = 2x', f: x => 2 * x },
   square: { label: 'f(x) = x²', f: x => x * x },
@@ -31,7 +34,7 @@ export function mount(root, ctx) {
     const { f } = FUNCTIONS[kind];
     const g = stage.ctx('plot');
     const yMax = kind === 'square' ? 8 : 6.5;
-    view = makeView({ w, h, dpr, xMin: 0, xMax: X_MAX, yMin: 0, yMax });
+    view = makeView({ w, h, dpr, xMin: -MARGIN, xMax: X_MAX, yMin: -MARGIN, yMax });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'f(x)' });
 
@@ -67,7 +70,7 @@ export function mount(root, ctx) {
   createDragHandles(stage.canvas('plot'), {
     signal, hitRadius: 14,
     handles: () => [{ id: 'a', x: a, y: 0 }, { id: 'b', x: b, y: 0 }],
-    view: () => view ?? makeView({ w: 1, h: 1, dpr: 1, xMin: 0, xMax: X_MAX, yMin: 0, yMax: 1 }),
+    view: () => view ?? makeView({ w: 1, h: 1, dpr: 1, xMin: -MARGIN, xMax: X_MAX, yMin: -MARGIN, yMax: 1 }),
     onMove: (id, p) => {
       const x = Math.max(0.05, Math.min(X_MAX - 0.1, p.x));
       if (id === 'a') a = x; else b = x;
