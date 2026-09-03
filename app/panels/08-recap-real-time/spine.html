@@ -16,21 +16,22 @@
       problem with this method is that adequately testing a sandbox is logically impossible. A
       tester can’t possibly test every physical situation. Instead, you need something
       <em>provable</em>.</p>
-    <p>This is the tension from panel 3 with a clock on it. Raise <math><mi>h</mi></math> and the
-      compute cost per frame falls while the error against the exact curve rises. At
+    <p>The system running above is a damped spring,</p>
+    <math display="block">
+      <mrow><mi>m</mi><msup><mi>x</mi><mo>″</mo></msup><mo>+</mo><mi>c</mi><msup><mi>x</mi><mo>′</mo></msup><mo>+</mo><mi>k</mi><mi>x</mi><mo>=</mo><mn>0</mn></mrow>
+    </math>
+    <p>with <math><mrow><mi>m</mi><mo>=</mo><mn data-scrub="m" data-digits="2">1.00</mn></mrow></math>,
+      <math><mrow><mi>c</mi><mo>=</mo><mn data-scrub="c" data-digits="2">0.10</mn></mrow></math>,
+      <math><mrow><mi>k</mi><mo>=</mo><mn data-scrub="k" data-digits="1">100.0</mn></mrow></math> —
+      drag any of them and watch the run, the cost, and the error all follow.</p>
+    <p>This is a core tension of physics engines. Raise <math><mi>h</mi></math> and the
+      compute cost per frame falls while the error rises. At
       <math><mrow><mi>h</mi><mo>=</mo><mn data-var="h" data-scrub="h" data-digits="3">0.033</mn><mtext> s</mtext></mrow></math>
       a 60 fps frame needs <math><mtext data-var="stepText">0.5 steps</mtext></math>, and one step of
       this integrator is measured at <math><mtext data-var="perStepText">16 ns</mtext></math> here,
       so the spring costs <math><mtext data-var="frameCost">8 ns</mtext></math> of the
       <math><mtext data-var="frame">16.67 ms</mtext></math> frame: the bar above the run, drawn
       on a log scale because a linear bar would be empty. The error is on the run itself.</p>
-    <p class="muted">The run is windowed to a few periods of the current spring and scaled to its
-      own amplitude, so the oscillation fills the frame; when the approximation leaves the frame
-      it has blown up, and the error line says so. The two buttons are the springs this piece
-      drives from: the demo case, stiff enough that Euler blows up in seconds, and the essay’s
-      own <math><mrow><mi>m</mi><mo>=</mo><mn>10</mn></mrow></math>,
-      <math><mrow><mi>c</mi><mo>=</mo><mn>0.1</mn></mrow></math>,
-      <math><mrow><mi>k</mi><mo>=</mo><mn>10</mn></mrow></math>.</p>
   </div>
   <div class="viz"></div>
 </article>

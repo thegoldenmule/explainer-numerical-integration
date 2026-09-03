@@ -6,6 +6,10 @@
 // The plot window is a few periods of *this* spring (cost.js's plotSpan) and the y range is
 // the run's own amplitude, so the oscillation fills the frame instead of being a squiggle
 // inside a pinned ±3 box, and a blown-up Euler simply leaves the frame.
+//
+// m, c, k are draggable in the prose's own equation (data-scrub, straight into the tuple —
+// no facade needed, the store already carries them), same as h; no preset buttons, so the
+// spring is whatever the reader has dragged it to everywhere else in the piece.
 
 import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -13,7 +17,7 @@ import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { createPlayer, stepCost } from 'shared/player.js';
 import { transport } from 'shared/ui/transport.js';
-import { presets, controls } from 'shared/ui/controls.js';
+import { controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { FRAME_MS, stepsPerFrame, fmtMs, fmtSteps, drawBudgetBar, plotSpan } from './cost.js';
@@ -72,10 +76,7 @@ export function mount(root, ctx) {
     stage.invalidate();
   });
 
-  root.append(controls(
-    presets(store, { demo: 'Demo (m=1, c=0.1, k=100)', essay: 'Essay (m=10, c=0.1, k=10)' }),
-    transport(player, { signal }),
-  ));
+  root.append(controls(transport(player, { signal })));
 
   const article = root.closest('article');
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
