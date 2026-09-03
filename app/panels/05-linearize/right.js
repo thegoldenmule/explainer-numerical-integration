@@ -25,17 +25,23 @@ const highlightIndex = () => Math.min(TERMS.length - 1, Math.max(0, aux.get().hi
 /** What keeping this many terms buys, in one line under the curve. */
 const verdict = hi => (hi === 0 ? 'a constant: m g' : hi === 1 ? 'linear in δ: all a linear model keeps' : 'past δ¹: what linearizing drops');
 
-/** 1/r² ≈ [coefficients[0]] − [|coefficients[1]|]δ + … to degree n, r₀'s actual numbers. */
+/**
+ * 1/r² ≈ [coefficients[0]] − [|coefficients[1]|]δ + … to degree n, r₀'s actual numbers, one
+ * term per row of an mtable: as more terms are kept this grows by exactly one row each, down
+ * the page, instead of the browser wrapping one long inline formula wherever it happens to
+ * run out of width. Column 1 (right-aligned) carries the "1/r² ≈" head on the first row and
+ * is blank after; column 2 (left-aligned) is the term, so every term's own start lines up.
+ */
 function seriesMathML(r0, n) {
   const { coefficients } = inverseSquareExpansion(r0, n);
-  const terms = coefficients.map((c, i) => {
+  const head = '<mfrac><mn>1</mn><msup><mi>r</mi><mn>2</mn></msup></mfrac><mo>≈</mo>';
+  const rows = coefficients.map((c, i) => {
     const mag = `<mn>${fmt(Math.abs(c), 3)}</mn>`;
     const delta = i === 0 ? '' : i === 1 ? '<mi>δ</mi>' : `<msup><mi>δ</mi><mn>${i}</mn></msup>`;
-    return i === 0 ? mag : `<mo>${c < 0 ? '−' : '+'}</mo>${mag}${delta}`;
+    const term = i === 0 ? mag : `<mo>${c < 0 ? '−' : '+'}</mo>${mag}${delta}`;
+    return `<mtr><mtd>${i === 0 ? head : ''}</mtd><mtd>${term}</mtd></mtr>`;
   }).join('');
-  return `<math display="block"><mrow>
-    <mfrac><mn>1</mn><msup><mi>r</mi><mn>2</mn></msup></mfrac><mo>≈</mo>${terms}
-  </mrow></math>`;
+  return `<math display="block"><mtable columnalign="right left" rowspacing="0.3em">${rows}</mtable></math>`;
 }
 
 export function mount(root, ctx) {
