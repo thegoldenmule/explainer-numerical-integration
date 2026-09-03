@@ -69,10 +69,5 @@ export const manifest = Object.freeze([
     right: [{ title: 'Adaptive step controllers' }] },
 ]);
 
-export const PARTS = Object.freeze({
-  1: 'Part I · How physics engines work, and how they break',
-  2: 'Part II · Numerical methods, and where they stop working',
-});
-
 export const panelCount = manifest.length;
 export const panelAt = index => manifest[index - 1];

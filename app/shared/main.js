@@ -6,7 +6,7 @@
 // so touchpads, arrow keys, and rail dots all end up in the same place: a hash route that
 // the router applies.
 
-import { manifest, PARTS, panelCount, panelAt } from './manifest.js';
+import { manifest, panelCount, panelAt } from './manifest.js';
 import { store } from './state.js';
 import { createRouter } from './router.js';
 import { createPaneManager, paneFileId } from './loader.js';
@@ -42,8 +42,8 @@ for (const entry of manifest) {
   for (const p of paneList(entry)) {
     const body = el('div', { class: 'pane-body' });
     const meta = p.pane === 'spine'
-      ? el('div', { class: 'pane-meta' }, el('span', {}, PARTS[entry.part]), el('span', {}, `${entry.index} / ${panelCount}`))
-      : el('div', { class: 'pane-meta' }, el('span', { class: 'kind' }, KIND[p.pane]), el('span', {}, `${entry.index}. ${entry.title}`));
+      ? el('div', { class: 'pane-meta' }, el('span', {}, `${entry.index} / ${panelCount}`), el('span', {}, entry.title))
+      : el('div', { class: 'pane-meta' }, el('span', { class: 'kind' }, KIND[p.pane]), el('span', {}, `${entry.index} / ${panelCount}`), el('span', {}, entry.title));
     const cell = el('div', {
       class: `pane pane-${p.pane}`, 'data-index': entry.index, 'data-pane': p.pane, 'data-depth': p.depth,
     }, meta, body);
