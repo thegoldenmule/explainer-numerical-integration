@@ -31,9 +31,31 @@ const MIN_FIT = 0.3;      // past this a stage is too small to read; the pane cl
 const MIN_PROSE = 0.8;    // 12.8px body text; past this the prose clips rather than shrink on
 const PROSE_STEP = 0.05;  // quantized, so neighbouring panels do not all land on their own size
 const EPSILON = 0.005;    // a smaller correction than this is not worth a reflow
+const MARGIN = 1;         // px of slack the solve aims for, so it cannot sit on the boundary
 const PASSES = 4;
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+
+const hasStage = el => el.classList.contains('stage') || el.querySelector('.stage');
+
+/**
+ * The height of `child` that shrinking the stages would actually take away. All of it for a
+ * stage; nothing for a row of controls; for a row that puts a stage beside something else (a
+ * `.viz-row`) only the height the stage has over its neighbour, because below that the
+ * neighbour is what holds the row open and shrinking the stage buys nothing.
+ */
+function scalableHeight(child) {
+  if (child.classList.contains('stage')) return child.getBoundingClientRect().height;
+  if (!child.querySelector('.stage')) return 0;
+  const top = child.getBoundingClientRect().top;
+  let stagePart = 0, otherPart = 0;
+  for (const part of child.children) {
+    const extent = part.getBoundingClientRect().bottom - top;
+    if (hasStage(part)) stagePart = Math.max(stagePart, extent);
+    else otherPart = Math.max(otherPart, extent);
+  }
+  return Math.max(0, stagePart - otherPart);
+}
 
 /** Height of the column, the room it has, and how much of it is stage. */
 function measure(article, viz) {
@@ -45,9 +67,7 @@ function measure(article, viz) {
     const box = child.getBoundingClientRect();
     if (!box.height && !box.width) continue;   // display: none, or not laid out yet
     required = Math.max(required, box.bottom - vizTop);
-    // a `.viz-row` counts as a stage row: its height is the stage's, unless its controls are
-    // taller, in which case the extra rides along as scalable and the next pass corrects it
-    if (child.classList.contains('stage') || child.querySelector('.stage')) stages += box.height;
+    stages += scalableHeight(child);
   }
   return { avail, required, stages };
 }
@@ -56,13 +76,23 @@ function measure(article, viz) {
 export function fitViz(article, viz) {
   if (!viz.querySelector('.stage')) return;   // nothing here scales
   let fit = Number(viz.style.getPropertyValue('--fit')) || 1;
+  let last = null;                            // the pass before: { fit, required }
   for (let pass = 0; pass < PASSES; pass++) {
     const { avail, required, stages } = measure(article, viz);
     if (avail <= 0 || stages <= 0) return;               // off-screen or laid out to nothing
-    if (fit === 1 && required <= avail) return;          // fits at full size: leave it alone
+    const over = required - avail;
+    if (fit === 1 && over <= 0) return;                  // fits at full size: leave it alone
     const wanted = stages / fit;                         // stage height at --fit: 1
-    const next = clamp((avail - (required - stages)) / wanted, MIN_FIT, 1);
-    if (Math.abs(next - fit) < EPSILON) return;
+    let next = clamp((avail - MARGIN - (required - stages)) / wanted, MIN_FIT, 1);
+    if (over > 0) {
+      // The solve says this fits and it does not, so something under it reflowed as the stages
+      // narrowed. Shrink by the shortfall instead — unless the pass before was itself a shrink
+      // that bought no height, which means what is over the budget is not the stages' to give.
+      if (last && last.fit > fit && last.required - required < 0.5) return;
+      next = Math.min(next, clamp(fit * (avail - MARGIN) / required, MIN_FIT, 1));
+    }
+    if (Math.abs(next - fit) < (over > 0 ? 0.0005 : EPSILON)) return;
+    last = { fit, required };
     fit = next;
     if (fit === 1) viz.style.removeProperty('--fit');
     else viz.style.setProperty('--fit', fit.toFixed(4));
@@ -99,14 +129,22 @@ export function fitPane(container, signal) {
   const viz = article?.querySelector('.viz');
   if (!viz) return;
   const prose = article.querySelector('.prose');
+  let busy = false;
   const run = () => {
-    fitViz(article, viz);
-    if (prose) fitProse(article, prose);
+    if (busy) return;
+    busy = true;
+    try {
+      fitViz(article, viz);
+      if (prose) fitProse(article, prose);
+    } finally { busy = false; }
   };
   run();
-  // the pane box only changes with the viewport, so this cannot feed back on itself; the
-  // stages it resizes are inside `.viz`, which is not observed
+  // The pane box changes with the viewport; the column changes when a pane finishes settling
+  // after mount or when something in it grows. Both are watched, `.viz` included: a solve is
+  // idempotent, so the observer's own notification re-measures, finds nothing to change, and
+  // writes nothing — the loop stops itself rather than needing to be kept out.
   const ro = new ResizeObserver(run);
   ro.observe(container);
+  ro.observe(viz);
   signal?.addEventListener('abort', () => ro.disconnect(), { once: true });
 }
