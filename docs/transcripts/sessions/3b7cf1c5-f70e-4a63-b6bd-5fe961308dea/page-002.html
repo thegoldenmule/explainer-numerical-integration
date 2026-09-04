@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 2</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/8</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-003.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-02T20-21-36-869Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-21-36-869Z" class="timestamp-link"><time datetime="2026-09-02T20:21:36.869Z" data-timestamp="2026-09-02T20:21:36.869Z">2026-09-02T20:21:36.869Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>abe4cd5ee94ba61a9</task-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/abe4cd5ee94ba61a9.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Sync panel skeleton to idea.md" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Working tree is clean for everything I touched. Task complete.</p>
+<h2>Summary</h2>
+<p><strong>Final manifest</strong> (<code>app/shared/manifest.js</code>), one line per panel — title / left / right(s):</p>
+<ol>
+<li>Point masses / — / Rigid bodies: extent and rotation</li>
+<li>Newtonian physics: F = ma / Vectors / Torque and moment of inertia</li>
+<li>Solving for x / x, v, a: derivatives / ODEs vs PDEs; intractability</li>
+<li>Physical stability / What "close" means / Lyapunov vs asymptotic</li>
+<li>Stability analysis: linearize / What "linear" means / Taylor expansion and 1/r² gravity</li>
+<li>Eigen-what-now / Matrices as transforms / Explode the eigenvector over a sweep</li>
+<li>Finding eigenvalues / Quadratics and complex numbers / Under-, critically, and overdamped</li>
+<li>Recap: real time / Frame budget, ms per frame / Explode h: all step sizes at once</li>
+<li>Finding error / Geometric growth / The modal equation</li>
+<li>Runge-Kutta family: explicit Euler / Euler, step by step, to the disk / Explode h: nested disks</li>
+<li>Let's break it / The exact solution, no method / Explode the plane: a grid of λ</li>
+<li>Higher-order Runge-Kutta / Taylor series / [Explode order, Implicit Euler, Verlet]</li>
+<li>Variable step sizes / Local vs global error / Adaptive step controllers</li>
+</ol>
+<p><code>right</code> is now always <code>null</code> or an array of <code>{ title }</code> (documented in the manifest's header comment); <code>left</code> stays a single object or <code>null</code> since it never chains.</p>
+<p><strong>Shell changes:</strong> <code>router.js</code> routes now carry an optional depth (<code>#/N/right/2</code>), clamped downward by <code>canOpen</code>/<code>normalize</code> when out of range. <code>loader.js</code> gained <code>paneFileId(pane, depth)</code> mapping to <code>right</code>/<code>right-2</code>/<code>right-3</code> file basenames, and <code>createPaneManager</code> mounts a panel's full right chain. <code>main.js</code> stamps one cell per pane in chain order, rebuilds the bottom rail to one dot per pane per panel, and ArrowLeft/ArrowRight walk the chain one step at a time, falling back to the spine at either end.</p>
+<p><strong>Panel 1</strong> renamed <code>01-rigid-bodies/</code> → <code>01-point-masses/</code>; its spine is now the point-mass content (formerly <code>left.*</code>), its right pane is the rigid body (formerly <code>spine.*</code>). <code>app/README.md</code> and every other panel's <code>README.md</code> updated to match.</p>
+<p><strong>Tests:</strong> <code>node --test "shared/**/*.test.js"</code> — 22/22 pass.</p>
+<p><strong>Browser verification</strong> (chrome-devtools MCP): <code>#/1</code> shows the point mass with no left dot; ArrowRight opens the rigid body, ArrowLeft returns; <code>#/1/left</code> redirects to <code>#/1</code>; <code>#/12/right</code> → <code>#/12/right/2</code> → <code>#/12/right/3</code> each land on their own cell (Explode order / Implicit Euler / Verlet placeholders) and ArrowRight/ArrowLeft walk the chain both ways, stopping at the ends; <code>#/12/right/4</code> normalizes to <code>#/12/right/3</code>; <code>#/8/right</code> opens ("Explode h: all step sizes at once"). Console held only expected 404s for unbuilt panes (7, 8, 9, 12's right chain). Server killed after verification.</p>
+<p>Nothing in idea.md's navigation rules or panel structure required omission — everything specified was implementable within the existing shell architecture.</p>
+<p>Committed as <code>258d80e</code> on <code>main</code> (docs/ untouched; a concurrent docs-editing agent's commits are unaffected).</result>
+<usage><subagent_tokens>163493</subagent_tokens><tool_uses>67</tool_uses><duration_ms>740634</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-39-998Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-39-998Z" class="timestamp-link"><time datetime="2026-09-02T20:21:39.998Z" data-timestamp="2026-09-02T20:21:39.998Z">2026-09-02T20:21:39.998Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-40-761Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-40-761Z" class="timestamp-link"><time datetime="2026-09-02T20:21:40.761Z" data-timestamp="2026-09-02T20:21:40.761Z">2026-09-02T20:21:40.761Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The subagent finished after being resumed. Let me verify its commit and then update CLAUDE.md's route notes.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-41-479Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-41-479Z" class="timestamp-link"><time datetime="2026-09-02T20:21:41.479Z" data-timestamp="2026-09-02T20:21:41.479Z">2026-09-02T20:21:41.479Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_015fJkaat5RX6fcJ2ygjFV1n">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify subagent commit, tests, and router changes</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status --short; git log --oneline -3; git show --stat HEAD | tail -25; cd app &amp;&amp; node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | tail -4; grep -n &#34;parseRoute\|depth&#34; shared/router.js | head -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-21-43-121Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-21-43-121Z" class="timestamp-link"><time datetime="2026-09-02T20:21:43.121Z" data-timestamp="2026-09-02T20:21:43.121Z">2026-09-02T20:21:43.121Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>258d80e app: match panel skeleton to idea.md
+7e118da plan: drop what idea.md now covers; keep mechanics only
+15143b6 idea: fix build order, manifest drift note, and an overstatement in shared code section
+    through #/12/right/3 each land on their own cell with ArrowRight/
+    ArrowLeft walking the chain, #/12/right/4 normalizes to #/12/right/3,
+    #/8/right opens; console holds only the expected 404s for unbuilt
+    panes.
+    
+    Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+    Claude-Session: https://claude.ai/code/session_0142r8oCc11zC6eYW1x7Fisa
+
+ app/README.md                                      |   2 +-
+ .../spine.html =&gt; 01-point-masses/right.html}      |   5 +-
+ .../spine.js =&gt; 01-point-masses/right.js}          |   2 +-
+ app/panels/01-point-masses/spine.html              |  12 ++
+ .../left.js =&gt; 01-point-masses/spine.js}           |   3 +-
+ app/panels/01-rigid-bodies/left.html               |  11 --
+ app/panels/03-solving-for-x/README.md              |   2 +-
+ app/panels/06-eigen-what-now/README.md             |   2 +-
+ app/panels/08-recap-real-time/README.md            |   1 +
+ app/panels/10-explicit-euler/README.md             |   4 +-
+ app/panels/11-lets-break-it/README.md              |   4 +-
+ app/panels/12-higher-order-rk/README.md            |   8 +-
+ app/shared/loader.js                               |  67 +++++++----
+ app/shared/main.js                                 | 128 ++++++++++++---------
+ app/shared/manifest.js                             |  64 ++++++-----
+ app/shared/router.js                               |  41 ++++---
+ 16 files changed, 216 insertions(+), 140 deletions(-)
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.580584
+2:// A depth suffix only ever follows `right` (panel 12&#x27;s three-pane chain); `left` never
+3:// chains, and depth defaults to 1 when the suffix is absent. Anything else normalizes to
+6:export function parseRoute(hash) {
+9:  return { index: Number(m[1]), side: m[2] || null, depth: m[3] ? Number(m[3]) : 1 };
+12:export const formatRoute = ({ index, side, depth }) =&gt;
+13:  `#/${index}${side ? &#x27;/&#x27; + side + (depth &gt; 1 ? &#x27;/&#x27; + depth : &#x27;&#x27;) : &#x27;&#x27;}`;
+16: * createRouter({ count, canOpen(index, side, depth), onRoute(route, source) })
+18: *   canOpen reports whether that exact depth exists for that side.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-45-709Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-45-709Z" class="timestamp-link"><time datetime="2026-09-02T20:21:45.709Z" data-timestamp="2026-09-02T20:21:45.709Z">2026-09-02T20:21:45.709Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Tree is clean, tests pass, and the commit matches the report. Now updating CLAUDE.md so its route and manifest notes match the new shell.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-46-892Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-46-892Z" class="timestamp-link"><time datetime="2026-09-02T20:21:46.892Z" data-timestamp="2026-09-02T20:21:46.892Z">2026-09-02T20:21:46.892Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017tmwAtogfVoWL58gijvVW4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find CLAUDE.md lines to update</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; grep -n &#34;Routes are\|Adding a pane\|side panes exist\|right\]&#34; CLAUDE.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-21-46-917Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-21-46-917Z" class="timestamp-link"><time datetime="2026-09-02T20:21:46.917Z" data-timestamp="2026-09-02T20:21:46.917Z">2026-09-02T20:21:46.917Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>37:[right]`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`. Every input
+45:title, and which side panes exist. Adding a pane means the manifest entry says it exists and the
+58:never keep private copies; side panes exist to show *the reader&#x27;s* current case. `set()` clamps</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-49-840Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-49-840Z" class="timestamp-link"><time datetime="2026-09-02T20:21:49.840Z" data-timestamp="2026-09-02T20:21:49.840Z">2026-09-02T20:21:49.840Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Wj1ZmkZjBCCxcYStwh1Yxz">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read the CLAUDE.md architecture paragraph</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n 33,50p CLAUDE.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-21-49-864Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-21-49-864Z" class="timestamp-link"><time datetime="2026-09-02T20:21:49.864Z" data-timestamp="2026-09-02T20:21:49.864Z">2026-09-02T20:21:49.864Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>## Architecture
+
+**The page is a 2D scroll-snap grid driven by a hash route.** `#spine` scrolls vertically
+between 13 panels (rows). Each row scrolls horizontally between its cells: `[left] [spine]
+[right]`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`. Every input
+(touchpad swipe, arrow keys, rail dots, deep link) ends as a route the router applies in
+`shared/main.js`&#x27;s `onRoute`; IntersectionObservers map user scrolling back to routes, with
+`navigating` flags so programmatic scrolls are ignored. While a side cell is showing, the spine
+gets `overflow-y: hidden`. Cell scroll targets are computed from cell index × row width, never
+`offsetLeft` (it shifts with the row&#x27;s own scroll offset).
+
+**Source of truth is `shared/manifest.js`**, not the file system: it lists each panel&#x27;s slug,
+title, and which side panes exist. Adding a pane means the manifest entry says it exists and the
+files `panels/&lt;slug&gt;/&lt;pane&gt;.{html,js}` are present; nothing is registered anywhere else. A pane
+whose files are missing renders a &quot;not built yet&quot; placeholder and logs a 404, which is expected
+while panels are unbuilt.
+
+**Pane contract** (`shared/loader.js`): `&lt;pane&gt;.html` is an `&lt;article&gt;` fragment with a `.viz`</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-21-59-837Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-21-59-837Z" class="timestamp-link"><time datetime="2026-09-02T20:21:59.837Z" data-timestamp="2026-09-02T20:21:59.837Z">2026-09-02T20:21:59.837Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EkxrPbEy6zGXnpfN9Gjkvq">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update CLAUDE.md routes and manifest notes, commit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;CLAUDE.md&#39;; s=open(p).read()
+old=&#34;&#34;&#34;between 13 panels (rows). Each row scrolls horizontally between its cells: `[left] [spine]
+[right]`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`. Every input&#34;&#34;&#34;
+new=&#34;&#34;&#34;between 13 panels (rows). Each row scrolls horizontally between its cells: `[left] [spine]
+[right] [right-2] …`, each a full viewport. Routes are `#/N`, `#/N/left`, `#/N/right`, and
+`#/N/right/D` for a chain of right panes (panel 12 has three); an out-of-range depth clamps
+down. Every input&#34;&#34;&#34;
+old2=&#34;&#34;&#34;title, and which side panes exist. Adding a pane means the manifest entry says it exists and the
+files `panels/&lt;slug&gt;/&lt;pane&gt;.{html,js}` are present; nothing is registered anywhere else. A pane&#34;&#34;&#34;
+new2=&#34;&#34;&#34;title, and which side panes exist (`left` is an object or null; `right` is null or an array of
+`{ title }`, one per chain step). Adding a pane means the manifest entry says it exists and the
+files `panels/&lt;slug&gt;/&lt;pane&gt;.{html,js}` are present (`right`, `right-2`, `right-3` for a chain);
+nothing is registered anywhere else. `docs/idea.md` is authoritative for what each panel and
+pane is; the manifest follows it. A pane&#34;&#34;&#34;
+for o,n in [(old,new),(old2,new2)]:
+    assert s.count(o)==1; s=s.replace(o,n)
+open(p,&#39;w&#39;).write(s)
+EOF
+git add CLAUDE.md &amp;&amp; git commit -q -m &#34;claude.md: chained right-pane routes and manifest shape
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_0142r8oCc11zC6eYW1x7Fisa&#34; &amp;&amp; git log --oneline -1 &amp;&amp; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-22-01-366Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-22-01-366Z" class="timestamp-link"><time datetime="2026-09-02T20:22:01.366Z" data-timestamp="2026-09-02T20:22:01.366Z">2026-09-02T20:22:01.366Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>d649dfd claude.md: chained right-pane routes and manifest shape</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-22-10-022Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-22-10-022Z" class="timestamp-link"><time datetime="2026-09-02T20:22:10.022Z" data-timestamp="2026-09-02T20:22:10.022Z">2026-09-02T20:22:10.022Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Both requests are done and committed on main. The tree is clean.</p>
+<p><strong>plan.md deduplicated</strong> (<code>7e118da</code>). It now holds only mechanics: ground rules, directory layout, load sequence, pane contract, store API, router internals, rendering conventions, stylesheet split, test and serve commands, and status. Rendering research, the tuple rationale, numeric confirmations, the shared-code inventory, and build order live only in idea.md, and plan.md points at them.</p>
+<p><strong>Panel skeleton synced to idea.md</strong> by the Sonnet subagent (<code>258d80e</code>). I verified the commit, a clean tree, and 22 passing tests myself.
+- Manifest now matches idea.md for all 13 panels. Panel 1 is "Point masses" with no left and a rigid-body right pane, panel 8 has its right pane, and panel 12's right is a three-step chain.
+- Router, loader, and main.js support chained right panes: <code>#/12/right/2</code> and <code>#/12/right/3</code>, one cell and one rail dot per pane, and arrow keys walk the chain. Files for deeper panes are named <code>right-2.js</code> and <code>right-3.js</code>.
+- Panel 1's directory is now <code>01-point-masses</code>, with the old left pane promoted to the spine and the old spine moved to the right pane. Every other panel's README lists its idea.md panes.
+- The subagent checked routing, the panel-1 swap, and the chain in Chrome. The console held only the expected 404s for unbuilt panes.</p>
+<p><strong>CLAUDE.md</strong> (<code>d649dfd</code>) now documents the depth routes, the new manifest shape, and that idea.md is authoritative for what each pane is.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-22-10-115Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-22-10-115Z" class="timestamp-link"><time datetime="2026-09-02T20:22:10.115Z" data-timestamp="2026-09-02T20:22:10.115Z">2026-09-02T20:22:10.115Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-22-13-680Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-22-13-680Z" class="timestamp-link"><time datetime="2026-09-02T20:22:13.680Z" data-timestamp="2026-09-02T20:22:13.680Z">2026-09-02T20:22:13.680Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done, three commits on main, tree clean: plan.md trimmed to mechanics only (<code>7e118da</code>), panel skeleton synced to idea.md with chained right panes and panel 1 renamed to point masses (<code>258d80e</code>, tests pass, browser-checked), and CLAUDE.md updated for the new routes and manifest shape (<code>d649dfd</code>).</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-23-18-288Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-23-18-288Z" class="timestamp-link"><time datetime="2026-09-02T20:23:18.288Z" data-timestamp="2026-09-02T20:23:18.288Z">2026-09-02T20:23:18.288Z</time></a></div><div class="message-content">
+<div class="user-content"><p>do we still have more shared code to build?</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-23-22-327Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-23-22-327Z" class="timestamp-link"><time datetime="2026-09-02T20:23:22.327Z" data-timestamp="2026-09-02T20:23:22.327Z">2026-09-02T20:23:22.327Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-23-28-074Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-23-28-074Z" class="timestamp-link"><time datetime="2026-09-02T20:23:28.074Z" data-timestamp="2026-09-02T20:23:28.074Z">2026-09-02T20:23:28.074Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes. Nothing from the "Shared code" section in idea.md has been built yet. The existing <code>shared/</code> covers the math core, the store, the shell, the region shader, and basic plot helpers. Still to write, roughly two dozen pieces:</p>
+<ul>
+<li><strong>State:</strong> a scene store for the 2D panels (1, 2, 5), an aux store for per-panel knobs, and a generalized <code>createStore</code> to back both.</li>
+<li><strong>Math:</strong> <code>forces.js</code>, <code>matrix2.js</code> (extracted from stability.js plus eigenvectors), <code>modes.js</code>, <code>taylor.js</code>, <code>adaptive.js</code>, <code>sweep.js</code>, plus custom acceleration in the steppers, eigenvalue inversion and normalized stability in the existing modules.</li>
+<li><strong>Simulation:</strong> the live player with transport controls.</li>
+<li><strong>Rendering:</strong> stage helper, trajectory plots, bundles with highlight, the complex plane, drag handles, shader layers and Taylor mode with one shared GL canvas, and small plot2d additions (log-y, band, vector field, heatmap, small-multiple layout, color).</li>
+<li><strong>UI:</strong> live MathML binding, scrubbable numbers, log sliders, toggles, and the sweep strip.</li>
+</ul>
+<p>The order in idea.md says to start with what panels 7, 10, 11, and 12 need: <code>cplane</code>, <code>stage</code>, <code>livemath</code>, <code>player</code>, <code>trajectory</code>, and the shader layers. If you want, I can start on that first group.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-23-28-162Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-23-28-162Z" class="timestamp-link"><time datetime="2026-09-02T20:23:28.162Z" data-timestamp="2026-09-02T20:23:28.162Z">2026-09-02T20:23:28.162Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-23-31-971Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-23-31-971Z" class="timestamp-link"><time datetime="2026-09-02T20:23:31.971Z" data-timestamp="2026-09-02T20:23:31.971Z">2026-09-02T20:23:31.971Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes. None of the new shared modules listed in idea.md's "Shared code" section exist yet: scene and aux stores, forces, matrix2, modes, taylor, adaptive, sweep, the live player, stage, trajectory, bundle, cplane, drag handles, shader layers, live MathML, and scrub. First group to build per idea.md: <code>cplane</code>, <code>stage</code>, <code>livemath</code>, <code>player</code>, <code>trajectory</code>, and shader layers for panels 7, 10, 11, 12.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-24-20-651Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-24-20-651Z" class="timestamp-link"><time datetime="2026-09-02T20:24:20.651Z" data-timestamp="2026-09-02T20:24:20.651Z">2026-09-02T20:24:20.651Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Create a subagent to execute those first shared modules.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-25-04-423Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-25-04-423Z" class="timestamp-link"><time datetime="2026-09-02T20:25:04.423Z" data-timestamp="2026-09-02T20:25:04.423Z">2026-09-02T20:25:04.423Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-25-05-175Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-25-05-175Z" class="timestamp-link"><time datetime="2026-09-02T20:25:05.175Z" data-timestamp="2026-09-02T20:25:05.175Z">2026-09-02T20:25:05.175Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll brief a subagent on the first group from idea.md's build order, with the two spines that consume them as the browser proving ground.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-25-44-201Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-25-44-201Z" class="timestamp-link"><time datetime="2026-09-02T20:25:44.201Z" data-timestamp="2026-09-02T20:25:44.201Z">2026-09-02T20:25:44.201Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Y46npPtbgs8ShLFbD1mKrY"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Build first shared modules</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;You are working in /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration (git, branch main). Read CLAUDE.md, then docs/idea.md in full (the \&#34;Shared code\&#34; section is your spec; the \&#34;Panel by panel\&#34; entries for 7, 10, 11, 12 are the consumers), then docs/plan.md, then every file under app/shared/ and app/panels/01-point-masses/. Do not edit anything under docs/; report what the docs should say instead.\n\nGoal: build the first group of shared modules from idea.md&#39;s \&#34;Order\&#34; paragraph, the ones panels 7, 10, 11, and 12 need: `cplane`, `stage`, `livemath`, `player`, `trajectory`, and the region shader&#39;s layers, plus the small math additions they depend on. Follow the existing code&#39;s conventions exactly: ES modules, no dependencies, relative imports inside `shared/`, colors from CSS custom properties via `plot2d.cssVar`/`cssRgb`, every listener on `ctx.signal`, never cancel wheel events, no panel CSS (shared classes go in `app/styles/controls.css`). Add each new module to the `modulepreload` list in `app/index.html`.\n\nBuild, in this order, committing after each module or pair (explicit `git add` paths, never `-A`; commit message trailer below):\n\n1. **Math additions.** In `shared/math/system.js`: `paramsFromEigenvalue(m, lambda)` returning `{ c: −2m·Re λ, k: m|λ|² }` and `exactFromEigenvalue({ m, lambda, x0, v0 })`. In `shared/math/stability.js`: `taylorAmplification(z, n)`, the degree-n partial sum of e^z via Horner, so n=1 equals `amplification(&#39;euler&#39;)` and n=4 equals `amplification(&#39;rk4&#39;)`. Tests in the existing `*.test.js` files (round-trip: eigenvalues → paramsFromEigenvalue → eigenvalues; taylor n=1/n=4 parity).\n\n2. **`shared/gfx/stage.js`.** `createStage(root, { layers = [&#39;2d&#39;], aspect = &#39;square&#39; | &#39;wide&#39; | &#39;strip&#39;, signal, grab })` builds the `.stage` div with one canvas per layer (a `&#39;gl&#39;` layer is a canvas reserved for WebGL2 or for region blits), fits them with `fitCanvas`, observes resize, and offers `invalidate()` which coalesces to one `draw(size)` per animation frame no matter how many store patches, resizes, or player frames call it. Cleans up on `signal`. Replace the duplicated boilerplate in the two panel-01 panes with it, so it has real users.\n\n3. **`shared/gfx/trajectory.js`.** A time-series plot: exact curve dashed underneath (`--exact`), the integrator&#39;s polyline on top (`--approx`), optional step markers, optional tangent segments (follow-the-tangent for panel 10-left), auto-ranged or pinned y, and a `yLog` option (add log-y support to `makeView` in plot2d.js). Include `nearestSample(view, xs, ys, px, py)` for hover and touch. Non-finite samples must not break the plot (Euler blows up to 1e8+).\n\n4. **`shared/player.js` + `shared/ui/transport.js`.** `createPlayer({ store, loop, signal })` owns a `createStepper`, advances it by wall-clock time at the store&#39;s `h` (several steps per frame when `h` is small, capped so a tiny `h` cannot stall a frame), writes `t` with `{ silent: true }`, keeps growing `t/x/v/exact/err` arrays and the measured step-to-step error ratio plus doubling time, measures per-frame compute cost with `performance.now()`, and restarts whenever any tuple entry other than `t` changes. Verbs: play, pause, reset, step, plus a speed factor and an `onChange` callback for the stage to invalidate. Leave a clearly marked seam where the adaptive controller (idea.md panel 13) will plug in; do not build it. `transport.js` renders play/pause, reset, and step buttons bound to a player, with any needed CSS in controls.css.\n\n5. **`shared/gfx/region-gl.js` layers and a shared GL canvas.** Three changes per idea.md: (a) `draw` accepts `{ view, layers: [{ method, h, alpha, order }], highlight }` and composites all layers in one shader pass (cap at 8; the highlighted layer gets the solid edge and full alpha, the rest are dimmed); keep the old `{ method, h, view }` call working as a single layer. (b) A Taylor mode: `order: n` shades where the degree-n partial sum of e^{hλ} has modulus ≤ 1, matching `taylorAmplification`. (c) One shared, hidden WebGL2 canvas that renders and blits into ordinary 2D canvases: `drawRegion(ctx2d, opts)` sizes the shared canvas to the target, renders, and `drawImage`s the result, so many stages share one GL context (browsers cap live contexts around 16 and panel 12 wants three regions at once). The shader must output over a transparent background for the blit to compose onto `--surface`. Keep `precision highp float` and the `fwidth` anti-aliasing. Methods without a scalar R still get the flat `--region-none` fill.\n\n6. **`shared/gfx/cplane.js`.** `createComplexPlane({ stage or canvases, store, signal, ... })`: the λ-plane overlay that stays on screen from panel 7 to the end. Re/Im axes and grid via `drawGrid`, the eigenvalue pair from `stabilityReport` drawn `--stable`/`--unstable` with `|R|` labels, an optional draggable λ handle that writes `paramsFromEigenvalue` into the store (the store clamps `c` and `k`), an optional region underneath via `drawRegion` (single layer or layers), and analytic Euler circles (center −1/h, radius 1/h) for the nested-disk pane. Half-range is a parameter; the mouse maps through `view.fromEvent`.\n\n7. **`shared/ui/livemath.js`.** `bindMath(root, store, derive, { signal })`: finds every `[data-var]` element in the pane&#39;s fragment (typically `&lt;mn data-var=\&#34;m\&#34;&gt;` inside native MathML, but any element), fills it from the store state or from `derive(state)` (an object of computed values such as the discriminant or `|1 + hλ|`), formats with `fmt` and a unicode minus, honors `data-digits`, and updates on subscribe. No typesetting library.\n\n8. **Prove it in the browser.** The first consumers per idea.md are panels 7 and 11. As the verification harness, build minimal `spine.html` + `spine.js` for `panels/07-finding-eigenvalues/` (stage, cplane, livemath: the quadratic formula in MathML with live numbers, sliders for m, c, k, the two roots on the plane) and `panels/11-lets-break-it/` (stage with a region under a cplane with the λ drag, an h slider, a methodPicker, presets demo/essay, the player driving a trajectory plot with transport). Mark the prose as placeholder; these are proofs of the modules, not finished panels. Then run `cd app &amp;&amp; node --test \&#34;shared/**/*.test.js\&#34;`, serve with `python3 -m http.server 8765 --bind 127.0.0.1` from `app/` in the background, and check through the chrome-devtools MCP (navigate_page, take_screenshot, list_console_messages, evaluate_script; if the MCP says its browser profile is in use, `pkill -f \&#34;user-data-dir=/Users/benjaminjordan/.cache/chrome-devtools-mcp/chrome-profile\&#34;` and retry). Confirm: `#/7` shows two roots moving with the sliders and the MathML numbers updating; `#/11` shows the Euler region with the demo eigenvalues red outside it and the spring exploding within seconds, switching to RK4 makes it track, dragging λ inside the disk turns it green and the run decays, and `window.app.store.set({ h: 0.2 })` rescales the region. Confirm panel 1 still works after the stage refactor. Watch the console for errors and for WebGL context warnings. Kill the server afterwards.\n\nCommit message trailer:\nCo-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;\nClaude-Session: https://claude.ai/code/session_0142r8oCc11zC6eYW1x7Fisa\n\nReport back: each module&#39;s exported API in one line, what changed in existing modules, the test count, what you verified in the browser with anything that did not work, and what docs/idea.md&#39;s \&#34;Shared code\&#34; and \&#34;What exists\&#34; text and CLAUDE.md should now say (I will edit the docs).&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-25-46-372Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-25-46-372Z" class="timestamp-link"><time datetime="2026-09-02T20:25:46.372Z" data-timestamp="2026-09-02T20:25:46.372Z">2026-09-02T20:25:46.372Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: ad32e10428c364c71 (internal ID - do not mention to user. Use SendMessage with to: &#x27;ad32e10428c364c71&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives — do not report, assume, or predict them; continue other work or respond to the user in the meantime.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/ad32e10428c364c71.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-25-51-358Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-25-51-358Z" class="timestamp-link"><time datetime="2026-09-02T20:25:51.358Z" data-timestamp="2026-09-02T20:25:51.358Z">2026-09-02T20:25:51.358Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-25-51-374Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-25-51-374Z" class="timestamp-link"><time datetime="2026-09-02T20:25:51.374Z" data-timestamp="2026-09-02T20:25:51.374Z">2026-09-02T20:25:51.374Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The subagent is running. Its brief covers, in idea.md's order: the math additions (eigenvalue inversion, Taylor amplification), <code>stage</code>, <code>trajectory</code> with log-y, the <code>player</code> and transport controls, region shader layers with a Taylor mode and one shared GL canvas, <code>cplane</code>, and <code>livemath</code>. As its browser proof it builds minimal spines for panels 7 and 11, which are the first consumers, and refactors panel 1 onto the stage helper. It commits per module and reports what the docs should say. I'll update idea.md and CLAUDE.md from that report when it finishes.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-003.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

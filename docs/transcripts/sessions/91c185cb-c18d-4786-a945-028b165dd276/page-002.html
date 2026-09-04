@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 2</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/4</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-003.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-03T20-19-52-175Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-19-52-175Z" class="timestamp-link"><time datetime="2026-09-03T20:19:52.175Z" data-timestamp="2026-09-03T20:19:52.175Z">2026-09-03T20:19:52.175Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I would like a visual indicator of depth. As we go deeper (i.e. to the right), a full screen vignette should get more pronounced. As we go back to the surface it should get less pronounced. This should not obscure the visuals.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-19-53-719Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-19-53-719Z" class="timestamp-link"><time datetime="2026-09-03T20:19:53.719Z" data-timestamp="2026-09-03T20:19:53.719Z">2026-09-03T20:19:53.719Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll start by orienting myself in the codebase.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-19-55-095Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-19-55-095Z" class="timestamp-link"><time datetime="2026-09-03T20:19:55.095Z" data-timestamp="2026-09-03T20:19:55.095Z">2026-09-03T20:19:55.095Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019dB4mkqePu2y3dpuyAWqzz">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List app structure</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">ls app &amp;&amp; echo &#34;---STYLES---&#34; &amp;&amp; ls app/styles &amp;&amp; echo &#34;---SHARED---&#34; &amp;&amp; ls app/shared</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-19-55-139Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-19-55-139Z" class="timestamp-link"><time datetime="2026-09-03T20:19:55.139Z" data-timestamp="2026-09-03T20:19:55.139Z">2026-09-03T20:19:55.139Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>conclusion
+index.html
+package.json
+panels
+README.md
+shared
+styles
+title
+---STYLES---
+base.css
+controls.css
+layout.css
+---SHARED---
+aux.js
+aux.test.js
+dom.js
+gfx
+loader.js
+main.js
+manifest.js
+math
+player.js
+player.test.js
+router.js
+scene.js
+scene.test.js
+state.js
+state.test.js
+ui</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-19-57-711Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-19-57-711Z" class="timestamp-link"><time datetime="2026-09-03T20:19:57.711Z" data-timestamp="2026-09-03T20:19:57.711Z">2026-09-03T20:19:57.711Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CPjknV6CUpzAYAmmLvSwKd">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read index.html and layout.css</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; cat index.html &amp;&amp; echo &#34;===LAYOUT===&#34; &amp;&amp; cat styles/layout.css</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-19-57-752Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-19-57-752Z" class="timestamp-link"><time datetime="2026-09-03T20:19:57.752Z" data-timestamp="2026-09-03T20:19:57.752Z">2026-09-03T20:19:57.752Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&lt;!doctype html&gt;
+&lt;!--
+  Serve over HTTP; file:// cannot load ES modules, import maps, or fetch() pane prose.
+    cd app &amp;&amp; python3 -m http.server 8765 --bind 127.0.0.1
+    open http://127.0.0.1:8765/
+--&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;color-scheme&quot; content=&quot;light&quot;&gt;
+&lt;title&gt;Why physics engines blow up&lt;/title&gt;
+&lt;!-- the Euler disk with an eigenvalue on its edge; inline so no route asks for /favicon.ico --&gt;
+&lt;link rel=&quot;icon&quot; href=&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 32 32&#x27;%3E%3Ccircle cx=&#x27;13&#x27; cy=&#x27;16&#x27; r=&#x27;12&#x27; fill=&#x27;%234079d9&#x27;/%3E%3Ccircle cx=&#x27;23&#x27; cy=&#x27;9&#x27; r=&#x27;4&#x27; fill=&#x27;%23d43a2f&#x27;/%3E%3C/svg%3E&quot;&gt;
+
+&lt;link rel=&quot;stylesheet&quot; href=&quot;./styles/base.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;./styles/layout.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;./styles/controls.css&quot;&gt;
+
+&lt;!-- Bare-prefix imports for every module in the app. Panels import &#x27;shared/...&#x27; and the
+     loader imports &#x27;panels/&lt;slug&gt;/&lt;pane&gt;.js&#x27; on demand through this same map. --&gt;
+&lt;script type=&quot;importmap&quot;&gt;
+{
+  &quot;imports&quot;: {
+    &quot;shared/&quot;: &quot;./shared/&quot;,
+    &quot;panels/&quot;: &quot;./panels/&quot;
+  }
+}
+&lt;/script&gt;
+
+&lt;!-- shared/ arrives with the page instead of in an import waterfall --&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/main.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/manifest.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/state.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/scene.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/aux.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/router.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/loader.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/dom.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/player.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/complex.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/system.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/integrators.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/matrix2.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/stability.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/taylor.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/forces.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/modes.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/adaptive.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/math/sweep.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/plot2d.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/color.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/region-gl.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/cplane.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/loop.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/stage.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/trajectory.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/bundle.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/gfx/drag.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/controls.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/transport.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/livemath.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/scrub.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/sweep.js&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;a class=&quot;skip&quot; href=&quot;#spine&quot;&gt;Skip to content&lt;/a&gt;
+
+&lt;!-- The spine: one full-viewport row per outline step, filled by shared/main.js. Each row
+     scroll-snaps horizontally between its left pane, spine pane, and right pane. --&gt;
+&lt;main id=&quot;spine&quot; aria-label=&quot;Explainer&quot;&gt;&lt;/main&gt;
+
+&lt;!-- Rails: one dot per panel on the right edge (up/down), one dot per pane on the bottom
+     edge (left/right). Same dots, same meaning: filled is where you are. --&gt;
+&lt;nav id=&quot;rail&quot; class=&quot;rail&quot; aria-label=&quot;Panels&quot;&gt;&lt;/nav&gt;
+&lt;nav id=&quot;hrail&quot; class=&quot;rail&quot; aria-label=&quot;Panes&quot;&gt;&lt;/nav&gt;
+
+&lt;noscript&gt;&lt;p class=&quot;noscript&quot;&gt;This explainer is interactive and needs JavaScript.&lt;/p&gt;&lt;/noscript&gt;
+&lt;script type=&quot;module&quot; src=&quot;./shared/main.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+===LAYOUT===
+/* layout.css: the 2D grid. Vertical scroll snap between panels, horizontal scroll snap
+   within a panel between its left pane, spine pane, and right pane. Two rails of dots. */
+
+html, body { height: 100%; }
+body { overflow: hidden; }
+
+/* ---- spine: vertical scroll snap, one row per panel ---- */
+
+#spine {
+  position: relative;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+#spine::-webkit-scrollbar { display: none; }
+/* a side pane is open: the spine does not scroll until you come back to the center */
+#spine.side-open { overflow-y: hidden; }
+
+/* ---- row: horizontal scroll snap between panes ---- */
+
+.panel {
+  position: relative;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;   /* no browser back/forward swipe */
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.panel::-webkit-scrollbar { display: none; }
+
+/* ---- pane: one viewport-sized cell ---- */
+
+.pane {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+  padding: 2rem 4.5rem 3rem 4rem;
+}
+
+.pane-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pane-meta .kind { color: var(--accent); }
+
+/* the title row&#x27;s one cell (#/0, mounted by main.js from title/): full bleed, no meta */
+.pane-title { display: block; padding: 0; }
+.pane-title &gt; .pane-body { height: 100%; }
+
+/* ---- pane body: prose column + interactive column ---- */
+
+.pane-body { min-height: 0; overflow: hidden; }
+
+.pane-body &gt; article {
+  display: grid;
+  grid-template-columns: minmax(18rem, var(--measure)) minmax(0, 1fr);
+  /* the heading row is its own height; the content row takes the rest. Two auto rows
+     would split the leftover height between them and open a gap under a short pane&#x27;s h2. */
+  grid-template-rows: auto 1fr;
+  gap: 1rem 3rem;   /* the row gap sits under the h2, which has its own margin */
+  height: 100%;
+  align-items: start;
+}
+.pane-body &gt; article &gt; h2 { grid-column: 1 / -1; }
+.pane-body .viz { min-width: 0; display: grid; gap: 1rem; align-content: start; }
+
+.pane-body.loading { color: var(--muted); }
+.pane-missing {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  color: var(--muted);
+  max-width: var(--measure);
+}
+.pane-missing code { background: none; padding: 0; }
+
+/* ---- rails: identical dots on the right edge (panels) and bottom edge (panes) ---- */
+
+.rail {
+  position: fixed;
+  display: flex;
+  gap: 0.55rem;
+  z-index: 5;
+}
+#rail  { right: 1.1rem; top: 50%; translate: 0 -50%; flex-direction: column; }
+/* raised above the plain 1.1rem the vertical rail uses, to leave room below the dots for the
+   down-caret that marks which one drops to the next panel, without it getting clipped */
+#hrail { bottom: 1.8rem; left: 50%; translate: -50% 0; flex-direction: row; }
+
+.rail a {
+  display: block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 0.15s, scale 0.15s;
+}
+.rail a:hover { background: var(--muted); }
+.rail a[aria-current=&quot;true&quot;] { background: var(--accent); scale: 1.35; }
+.rail a[hidden] { display: block; visibility: hidden; }  /* keeps the center dot centered */
+
+/* the hrail dot for the spine pane is the one you can scroll down from; a caret under it
+   says so regardless of which pane is current */
+#hrail a[data-pane=&quot;spine&quot;] { position: relative; }
+#hrail a[data-pane=&quot;spine&quot;]::after {
+  content: &#x27;&#x27;;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 0.3rem;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--muted);
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-00-220Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-00-220Z" class="timestamp-link"><time datetime="2026-09-03T20:20:00.220Z" data-timestamp="2026-09-03T20:20:00.220Z">2026-09-03T20:20:00.220Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EctoMeQMBc1ojEYAg8PNAU">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read main.js</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat shared/main.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-20-00-239Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-20-00-239Z" class="timestamp-link"><time datetime="2026-09-03T20:20:00.239Z" data-timestamp="2026-09-03T20:20:00.239Z">2026-09-03T20:20:00.239Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// Boot: build the 2D grid from the manifest, then let the router drive everything.
+//
+// The page is a grid. Vertical scroll snaps between panels (rows); horizontal scroll snaps
+// within a row between its panes: an optional left pane, the spine pane, and an optional
+// right chain (one pane, or panel 12&#x27;s three in a row). Both directions are real scrolling,
+// so touchpads, arrow keys, and rail dots all end up in the same place: a hash route that
+// the router applies.
+
+import { manifest, panelCount, panelAt } from &#x27;./manifest.js&#x27;;
+import { store } from &#x27;./state.js&#x27;;
+import { createRouter } from &#x27;./router.js&#x27;;
+import { createPaneManager, paneFileId } from &#x27;./loader.js&#x27;;
+import { el, fragment } from &#x27;./dom.js&#x27;;
+
+const spine = document.getElementById(&#x27;spine&#x27;);
+const rail = document.getElementById(&#x27;rail&#x27;);
+const hrail = document.getElementById(&#x27;hrail&#x27;);
+
+const KIND = { left: &#x27;Surface&#x27;, right: &#x27;Dive&#x27; };
+const SITE = &#x27;Why physics engines blow up&#x27;;
+
+// Row 0: the title page. Not a manifest entry; one cell, no side panes, mounted below from
+// title/ directly rather than through the pane manager. The last row, panelCount + 1, is its
+// bookend: the conclusion page, mounted the same way from conclusion/.
+const TITLE = 0;
+const TITLE_TEXT = &#x27;Why do physics engines break?&#x27;;
+const END = panelCount + 1;
+const END_TEXT = &#x27;Fin&#x27;;
+
+// Ordered list of panes for one manifest entry: an optional left, always spine, then the
+// right chain in order. Each item carries `id` (the file basename / cell key), `pane` (the
+// base side), `depth`, and `title`.
+function paneList(entry) {
+  const list = [];
+  if (entry.left) list.push({ id: &#x27;left&#x27;, pane: &#x27;left&#x27;, depth: 1, title: entry.left.title });
+  list.push({ id: &#x27;spine&#x27;, pane: &#x27;spine&#x27;, depth: 1, title: entry.title });
+  (entry.right ?? []).forEach((r, i) =&gt; {
+    const depth = i + 1;
+    list.push({ id: paneFileId(&#x27;right&#x27;, depth), pane: &#x27;right&#x27;, depth, title: r.title });
+  });
+  return list;
+}
+
+// ---- rows and cells ----
+const rows = new Map();   // index → row element
+const cells = new Map();  // &quot;index/id&quot; → { cell, body, pane, depth }
+const key = (index, id) =&gt; `${index}/${id}`;
+
+{
+  const body = el(&#x27;div&#x27;, { class: &#x27;pane-body&#x27; });
+  const cell = el(&#x27;div&#x27;, { class: &#x27;pane pane-spine pane-title&#x27;, &#x27;data-index&#x27;: TITLE, &#x27;data-pane&#x27;: &#x27;spine&#x27;, &#x27;data-depth&#x27;: 1 }, body);
+  const row = el(&#x27;section&#x27;, { class: &#x27;panel&#x27;, id: `panel-${TITLE}`, &#x27;data-index&#x27;: TITLE, &#x27;aria-label&#x27;: TITLE_TEXT }, cell);
+  cells.set(key(TITLE, &#x27;spine&#x27;), { cell, body, pane: &#x27;spine&#x27;, depth: 1 });
+  rows.set(TITLE, row);
+  spine.append(row);
+  rail.append(el(&#x27;a&#x27;, { href: `#/${TITLE}`, title: TITLE_TEXT, &#x27;aria-label&#x27;: TITLE_TEXT }));
+}
+
+for (const entry of manifest) {
+  const row = el(&#x27;section&#x27;, { class: &#x27;panel&#x27;, id: `panel-${entry.index}`, &#x27;data-index&#x27;: entry.index, &#x27;aria-label&#x27;: entry.title });
+  for (const p of paneList(entry)) {
+    const body = el(&#x27;div&#x27;, { class: &#x27;pane-body&#x27; });
+    const meta = p.pane === &#x27;spine&#x27;
+      ? el(&#x27;div&#x27;, { class: &#x27;pane-meta&#x27; }, el(&#x27;span&#x27;, {}, `${entry.index} / ${panelCount}`), el(&#x27;span&#x27;, {}, entry.title))
+      : el(&#x27;div&#x27;, { class: &#x27;pane-meta&#x27; }, el(&#x27;span&#x27;, { class: &#x27;kind&#x27; }, KIND[p.pane]), el(&#x27;span&#x27;, {}, `${entry.index} / ${panelCount}`), el(&#x27;span&#x27;, {}, entry.title));
+    const cell = el(&#x27;div&#x27;, {
+      class: `pane pane-${p.pane}`, &#x27;data-index&#x27;: entry.index, &#x27;data-pane&#x27;: p.pane, &#x27;data-depth&#x27;: p.depth,
+    }, meta, body);
+    row.append(cell);
+    cells.set(key(entry.index, p.id), { cell, body, pane: p.pane, depth: p.depth });
+  }
+  rows.set(entry.index, row);
+  spine.append(row);
+
+  rail.append(el(&#x27;a&#x27;, {
+    href: `#/${entry.index}`, title: `${entry.index}. ${entry.title}`, &#x27;aria-label&#x27;: `${entry.index}. ${entry.title}`,
+  }));
+}
+
+{
+  const body = el(&#x27;div&#x27;, { class: &#x27;pane-body&#x27; });
+  const cell = el(&#x27;div&#x27;, { class: &#x27;pane pane-spine pane-title&#x27;, &#x27;data-index&#x27;: END, &#x27;data-pane&#x27;: &#x27;spine&#x27;, &#x27;data-depth&#x27;: 1 }, body);
+  const row = el(&#x27;section&#x27;, { class: &#x27;panel&#x27;, id: `panel-${END}`, &#x27;data-index&#x27;: END, &#x27;aria-label&#x27;: END_TEXT }, cell);
+  cells.set(key(END, &#x27;spine&#x27;), { cell, body, pane: &#x27;spine&#x27;, depth: 1 });
+  rows.set(END, row);
+  spine.append(row);
+  rail.append(el(&#x27;a&#x27;, { href: `#/${END}`, title: END_TEXT, &#x27;aria-label&#x27;: END_TEXT }));
+}
+
+// ---- horizontal rail: one dot per pane of the current panel, rebuilt on every route ----
+function updateHrail(index, side, depth) {
+  const entry = panelAt(index);
+  if (!entry) { hrail.replaceChildren(); return; }   // the title row: its footer is the guide
+  const activeId = side ? paneFileId(side, depth) : &#x27;spine&#x27;;
+  hrail.replaceChildren(...paneList(entry).map(p =&gt; {
+    const href = p.pane === &#x27;spine&#x27; ? `#/${index}` : `#/${index}/${p.pane}${p.depth &gt; 1 ? &#x27;/&#x27; + p.depth : &#x27;&#x27;}`;
+    const title = p.pane === &#x27;spine&#x27; ? `${index}. ${entry.title}` : `${KIND[p.pane]}: ${p.title}`;
+    const a = el(&#x27;a&#x27;, { href, title, &#x27;aria-label&#x27;: title, &#x27;data-pane&#x27;: p.id });
+    if (p.id === activeId) a.setAttribute(&#x27;aria-current&#x27;, &#x27;true&#x27;);
+    return a;
+  }));
+}
+
+// ---- programmatic scrolling, flagged so the observers ignore our own scrolls ----
+let navigatingV = false, navigatingH = false;
+function settle(target, setFlag) {
+  setFlag(true);
+  let timer = 0;
+  const done = () =&gt; { clearTimeout(timer); target.removeEventListener(&#x27;scrollend&#x27;, done); setFlag(false); };
+  target.addEventListener(&#x27;scrollend&#x27;, done);
+  timer = setTimeout(done, 800);
+}
+
+function scrollToPanel(index, instant) {
+  const row = rows.get(index);
+  if (Math.abs(spine.scrollTop - row.offsetTop) &lt; 1) return;
+  if (!instant) settle(spine, v =&gt; { navigatingV = v; });
+  spine.scrollTo({ top: row.offsetTop, behavior: instant ? &#x27;instant&#x27; : &#x27;smooth&#x27; });
+}
+
+function alignRow(index, side, depth, instant) {
+  const row = rows.get(index);
+  const id = side ? paneFileId(side, depth) : &#x27;spine&#x27;;
+  const { cell } = cells.get(key(index, id));
+  // by cell position, not offsetLeft: offsetLeft moves with the row&#x27;s own scroll offset
+  const left = [...row.children].indexOf(cell) * row.clientWidth;
+  if (Math.abs(row.scrollLeft - left) &lt; 1) return;
+  if (!instant) settle(row, v =&gt; { navigatingH = v; });
+  row.scrollTo({ left, behavior: instant ? &#x27;instant&#x27; : &#x27;smooth&#x27; });
+}
+
+// every row starts on its spine pane, not its left pane
+for (const entry of manifest) alignRow(entry.index, null, 1, true);
+
+// ---- the title and conclusion pages ----
+// Each is fetched and mounted once at boot, in place; resumed only while its own row is on
+// screen so its collage never downloads or decodes behind another panel.
+function mountBookend(index, text, dir) {
+  return (async () =&gt; {
+    const body = cells.get(key(index, &#x27;spine&#x27;)).body;
+    const base = new URL(`../${dir}/${dir}`, import.meta.url);
+    try {
+      const [mod, html] = await Promise.all([
+        import(`${base}.js`),
+        fetch(`${base}.html`).then(r =&gt; { if (!r.ok) throw new Error(`${r.status} ${r.statusText} for ${base}.html`); return r.text(); }),
+      ]);
+      body.replaceChildren(fragment(html));
+      return mod.mount(body.firstElementChild, { signal: new AbortController().signal });
+    } catch (err) {
+      console.warn(`[${dir}]`, err);
+      body.replaceChildren(el(&#x27;div&#x27;, { class: &#x27;pane-missing&#x27; }, el(&#x27;p&#x27;, {}, el(&#x27;strong&#x27;, {}, text)), el(&#x27;p&#x27;, { class: &#x27;muted&#x27; }, String(err?.message ?? err))));
+      return { pause() {}, resume() {}, destroy() {} };
+    }
+  })();
+}
+const title = mountBookend(TITLE, TITLE_TEXT, &#x27;title&#x27;);
+const conclusion = mountBookend(END, END_TEXT, &#x27;conclusion&#x27;);
+
+// ---- router ----
+const panes = createPaneManager({ store, manifest, containerFor: (i, pane, depth) =&gt; cells.get(key(i, paneFileId(pane, depth))).body });
+let last = null;
+
+function setInert(index, activeId) {
+  const row = rows.get(index);
+  for (const cell of row.children) {
+    const id = paneFileId(cell.dataset.pane, Number(cell.dataset.depth));
+    cell.inert = activeId != null &amp;&amp; id !== activeId;
+  }
+}
+
+const router = createRouter({
+  count: END,
+  first: TITLE,
+  canOpen: (index, side, depth) =&gt; {
+    const entry = panelAt(index);
+    if (!entry) return false;
+    if (side === &#x27;left&#x27;) return depth === 1 &amp;&amp; Boolean(entry.left);
+    if (side === &#x27;right&#x27;) return Array.isArray(entry.right) &amp;&amp; depth &gt;= 1 &amp;&amp; depth &lt;= entry.right.length;
+    return false;
+  },
+  onRoute({ index, side, depth }, source) {
+    const entry = panelAt(index);
+    const sideTitle = side ? (side === &#x27;left&#x27; ? entry.left.title : entry.right[depth - 1].title) : null;
+    document.title = entry ? `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : &#x27;&#x27;} · ${SITE}` : (index === END ? END_TEXT : TITLE_TEXT);
+    for (const a of rail.children) {
+      if (a.getAttribute(&#x27;href&#x27;) === `#/${index}`) a.setAttribute(&#x27;aria-current&#x27;, &#x27;true&#x27;); else a.removeAttribute(&#x27;aria-current&#x27;);
+    }
+    updateHrail(index, side, depth);
+
+    const changedPanel = !last || last.index !== index;
+    // leaving a panel whose side pane was open: put that row back on its spine pane
+    if (last &amp;&amp; changedPanel &amp;&amp; last.side) alignRow(last.index, null, 1, true);
+    spine.classList.toggle(&#x27;side-open&#x27;, Boolean(side));
+    if (source !== &#x27;scroll&#x27; &amp;&amp; source !== &#x27;hscroll&#x27;) scrollToPanel(index, source === &#x27;initial&#x27;);
+    if (source !== &#x27;hscroll&#x27;) alignRow(index, side, depth, source === &#x27;initial&#x27; || changedPanel);
+
+    // only the visible cell of the current row is reachable by keyboard / screen reader
+    if (last &amp;&amp; changedPanel) setInert(last.index, null);
+    setInert(index, side ? paneFileId(side, depth) : &#x27;spine&#x27;);
+
+    panes.activate(index, side, depth);
+    title.then(h =&gt; (index === TITLE ? h.resume() : h.pause()));
+    conclusion.then(h =&gt; (index === END ? h.resume() : h.pause()));
+    last = { index, side, depth };
+  },
+});
+
+// ---- scroll → route ----
+// vertical: which row is on screen (ignored while a side pane is open: the spine is locked)
+const verticalObserver = new IntersectionObserver(entries =&gt; {
+  if (navigatingV || router.current.side) return;
+  for (const e of entries) {
+    if (e.isIntersecting &amp;&amp; e.intersectionRatio &gt;= 0.5) {
+      router.go(Number(e.target.dataset.index), null, 1, { replace: true, source: &#x27;scroll&#x27; });
+    }
+  }
+}, { root: spine, threshold: 0.5 });
+for (const row of rows.values()) verticalObserver.observe(row);
+
+// horizontal: which cell of the current row is on screen (one observer per row)
+for (const [index, row] of rows) {
+  const observer = new IntersectionObserver(entries =&gt; {
+    if (navigatingH || router.current.index !== index) return;
+    for (const e of entries) {
+      if (e.isIntersecting &amp;&amp; e.intersectionRatio &gt;= 0.5) {
+        const pane = e.target.dataset.pane;
+        const depth = Number(e.target.dataset.depth) || 1;
+        router.go(index, pane === &#x27;spine&#x27; ? null : pane, depth, { replace: true, source: &#x27;hscroll&#x27; });
+      }
+    }
+  }, { root: row, threshold: 0.5 });
+  for (const cell of row.children) observer.observe(cell);
+}
+
+// a resize changes cell widths: re-align every row instantly to the pane it is showing
+window.addEventListener(&#x27;resize&#x27;, () =&gt; {
+  const { index, side, depth } = router.current;
+  for (const entry of manifest) {
+    alignRow(entry.index, entry.index === index ? side : null, entry.index === index ? depth : 1, true);
+  }
+  scrollToPanel(index, true);
+});
+
+// ---- keyboard ----
+window.addEventListener(&#x27;keydown&#x27;, e =&gt; {
+  if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = e.target?.tagName;
+  if (tag === &#x27;INPUT&#x27; || tag === &#x27;TEXTAREA&#x27; || tag === &#x27;SELECT&#x27; || e.target?.isContentEditable) return;
+  const { index, side, depth } = router.current;
+  const entry = panelAt(index) ?? {};   // the title row has no side panes
+  const rightLen = Array.isArray(entry.right) ? entry.right.length : 0;
+  if (e.key === &#x27;Escape&#x27; &amp;&amp; side) { router.back(); e.preventDefault(); }
+  else if (e.key === &#x27;ArrowLeft&#x27;) {
+    if (side === &#x27;right&#x27; &amp;&amp; depth &gt; 1) router.go(index, &#x27;right&#x27;, depth - 1);
+    else if (side === &#x27;right&#x27;) router.back();
+    else if (!side &amp;&amp; entry.left) router.go(index, &#x27;left&#x27;);
+    e.preventDefault();
+  } else if (e.key === &#x27;ArrowRight&#x27;) {
+    if (side === &#x27;left&#x27;) router.back();
+    else if (side === &#x27;right&#x27; &amp;&amp; depth &lt; rightLen) router.go(index, &#x27;right&#x27;, depth + 1);
+    else if (!side &amp;&amp; rightLen &gt; 0) router.go(index, &#x27;right&#x27;, 1);
+    e.preventDefault();
+  } else if (!side &amp;&amp; (e.key === &#x27;ArrowDown&#x27; || e.key === &#x27;PageDown&#x27; || e.key === &#x27;j&#x27;)) {
+    router.go(index + 1); e.preventDefault();
+  } else if (!side &amp;&amp; (e.key === &#x27;ArrowUp&#x27; || e.key === &#x27;PageUp&#x27; || e.key === &#x27;k&#x27;)) {
+    router.go(index - 1); e.preventDefault();
+  }
+});
+
+router.start();
+
+// Handy in devtools: window.app.store.set({ h: 0.2 })
+window.app = { store, router, manifest };</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-14-708Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-14-708Z" class="timestamp-link"><time datetime="2026-09-03T20:20:14.708Z" data-timestamp="2026-09-03T20:20:14.708Z">2026-09-03T20:20:14.708Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-15-734Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-15-734Z" class="timestamp-link"><time datetime="2026-09-03T20:20:15.734Z" data-timestamp="2026-09-03T20:20:15.734Z">2026-09-03T20:20:15.734Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01LLmFHx2WaWcJdj87bRDJBk">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read base.css</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat styles/base.css</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-20-15-752Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-20-15-752Z" class="timestamp-link"><time datetime="2026-09-03T20:20:15.752Z" data-timestamp="2026-09-03T20:20:15.752Z">2026-09-03T20:20:15.752Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>/* base.css: design tokens, reset, typography. Light mode only. */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces and text */
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --fg: #1d1d1b;
+  --muted: #6b6b66;
+  --border: #dcdad3;
+  --border-strong: #b8b5ac;
+
+  /* accent (links, focus, active rail dot) */
+  --accent: #2455c8;
+  --accent-soft: #e4ebfa;
+
+  /* the two curves the whole piece is about */
+  --exact: #2455c8;     /* blue: closed-form solution */
+  --approx: #d43a2f;    /* red: the integrator&#x27;s polyline */
+
+  /* verdicts */
+  --stable: #1a9c4a;
+  --unstable: #d43a2f;
+
+  /* the four force models of Part I, one hue each (panels 2 and 5). Deliberately clear of
+     --exact/--approx/--stable/--unstable, which mean something else everywhere in the piece,
+     and far enough apart to tell four arrows apart on one plot. */
+  --force-wind: #0f8a92;
+  --force-gravity: #6b3fa0;
+  --force-drag: #b3701a;
+  --force-spring: #b5218f;
+
+  /* the stability region (shader fill and edge) */
+  --region: #4079d9;
+  --region-edge: #0d3399;
+  --region-none: #e9e8e3;  /* methods with no scalar R(hλ) */
+
+  /* plot furniture */
+  --grid: rgba(0, 0, 0, 0.08);
+  --axis: #3a3a37;
+  --tick: #6b6b66;
+
+  /* type */
+  --font: system-ui, -apple-system, &quot;Segoe UI&quot;, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace;
+  --measure: 38rem;
+
+  --radius: 6px;
+  /* room for panel chrome (padding, meta, h2, gaps ≈ 13rem). No pane carries a readout any
+     more, but most still stack a slider row, a transport, or a MathML equation block under
+     the stage — none of that was ever part of the 13rem chrome figure, so only a few rem of
+     the old readout&#x27;s 8rem budget is actually free; 18rem keeps a margin for those panes. */
+  --stage-max: calc(100dvh - 18rem);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font: 16px/1.55 var(--font);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body { margin: 0; }
+
+h1, h2, h3, h4 {
+  margin: 0 0 0.5em;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1rem; }
+
+p, ul, ol { margin: 0 0 1em; max-width: var(--measure); }
+li { margin-bottom: 0.25em; }
+
+a { color: var(--accent); text-underline-offset: 0.15em; }
+a:hover { text-decoration-thickness: 2px; }
+
+strong { font-weight: 600; }
+small, .muted { color: var(--muted); }
+
+code, kbd, .mono {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+code { background: var(--accent-soft); padding: 0.05em 0.3em; border-radius: 3px; }
+
+/* Native MathML. No typesetting library. */
+math { font-size: 1.05em; }
+/* A live number (data-var/data-scrub) can grow a digit while a pane runs; MathML never
+   wraps its own content onto a second line, so without this a formula that grows past its
+   column just bleeds into whatever is beside it. Contained, not clipped: it scrolls. */
+math[display=&quot;block&quot;] { display: block; margin: 0.75em 0; max-width: 100%; overflow-x: auto; }
+
+button { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.skip {
+  position: absolute; left: -999px; top: 0.5rem;
+  background: var(--surface); padding: 0.5rem 0.75rem; border-radius: var(--radius); z-index: 100;
+}
+.skip:focus { left: 0.5rem; }
+
+.noscript { padding: 2rem; }</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-18-131Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-18-131Z" class="timestamp-link"><time datetime="2026-09-03T20:20:18.131Z" data-timestamp="2026-09-03T20:20:18.131Z">2026-09-03T20:20:18.131Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-18-573Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-18-573Z" class="timestamp-link"><time datetime="2026-09-03T20:20:18.573Z" data-timestamp="2026-09-03T20:20:18.573Z">2026-09-03T20:20:18.573Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JGFyTrGKipWW7waFuQShsV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check manifest right chains</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;right&#34; shared/manifest.js | head -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-20-18-599Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-20-18-599Z" class="timestamp-link"><time datetime="2026-09-03T20:20:18.599Z" data-timestamp="2026-09-03T20:20:18.599Z">2026-09-03T20:20:18.599Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>8:// `right` is a drill-down *chain*: `null`, or an array of one to three `{ title }` entries
+9:// in order (panel 12 is the only panel with more than one). Depth 1 is `right.js`, depth 2
+10:// is `right-2.js`, depth 3 is `right-3.js`; the router&#x27;s `#/N/right/2`, `#/N/right/3` reach
+11:// them and `#/N/right` is depth 1.
+17:    right: [{ title: &#x27;Rigid bodies: extent and rotation&#x27; }] },
+21:    right: [{ title: &#x27;Torque and moment of inertia&#x27; }] },
+25:    right: [{ title: &#x27;ODEs vs PDEs; intractability&#x27; }] },
+29:    right: [{ title: &#x27;Lyapunov vs asymptotic&#x27; }] },
+33:    right: [{ title: &#x27;Taylor expansion and 1/r² gravity&#x27; }] },
+37:    right: [{ title: &#x27;Explode the eigenvector over a sweep&#x27; }] },
+41:    right: [{ title: &#x27;Under-, critically, and overdamped&#x27; }] },
+45:    right: [{ title: &#x27;Explode h: all step sizes at once&#x27; }] },
+49:    right: [{ title: &#x27;The modal equation&#x27; }] },
+53:    right: [{ title: &#x27;Explode h: nested disks&#x27; }] },
+57:    right: [{ title: &#x27;Explode the plane: a grid of λ&#x27; }] },
+61:    right: [
+69:    right: [{ title: &#x27;Adaptive step controllers&#x27; }] },</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-39-576Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-39-576Z" class="timestamp-link"><time datetime="2026-09-03T20:20:39.576Z" data-timestamp="2026-09-03T20:20:39.576Z">2026-09-03T20:20:39.576Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-20-39-579Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-20-39-579Z" class="timestamp-link"><time datetime="2026-09-03T20:20:39.579Z" data-timestamp="2026-09-03T20:20:39.579Z">2026-09-03T20:20:39.579Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;server_tool_use&quot;,
+  &quot;id&quot;: &quot;srvtoolu_012UdgeM9FRwHbM3soXDbg9K&quot;,
+  &quot;name&quot;: &quot;advisor&quot;,
+  &quot;input&quot;: {}
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-22-47-643Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-22-47-643Z" class="timestamp-link"><time datetime="2026-09-03T20:22:47.643Z" data-timestamp="2026-09-03T20:22:47.643Z">2026-09-03T20:22:47.643Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;advisor_tool_result&quot;,
+  &quot;tool_use_id&quot;: &quot;srvtoolu_012UdgeM9FRwHbM3soXDbg9K&quot;,
+  &quot;content&quot;: {
+    &quot;type&quot;: &quot;advisor_redacted_result&quot;,
+    &quot;encrypted_content&quot;: &quot;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&quot;
+  }
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-22-50-069Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-22-50-069Z" class="timestamp-link"><time datetime="2026-09-03T20:22:50.069Z" data-timestamp="2026-09-03T20:22:50.069Z">2026-09-03T20:22:50.069Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JgT5zPwDes77fbd94tH4k1">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check z-index usage and plan.md structure</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; grep -n &#34;z-index&#34; app/styles/controls.css app/styles/base.css; echo &#34;---PLAN chrome---&#34;; grep -n -i &#34;rail\|chrome\|overlay\|layout.css&#34; docs/plan.md | head -40</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-22-50-128Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-22-50-128Z" class="timestamp-link"><time datetime="2026-09-03T20:22:50.128Z" data-timestamp="2026-09-03T20:22:50.128Z">2026-09-03T20:22:50.128Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>app/styles/base.css:109:  background: var(--surface); padding: 0.5rem 0.75rem; border-radius: var(--radius); z-index: 100;
+---PLAN chrome---
+13:- **Latest desktop browsers only.** Chrome, Safari, Firefox, Edge as shipped today. That
+33:    layout.css                spine grid, rails, side-pane cells, scroll snap
+82:   out one row per panel with one cell per pane, and the two rails, then hands off to the
+155:gesture and every other input (arrow keys, rail dots, deep links) lands on the same route,
+163:- Two rails of identical dots: one per panel on the right edge, one per pane of the current
+204:keeps a square stage inside the viewport so a panel never scrolls internally. `layout.css`
+205:is the spine, rails, and pane mechanics and nothing else. `controls.css` styles the small
+220:Browser behaviour (lazy loading, routing) is checked in Chrome through the devtools MCP:</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-22-51-976Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-22-51-976Z" class="timestamp-link"><time datetime="2026-09-03T20:22:51.976Z" data-timestamp="2026-09-03T20:22:51.976Z">2026-09-03T20:22:51.976Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01VKkqT7Bao3GNKmbSWHm1Wp">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read plan.md navigation section</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;150,215p&#39; docs/plan.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-22-52-011Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-22-52-011Z" class="timestamp-link"><time datetime="2026-09-03T20:22:52.011Z" data-timestamp="2026-09-03T20:22:52.011Z">2026-09-03T20:22:52.011Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>are not notified for `t`-only patches. Panes that animate call `ctx.loop.onFrame(cb)`.
+
+## Router and layout
+
+The page is a real 2D scroll-snap grid, so a touchpad swipe in any direction is the primary
+gesture and every other input (arrow keys, rail dots, deep links) lands on the same route,
+which `main.js` applies in `onRoute`.
+
+- The spine is a vertical `scroll-snap-type: y mandatory` container filling the viewport.
+  Each panel is a row: a `100dvh` horizontal `scroll-snap-type: x mandatory` container whose
+  children are the panel&#x27;s cells, `[left] [spine] [right] [right-2] …`, each `100%` wide.
+  Rows without a side pane simply have fewer cells. Every row starts scrolled to its spine
+  cell.
+- Two rails of identical dots: one per panel on the right edge, one per pane of the current
+  panel on the bottom edge (a missing pane is an invisible slot so the spine dot stays
+  centered).
+- While a side pane is showing the spine gets `overflow-y: hidden`, so vertical scrolling is
+  locked until you come back to the center. `overscroll-behavior-x: contain` on rows keeps
+  the browser&#x27;s back/forward swipe from firing.
+- Only the visible cell of the current row is interactive; the others are `inert`.
+- Routes are the deep links in `idea.md`&#x27;s navigation rules; anything else normalizes to
+  `#/0`, the title row, and a side that a panel does not have drops to its spine.
+- The title page is row 0, above panel 1, and is not a manifest entry. `main.js` builds its
+  one cell (`.pane.pane-title`, no meta), fetches `title/title.html` into it, and mounts
+  `title/title.js` (`mount(root, { signal }) → { pause, resume, destroy }`) directly, outside
+  the pane manager; `onRoute` resumes it on `#/0` and pauses it everywhere else. The title
+  ships its own scoped `&lt;style&gt;` and imports nothing from `shared/`.
+- The conclusion page is its bookend: row `panelCount + 1`, below the last panel, same
+  non-manifest treatment (`main.js`&#x27;s `mountBookend` builds both from one function). It
+  fetches `conclusion/conclusion.html` and mounts `conclusion/conclusion.js`, which has no
+  logic of its own — it re-exports title.js&#x27;s `mount` so the one gif-collage engine, and the
+  20 filenames it knows about, is not duplicated. Its own `&lt;style&gt;` is scoped under
+  `.conclusion` and swaps the title&#x27;s directions footer for a references list.
+- Two kinds of `IntersectionObserver` map scroll to route: one on the spine watching rows
+  (ignored while a side pane is open), one per row watching its cells. Programmatic scrolls
+  set a `navigating` flag cleared on `scrollend` (or a timeout) so the observers ignore them.
+  Leaving a panel whose side pane was open snaps that row back to its spine cell.
+- Cell targets are computed from the cell&#x27;s index times the row width, not `offsetLeft`,
+  which shifts with the row&#x27;s own scroll offset.
+
+## Rendering conventions
+
+- A stage is a positioned `div` with stacked canvases (`.stage &gt; canvas`), each sized by
+  `plot2d.fitCanvas()` at a capped device pixel ratio.
+- `createRegionRenderer` returns `null` without WebGL2 so a panel can show a one-line
+  notice; there is no canvas-2D fallback.
+- Colors are CSS custom properties read once per draw through `plot2d.cssVar`, so the canvas
+  palette and the stylesheet cannot drift apart: `--exact`, `--approx`, `--stable`,
+  `--unstable`, `--region`, `--region-edge`, `--region-none`, plus `--grid`, `--axis`,
+  `--tick` for plot furniture.
+
+## Stylesheet
+
+`base.css` defines the tokens and the type scale, including `--stage-max`, the cap that
+keeps a square stage inside the viewport so a panel never scrolls internally. `layout.css`
+is the spine, rails, and pane mechanics and nothing else. `controls.css` styles the small
+vocabulary of inputs every panel uses (`.control`, `.readout`, `.stage`). Panels do not
+ship their own CSS; if a panel needs something new, it is added to `controls.css` so the
+next panel gets it too.
+
+## Testing
+
+```
+cd app
+node --test &quot;shared/**/*.test.js&quot;
+```</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-16-320Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-16-320Z" class="timestamp-link"><time datetime="2026-09-03T20:23:16.320Z" data-timestamp="2026-09-03T20:23:16.320Z">2026-09-03T20:23:16.320Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-17-289Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-17-289Z" class="timestamp-link"><time datetime="2026-09-03T20:23:17.289Z" data-timestamp="2026-09-03T20:23:17.289Z">2026-09-03T20:23:17.289Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01MSzxAGniPUMrSNncdQrFmh">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check router current</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; grep -n &#34;current&#34; shared/router.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-17-323Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-17-323Z" class="timestamp-link"><time datetime="2026-09-03T20:23:17.323Z" data-timestamp="2026-09-03T20:23:17.323Z">2026-09-03T20:23:17.323Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>4:// #/&lt;first&gt; (main.js passes 0, the title row). The router owns `current`; main.js reacts
+23:  let current = { index: first, side: null, depth: 1 };
+39:    current = route;
+52:      const same = route.index === current.index &amp;&amp; route.side === current.side &amp;&amp; route.depth === current.depth;
+75:    back: () =&gt; go(current.index, null),
+76:    get current() { return current; },</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-19-283Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-19-283Z" class="timestamp-link"><time datetime="2026-09-03T20:23:19.283Z" data-timestamp="2026-09-03T20:23:19.283Z">2026-09-03T20:23:19.283Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now the implementation.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-21-860Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-21-860Z" class="timestamp-link"><time datetime="2026-09-03T20:23:21.860Z" data-timestamp="2026-09-03T20:23:21.860Z">2026-09-03T20:23:21.860Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01AUWMGrDyDzaR6tYW2fn4Ns">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Add vignette element to index.html</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import re, pathlib
+p = pathlib.Path(&#39;index.html&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;&lt;main id=&#34;spine&#34; aria-label=&#34;Explainer&#34;&gt;&lt;/main&gt;
+&#34;&#34;&#34;
+new = &#34;&#34;&#34;&lt;main id=&#34;spine&#34; aria-label=&#34;Explainer&#34;&gt;&lt;/main&gt;
+
+&lt;!-- Depth: a frame that darkens with how far right the current row is scrolled. Decoration
+     only; layout.css owns the gradient, main.js drives its opacity from the scroll offset. --&gt;
+&lt;div id=&#34;vignette&#34; aria-hidden=&#34;true&#34;&gt;&lt;/div&gt;
+&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+PY
+sed -n &#39;60,72p&#39; index.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-23-562Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-23-562Z" class="timestamp-link"><time datetime="2026-09-03T20:23:23.562Z" data-timestamp="2026-09-03T20:23:23.562Z">2026-09-03T20:23:23.562Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/controls.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/transport.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/livemath.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/scrub.js&quot;&gt;
+&lt;link rel=&quot;modulepreload&quot; href=&quot;./shared/ui/sweep.js&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;a class=&quot;skip&quot; href=&quot;#spine&quot;&gt;Skip to content&lt;/a&gt;
+
+&lt;!-- The spine: one full-viewport row per outline step, filled by shared/main.js. Each row
+     scroll-snaps horizontally between its left pane, spine pane, and right pane. --&gt;
+&lt;main id=&quot;spine&quot; aria-label=&quot;Explainer&quot;&gt;&lt;/main&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-29-854Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-29-854Z" class="timestamp-link"><time datetime="2026-09-03T20:23:29.854Z" data-timestamp="2026-09-03T20:23:29.854Z">2026-09-03T20:23:29.854Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01R4hm9fCwpqvjHPCnrDmpam">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Append vignette styles to layout.css</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat &gt;&gt; styles/layout.css &lt;&lt;&#39;CSS&#39;
+
+/* ---- depth vignette: the frame darkens the further right (deeper) the row is scrolled ---- */
+
+/* Under the rails (z-index 5) so the dots stay crisp, over the panes, and never a hit
+   target. `--vignette` is written per scroll frame by main.js, so no transition: the frame
+   tracks the swipe itself. The core stays clear well past the stage, and the corners top out
+   at a tenth of an alpha, so nothing a panel draws is obscured. */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: var(--vignette, 0);
+  will-change: opacity;
+  background: radial-gradient(ellipse farthest-corner at 50% 50%,
+    rgba(29, 29, 27, 0) 42%,
+    rgba(29, 29, 27, 0.10) 72%,
+    rgba(29, 29, 27, 0.34) 100%);
+}
+CSS
+echo ok</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-29-893Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-29-893Z" class="timestamp-link"><time datetime="2026-09-03T20:23:29.893Z" data-timestamp="2026-09-03T20:23:29.893Z">2026-09-03T20:23:29.893Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-40-883Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-40-883Z" class="timestamp-link"><time datetime="2026-09-03T20:23:40.883Z" data-timestamp="2026-09-03T20:23:40.883Z">2026-09-03T20:23:40.883Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DawuwokKpZH6Wij5KrfwoZ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Wire vignette into main.js</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;shared/main.js&#39;)
+s = p.read_text()
+
+# 1. element handle
+old = &#34;const hrail = document.getElementById(&#39;hrail&#39;);&#34;
+new = old + &#34;\nconst vignette = document.getElementById(&#39;vignette&#39;);&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+# 2. the updater, next to the other scroll helpers
+old = &#34;&#34;&#34;function alignRow(index, side, depth, instant) {&#34;&#34;&#34;
+new = &#34;&#34;&#34;// ---- depth vignette ----
+// Going right is going deeper, so the frame darkens with the current row&#39;s horizontal scroll
+// offset, read continuously rather than per route: the vignette follows the swipe itself,
+// including a half-finished one. Steps diminish (1 - 2^-d) so the first dive reads clearly
+// and panel 12&#39;s third still adds to it; a left pane is surface, not depth, so it clamps to 0.
+const MAX_DEPTH = 3;
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c =&gt; c.dataset.pane === &#39;spine&#39;);
+  const depth = Math.min(MAX_DEPTH, Math.max(0, row.scrollLeft / row.clientWidth - spineIndex));
+  vignette.style.opacity = (1 - 2 ** -depth).toFixed(3);
+}
+
+function alignRow(index, side, depth, instant) {&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+# 3. drive it from onRoute
+old = &#34;&#34;&#34;    panes.activate(index, side, depth);&#34;&#34;&#34;
+new = &#34;&#34;&#34;    updateVignette(index);
+    panes.activate(index, side, depth);&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+# 4. drive it from every horizontal scroll
+old = &#34;&#34;&#34;  }, { root: row, threshold: 0.5 });
+  for (const cell of row.children) observer.observe(cell);
+}&#34;&#34;&#34;
+new = &#34;&#34;&#34;  }, { root: row, threshold: 0.5 });
+  for (const cell of row.children) observer.observe(cell);
+  // the vignette reads the *current* row, whichever row emitted this: a row snapping back to
+  // its spine cell as you leave it must not repaint the panel you have arrived at
+  row.addEventListener(&#39;scroll&#39;, () =&gt; updateVignette(router.current.index), { passive: true });
+}&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+# 5. resize
+old = &#34;&#34;&#34;  scrollToPanel(index, true);
+});&#34;&#34;&#34;
+new = &#34;&#34;&#34;  scrollToPanel(index, true);
+  updateVignette(index);
+});&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+p.write_text(s)
+print(&#34;done&#34;)
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-42-259Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-42-259Z" class="timestamp-link"><time datetime="2026-09-03T20:23:42.259Z" data-timestamp="2026-09-03T20:23:42.259Z">2026-09-03T20:23:42.259Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>done</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-45-172Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-45-172Z" class="timestamp-link"><time datetime="2026-09-03T20:23:45.172Z" data-timestamp="2026-09-03T20:23:45.172Z">2026-09-03T20:23:45.172Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now let me verify in the browser.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-46-406Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-46-406Z" class="timestamp-link"><time datetime="2026-09-03T20:23:46.406Z" data-timestamp="2026-09-03T20:23:46.406Z">2026-09-03T20:23:46.406Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01WVuqKErEWeNfFKnBLXFKs4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check if dev server is running</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">(curl -s -o /dev/null -w &#34;%{http_code}&#34; http://127.0.0.1:8765/ || echo &#34;down&#34;)</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-47-935Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-47-935Z" class="timestamp-link"><time datetime="2026-09-03T20:23:47.935Z" data-timestamp="2026-09-03T20:23:47.935Z">2026-09-03T20:23:47.935Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>200</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-50-265Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-50-265Z" class="timestamp-link"><time datetime="2026-09-03T20:23:50.265Z" data-timestamp="2026-09-03T20:23:50.265Z">2026-09-03T20:23:50.265Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01WMvhVPa5YFvHG3FKo3yfg5"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;select:mcp__chrome-devtools__navigate_page,mcp__chrome-devtools__take_screenshot,mcp__chrome-devtools__evaluate_script,mcp__chrome-devtools__list_pages,mcp__chrome-devtools__resize_page&#34;,
+  &#34;max_results&#34;: 5
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-50-271Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-50-271Z" class="timestamp-link"><time datetime="2026-09-03T20:23:50.271Z" data-timestamp="2026-09-03T20:23:50.271Z">2026-09-03T20:23:50.271Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__chrome-devtools__navigate_page&quot;
+}</pre><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__chrome-devtools__take_screenshot&quot;
+}</pre><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__chrome-devtools__evaluate_script&quot;
+}</pre><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__chrome-devtools__list_pages&quot;
+}</pre><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__chrome-devtools__resize_page&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-51-614Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-51-614Z" class="timestamp-link"><time datetime="2026-09-03T20:23:51.614Z" data-timestamp="2026-09-03T20:23:51.614Z">2026-09-03T20:23:51.614Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01NvPY39QmQEXhf62QpoFFNc"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__list_pages</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-23-57-123Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-23-57-123Z" class="timestamp-link"><time datetime="2026-09-03T20:23:57.123Z" data-timestamp="2026-09-03T20:23:57.123Z">2026-09-03T20:23:57.123Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>The browser is already running for /Users/benjaminjordan/.cache/chrome-devtools-mcp/chrome-profile. Use --isolated to run multiple browser instances.
+Cause: The browser is already running for /Users/benjaminjordan/.cache/chrome-devtools-mcp/chrome-profile. Use a different `userDataDir` or stop the running browser first.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-23-59-086Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-23-59-086Z" class="timestamp-link"><time datetime="2026-09-03T20:23:59.086Z" data-timestamp="2026-09-03T20:23:59.086Z">2026-09-03T20:23:59.086Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UAX5yZEAGMoHY92HLvVTMP">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Kill stale MCP Chrome profile</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">pkill -f &#34;user-data-dir=/Users/benjaminjordan/.cache/chrome-devtools-mcp/chrome-profile&#34;; echo killed</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-00-567Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-00-567Z" class="timestamp-link"><time datetime="2026-09-03T20:24:00.567Z" data-timestamp="2026-09-03T20:24:00.567Z">2026-09-03T20:24:00.567Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>killed</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-02-300Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-02-300Z" class="timestamp-link"><time datetime="2026-09-03T20:24:02.300Z" data-timestamp="2026-09-03T20:24:02.300Z">2026-09-03T20:24:02.300Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01UzzvSFHS4sVZQbLmijCZ9q"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__list_pages</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-04-388Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-04-388Z" class="timestamp-link"><time datetime="2026-09-03T20:24:04.388Z" data-timestamp="2026-09-03T20:24:04.388Z">2026-09-03T20:24:04.388Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Note: the browser was restarted or reconnected since the last call. Page ids have changed. Call list_pages to see open pages.
+## Pages
+3: about:blank [selected]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-06-030Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-06-030Z" class="timestamp-link"><time datetime="2026-09-03T20:24:06.030Z" data-timestamp="2026-09-03T20:24:06.030Z">2026-09-03T20:24:06.030Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_011c6R17ph6S6oXVTaBVNsWo"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__resize_page</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;width&#34;: 1440,
+  &#34;height&#34;: 900
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-07-292Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-07-292Z" class="timestamp-link"><time datetime="2026-09-03T20:24:07.292Z" data-timestamp="2026-09-03T20:24:07.292Z">2026-09-03T20:24:07.292Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>## Pages
+3: about:blank [selected]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-09-081Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-09-081Z" class="timestamp-link"><time datetime="2026-09-03T20:24:09.081Z" data-timestamp="2026-09-03T20:24:09.081Z">2026-09-03T20:24:09.081Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Jdsf1fyFiHHCja69CcTiLe"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__navigate_page</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;type&#34;: &#34;url&#34;,
+  &#34;url&#34;: &#34;http://127.0.0.1:8765/#/12&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-10-514Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-10-514Z" class="timestamp-link"><time datetime="2026-09-03T20:24:10.514Z" data-timestamp="2026-09-03T20:24:10.514Z">2026-09-03T20:24:10.514Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Successfully navigated to http://127.0.0.1:8765/#/12.
+## Pages
+3: Directory listing for / (http://127.0.0.1:8765/#/12) [selected]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-12-493Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-12-493Z" class="timestamp-link"><time datetime="2026-09-03T20:24:12.493Z" data-timestamp="2026-09-03T20:24:12.493Z">2026-09-03T20:24:12.493Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-12-823Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-12-823Z" class="timestamp-link"><time datetime="2026-09-03T20:24:12.823Z" data-timestamp="2026-09-03T20:24:12.823Z">2026-09-03T20:24:12.823Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_016kt5xqv8XSp4FZYPd9ybAg"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__navigate_page</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;type&#34;: &#34;url&#34;,
+  &#34;url&#34;: &#34;http://127.0.0.1:8765/app/#/12&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-14-442Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-14-442Z" class="timestamp-link"><time datetime="2026-09-03T20:24:14.442Z" data-timestamp="2026-09-03T20:24:14.442Z">2026-09-03T20:24:14.442Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Successfully navigated to http://127.0.0.1:8765/app/#/12.
+## Pages
+3: 12. Higher-order Runge-Kutta · Why physics engi... (http://127.0.0.1:8765/app/#/12) [selected]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-16-158Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-16-158Z" class="timestamp-link"><time datetime="2026-09-03T20:24:16.158Z" data-timestamp="2026-09-03T20:24:16.158Z">2026-09-03T20:24:16.158Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01LXcCQ18SbioWpHmW5Sjg6H"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__take_screenshot</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;format&#34;: &#34;jpeg&#34;,
+  &#34;quality&#34;: 85
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-17-564Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-17-564Z" class="timestamp-link"><time datetime="2026-09-03T20:24:17.564Z" data-timestamp="2026-09-03T20:24:17.564Z">2026-09-03T20:24:17.564Z</time></a></div><div class="message-content"><div class="tool-result"><pre>Took a screenshot of the current page&#x27;s viewport.</pre>
+<div class="image-block"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAOEBaADASIAAhEBAxEB/8QAHQABAAMBAQEBAQEAAAAAAAAAAAQFBgcDAgEICf/EADYQAQACAgIBAwIEBQQCAAcAAAABAgMEBREGEiExE0EUUWGBByIycZEIFVKhI8EWJDNCc4Ki/8QAGgEBAQEAAwEAAAAAAAAAAAAAAAECAwQFBv/EACURAQACAgIBBAEFAAAAAAAAAAABEQIDBCEFEhMxQQYUcaGxwf/aAAwDAQACEQMRAD8A/sMBhoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABRcV5Toclzu9xODBuUtp4vq2z5cU0x5K+q1JmnfvaItW0d9dT1PXbx4XyvHyPJa2nm4nkOPjewX2NHJsRTrPSvp79q2m1Z6tWerRE9T+z1roblPPdrlvw821LcTiwVtFq92yVy5LTXrvv4tHvPt7/ACqPEac9seR5uW8j8e3dbby1viwXnYwXwaeDvuKViuSbTa3UTa3p956j2iBGl5/lKcRp4s9sVs182zh1seOs9Ta+TJWkf477n9Il5+Uc5q+P8Vbf2sO1njua0xa2Kb3vPpm0xEfEREVtMzMxERHyrvIv/nfM/HeMjq1ME5+Syx/+On06f/1m7/8A1W/kOvm2+A5HV16evNm1cuPHXuI7tNJiI7n2+QQdvyGaaPG59HiN/kM3I4oy4cOGKRNa+mLTN7WtFa9dxHz7zPt2m+Pctr83w+Dk9WmXHjy+qPRlrEXpatprasxEzHcWrMe0zHsoN7U5LF4rxHF5eEz8jrRp0w72HV3Iw7GO9aV9M1t66xMdxaJ6tH267jtY+A8fu8X4pp6G/irhy4vXFMUWracWOb2nHSbV9rWis1iZj5mJ+fmQvUHkuUw6G9xuplx5LX5DPbBjmvXVZjHfJ3P6dUmP7zCczfmnB35zd4HHbDlyamvvWy7U4884rUp9DLWJi1bRb+q1Y/ln7/l2CVynkepx+blsWXDntPF8dHIZZrEfzUn6n8tff+r/AMU/PUe8PLkvJqYNnW0tDi93lN/Y1o2vw+CaV+nimeote17VrHc9xEdzMzE/koN7xHPqz5Zh4nVz3w8jwUa2v9bctlnJn6zxNe8l5mI/np89R7/3Sdzj+X4zlPx+vxmzv6+7xOLR2aamemPY174/X1ak2tWOp+pMe09xMRPuC2xeVaWTQ0dqdXcxW296NCcOSkVyYc3cxMXjvrqPT8xM/MddpW5zmtq8vl42+LNOXFoW3ptER6ZpW3pmPn5ZCfGOc3vG+O1OV/F5725yu3lxZN6bZdbW/miKfVi0TMxHXfpn5mek6viduP8AJd7Z4zW2J1M/C5Nf15ty+aZzTfuKx9S8zHt+wLfx/wAh2uW18W5Pj3Iaelm142MWxmy4JrasxE1/lpkm0TMT94/ui8J5ni5HLxcbHC8lx+HlqerR2M/0rY8v8k3ivdL2mszWJmItEfE/dWfw+4fY4zR19bP43y+jtU4+MGXPn5OubBa8VrExWkZrenuY9uqx1Ht7fCL4n4hynDbfim5nru7sa+l9Db1s+7666GWccR9THX1emY/qpMR37WiY+6Do0zERMzMREe8zLJ4fONbJjwb1uH5TFw2xlrixcnelIxWm1vTW819XrrS09dWmvXvHxHutMfB5Y2NvJm5zldnFs0yU/D5bY/p44t/x9NIt7fEdzP7snfjvJtvw7V8IzcH9GMdMWpm5L8RjnB9DHMR9SlYn1+q1a+1ZrHUz8qL3l/L40OQ5LWpwXJ7uHjKUybefXnFMY62p6+4ra8Wt7flE/D03fK6U5DX0+N4jf5ac+lXei2rbFERhtPUT/wCS9e5/SGd8p8O5XleQ8p28GfcwTs49f8Jiptzjw7cUx9Xx5K1tE9W6mnc9fKx2MfM6PlWry2j4xs7Gvbhqav0MWxgpODJ9T1eifVePaI9u69x+QJ+fzHR/2PT5TT0t3bttbcaVdWta481M3doml4vaIrMTWYnuXtu+RZ9Hg7clvcByGvk/E49fHqzkw2yZLZLVpWYmt5rEeq3XvaPiWX5TxjmMnjWGdjjrbe3sc9/um5qae1GOcdJ9X8lMk2p7xHpjuJjue5Tt/g9nf8OjjdPiOU4208nrZbY9nkIy5opXLjtfJXJ9W/XVYnqPV33X2j39w0HA8/TlN3b4/Px25xu/qVpfLr7PomZpfv03ralrVtHdbR7T7TDw5jyXJo85fidXguR5PNj1K7eWdW2KPTS1r1j2veszPdJ9o7+yL4bwW3wfPc3GeNjbw7VsWTX5DY2fq5bUiJj6Nu57j0T3MT11MX/OEHyvxTkua8o5Db1t/e42l+Gx6+vs621OOJzRkyz1aKz3MRFqz+89T2C94/yfjuQzcPTUjLkpy2tl2cF/TERWuP0dxb37if54/wAS8OY8u0OM1ed2M2ttZK8LfFTPXHWszknJWlo9Hv7+14+evuqa8fy2jr+K8pqePTW3GamXV2eMw58frx1vWkd0ta3pt1OOPm3cxb83hu8HznJeP+S7OTjZ1t3l9zBlw6ds1LWpjxRirE2tE+n1TFLW6iZ69o77Bp8XkfHZ8/DU1bW2MfL0vfWy069PVaeue+/ePb9Pn5VmfzbBT6+1h4XldnidbNbDm5HFSk44mtvTa1a+r12pWe4m0VmPaeu+kCni/Jcf/ETjtvj61twEX2dm+P1RE6ubJTq0ViZ79F56t1HfU+r4iVbm4fynW8c/+FtHQ5DHn182WNLlNXkK4cE473mYvliLev1Vi3vX0z3MfPuDW8j5Hnwc5m4nQ4Hf5PNhwY8+W2DLhpWtbzeK/wD1L17n+S3wvcNrXxUvfHbFa1YmaWmJms/lPXt/hgvIeC2b+Y7G9m4Dl+W1r6Gvhx5dLkq60xelss29UfWxzP8AVX8/u1Gfitja2tXcry/LaFcdKerTx3xTSeveYv3W0zP2nq329vzBF3fLdDVtuYfobOba192uji1scROTZyzjpk6pHfxFb9zM9RHUzKxxcrhyc/l4X6WSuxi08e3a09en03vesR8/PdJ/6Yza8V5jX8l5jy3jMVp5Sm9W+pgyZ4jFt630cVclOu+qWtNZ6tPXvSvfsuOSpy+j5bTyDV4XY5DBtcbTVzYMWXFXNgvS9r1mfVaKzE/UmJ6tPXX3gEjY8p64vb5HT4bf3cWns7GvsRjvirNPo2mLX/nvHcT1PXXc/o9OP8g397hY5PB4xyXWSKXw4Zza8Xy0tHfqj/ydRER17TMT7/CHwvD8lh8I5TX2temPkORtubM69ckWjHbNa9q4/V7RMx6oiZ+O+/su/GtbNp+OcZqbNPRnwaeLHkr3E+m1aREx3HtPvAK/xjyaeb0L8jfiNzj9GtLXjY2cmGa29Npi0dUvMx11PzER7JHh/kOn5PwlOV0sebDS17UtizViuSkxP3iO+u46tH6TDNTwHPW/hbh8ZxYp1tvby219m8Xpb6GC+a03v89W/wDHMx1E9/zf36sfE+E5fg/JuTjPtW3uO38OPPGb6ePFGLPSPpzX0V6/qpFJ7iOv5P8AIawAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB+emvq9fpj1ddd9e/T9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" style="max-width: 100%"></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-19-931Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-19-931Z" class="timestamp-link"><time datetime="2026-09-03T20:24:19.931Z" data-timestamp="2026-09-03T20:24:19.931Z">2026-09-03T20:24:19.931Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-20-588Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-20-588Z" class="timestamp-link"><time datetime="2026-09-03T20:24:20.588Z" data-timestamp="2026-09-03T20:24:20.588Z">2026-09-03T20:24:20.588Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EPatK23FzJxTbCH9yesyDh"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__evaluate_script</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;function&#34;: &#34;async () =&gt; { await new Promise(r =&gt; setTimeout(r, 1500)); return { op: getComputedStyle(document.getElementById(&#39;vignette&#39;)).opacity, hash: location.hash }; }&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-23-321Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-23-321Z" class="timestamp-link"><time datetime="2026-09-03T20:24:23.321Z" data-timestamp="2026-09-03T20:24:23.321Z">2026-09-03T20:24:23.321Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Error: Failed to execute &#x27;getComputedStyle&#x27; on &#x27;Window&#x27;: parameter 1 is not of type &#x27;Element&#x27;.
+pptr:evaluateHandle;performEvaluation%20(file%3A%2F%2F%2FUsers%2Fbenjaminjordan%2F.npm%2F_npx%2F15c61037b1978c83%2Fnode_modules%2Fchrome-devtools-mcp%2Fbuild%2Fsrc%2Ftools%2Fscript.js%3A181%3A69):1:74</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-26-133Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-26-133Z" class="timestamp-link"><time datetime="2026-09-03T20:24:26.133Z" data-timestamp="2026-09-03T20:24:26.133Z">2026-09-03T20:24:26.133Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-26-136Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-26-136Z" class="timestamp-link"><time datetime="2026-09-03T20:24:26.136Z" data-timestamp="2026-09-03T20:24:26.136Z">2026-09-03T20:24:26.136Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MZ3wJwHXFb8RcohoQAwBen"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__navigate_page</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;type&#34;: &#34;reload&#34;,
+  &#34;ignoreCache&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-27-727Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-27-727Z" class="timestamp-link"><time datetime="2026-09-03T20:24:27.727Z" data-timestamp="2026-09-03T20:24:27.727Z">2026-09-03T20:24:27.727Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Successfully reloaded the page.
+## Pages
+3: 12. Higher-order Runge-Kutta · Why physics engi... (http://127.0.0.1:8765/app/#/12) [selected]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-24-30-024Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-24-30-024Z" class="timestamp-link"><time datetime="2026-09-03T20:24:30.024Z" data-timestamp="2026-09-03T20:24:30.024Z">2026-09-03T20:24:30.024Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01NBa25m5QY3X6JAnUZKrmBR"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__chrome-devtools__evaluate_script</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pageId&#34;: 3,
+  &#34;function&#34;: &#34;async () =&gt; { await new Promise(r =&gt; setTimeout(r, 1200)); const v = document.getElementById(&#39;vignette&#39;); return { exists: !!v, op: v &amp;&amp; getComputedStyle(v).opacity, hash: location.hash }; }&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-24-32-841Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-24-32-841Z" class="timestamp-link"><time datetime="2026-09-03T20:24:32.841Z" data-timestamp="2026-09-03T20:24:32.841Z">2026-09-03T20:24:32.841Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Script ran on page and returned:
+```json
+{&quot;exists&quot;:true,&quot;op&quot;:&quot;0&quot;,&quot;hash&quot;:&quot;#/12&quot;}
+```</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-24-32-966Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-24-32-966Z" class="timestamp-link"><time datetime="2026-09-03T20:24:32.966Z" data-timestamp="2026-09-03T20:24:32.966Z">2026-09-03T20:24:32.966Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Request interrupted by user]</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-25-12-625Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-25-12-625Z" class="timestamp-link"><time datetime="2026-09-03T20:25:12.625Z" data-timestamp="2026-09-03T20:25:12.625Z">2026-09-03T20:25:12.625Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I will verify visually. do not use the mcp anymore. In general I like it but it needs to be more pronounced. The spine needs to have stronger vignette so we can see it lift when we move left.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-25-38-249Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-25-38-249Z" class="timestamp-link"><time datetime="2026-09-03T20:25:38.249Z" data-timestamp="2026-09-03T20:25:38.249Z">2026-09-03T20:25:38.249Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-25-38-934Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-25-38-934Z" class="timestamp-link"><time datetime="2026-09-03T20:25:38.934Z" data-timestamp="2026-09-03T20:25:38.934Z">2026-09-03T20:25:38.934Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Understood — no more MCP. Two changes: a baseline vignette on the spine (so moving left lifts it), and a stronger gradient overall.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-25-47-632Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-25-47-632Z" class="timestamp-link"><time datetime="2026-09-03T20:25:47.632Z" data-timestamp="2026-09-03T20:25:47.632Z">2026-09-03T20:25:47.632Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01AGoo6p6yjuDuQpJPhe3y2E">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Rework vignette level mapping in main.js</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;shared/main.js&#39;)
+s = p.read_text()
+
+old = &#34;&#34;&#34;// ---- depth vignette ----
+// Going right is going deeper, so the frame darkens with the current row&#39;s horizontal scroll
+// offset, read continuously rather than per route: the vignette follows the swipe itself,
+// including a half-finished one. Steps diminish (1 - 2^-d) so the first dive reads clearly
+// and panel 12&#39;s third still adds to it; a left pane is surface, not depth, so it clamps to 0.
+const MAX_DEPTH = 3;
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c =&gt; c.dataset.pane === &#39;spine&#39;);
+  const depth = Math.min(MAX_DEPTH, Math.max(0, row.scrollLeft / row.clientWidth - spineIndex));
+  vignette.style.opacity = (1 - 2 ** -depth).toFixed(3);
+}
+&#34;&#34;&#34;
+
+new = &#34;&#34;&#34;// ---- depth vignette ----
+// Going right is going deeper, so the frame darkens with the current row&#39;s horizontal scroll
+// offset, read continuously rather than per route: the vignette follows the swipe itself,
+// including a half-finished one. The spine already sits under a soft frame, so a left pane
+// lifts it as visibly as a right pane presses it down. Steps shrink as they go: the first
+// dive is the big one, and panel 12&#39;s third still adds to it.
+// One level per cell offset from the spine, -1 (left) through +3 (the deepest right).
+const LEVELS = [0, 0.42, 0.76, 0.9, 1];
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c =&gt; c.dataset.pane === &#39;spine&#39;);
+  const at = Math.max(0, Math.min(LEVELS.length - 1,
+    row.scrollLeft / row.clientWidth - spineIndex + 1));
+  const i = Math.min(Math.floor(at), LEVELS.length - 2);   // lerp between the two it sits between
+  vignette.style.opacity = (LEVELS[i] + (LEVELS[i + 1] - LEVELS[i]) * (at - i)).toFixed(3);
+}
+&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;main.js ok&#39;)
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-25-48-995Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-25-48-995Z" class="timestamp-link"><time datetime="2026-09-03T20:25:48.995Z" data-timestamp="2026-09-03T20:25:48.995Z">2026-09-03T20:25:48.995Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>main.js ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-25-51-472Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-25-51-472Z" class="timestamp-link"><time datetime="2026-09-03T20:25:51.472Z" data-timestamp="2026-09-03T20:25:51.472Z">2026-09-03T20:25:51.472Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-25-58-234Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-25-58-234Z" class="timestamp-link"><time datetime="2026-09-03T20:25:58.234Z" data-timestamp="2026-09-03T20:25:58.234Z">2026-09-03T20:25:58.234Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_013XBbXsWiuXeNn6QYDK8KrT">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Strengthen the vignette gradient</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;styles/layout.css&#39;)
+s = p.read_text()
+
+old = &#34;&#34;&#34;/* Under the rails (z-index 5) so the dots stay crisp, over the panes, and never a hit
+   target. `--vignette` is written per scroll frame by main.js, so no transition: the frame
+   tracks the swipe itself. The core stays clear well past the stage, and the corners top out
+   at a tenth of an alpha, so nothing a panel draws is obscured. */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: var(--vignette, 0);
+  will-change: opacity;
+  background: radial-gradient(ellipse farthest-corner at 50% 50%,
+    rgba(29, 29, 27, 0) 42%,
+    rgba(29, 29, 27, 0.10) 72%,
+    rgba(29, 29, 27, 0.34) 100%);
+}
+&#34;&#34;&#34;
+
+new = &#34;&#34;&#34;/* Under the rails (z-index 5) so the dots stay crisp, over the panes, and never a hit
+   target. The opacity is written per scroll frame by main.js, so there is no transition: the
+   frame tracks the swipe itself. Weight sits in the last quarter of the radius, and
+   `farthest-corner` puts the darkest stop at the four corners alone, so the mid-edges — where
+   the prose column and the stage actually reach — stay well short of it. */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+  background: radial-gradient(ellipse farthest-corner at 50% 50%,
+    rgba(29, 29, 27, 0) 38%,
+    rgba(29, 29, 27, 0.06) 60%,
+    rgba(29, 29, 27, 0.20) 80%,
+    rgba(29, 29, 27, 0.50) 100%);
+}
+&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;layout.css ok&#39;)
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-25-59-812Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-25-59-812Z" class="timestamp-link"><time datetime="2026-09-03T20:25:59.812Z" data-timestamp="2026-09-03T20:25:59.812Z">2026-09-03T20:25:59.812Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>layout.css ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-26-01-790Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-26-01-790Z" class="timestamp-link"><time datetime="2026-09-03T20:26:01.790Z" data-timestamp="2026-09-03T20:26:01.790Z">2026-09-03T20:26:01.790Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now the plan.md note and a commit.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-26-10-033Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-26-10-033Z" class="timestamp-link"><time datetime="2026-09-03T20:26:10.033Z" data-timestamp="2026-09-03T20:26:10.033Z">2026-09-03T20:26:10.033Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01WYkkiPGkRcmq6GisAmjpig">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Document in plan.md and commit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;docs/plan.md&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;- Cell targets are computed from the cell&#39;s index times the row width, not `offsetLeft`,
+  which shifts with the row&#39;s own scroll offset.&#34;&#34;&#34;
+new = old + &#34;&#34;&#34;
+- A fixed `#vignette` frame under the rails reads depth: `main.js` sets its opacity from the
+  current row&#39;s horizontal scroll offset on every scroll event, so it tracks the swipe. The
+  spine sits at a baseline the left pane lifts and each right pane presses further down.&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;plan.md ok&#39;)
+PY
+git add app/index.html app/styles/layout.css app/shared/main.js docs/plan.md &amp;&amp; git commit -q -F - &lt;&lt;&#39;MSG&#39;
+depth vignette: a fixed frame that darkens as the row scrolls right
+
+Going right is going deeper, so give that a visual. A fixed radial frame under
+the rails takes its opacity from the current row&#39;s horizontal scroll offset,
+recomputed on every scroll event rather than per route, so it follows a swipe
+continuously instead of snapping. The spine sits at a baseline the left pane
+lifts and each right pane presses further down, in shrinking steps.
+
+Weight sits in the outer quarter of the radius and `farthest-corner` puts the
+darkest stop at the four corners alone, so the prose column and the stage stay
+well clear of it.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01HvvWmVeztoesTQy48J7CXX
+MSG
+git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-26-11-525Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-26-11-525Z" class="timestamp-link"><time datetime="2026-09-03T20:26:11.525Z" data-timestamp="2026-09-03T20:26:11.525Z">2026-09-03T20:26:11.525Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>plan.md ok
+0d083f5 depth vignette: a fixed frame that darkens as the row scrolls right</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-26-13-835Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-26-13-835Z" class="timestamp-link"><time datetime="2026-09-03T20:26:13.835Z" data-timestamp="2026-09-03T20:26:13.835Z">2026-09-03T20:26:13.835Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-26-13-837Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-26-13-837Z" class="timestamp-link"><time datetime="2026-09-03T20:26:13.837Z" data-timestamp="2026-09-03T20:26:13.837Z">2026-09-03T20:26:13.837Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;server_tool_use&quot;,
+  &quot;id&quot;: &quot;srvtoolu_01HN1cxE73X2FtvGuxUgk2yr&quot;,
+  &quot;name&quot;: &quot;advisor&quot;,
+  &quot;input&quot;: {}
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-27-20-694Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-27-20-694Z" class="timestamp-link"><time datetime="2026-09-03T20:27:20.694Z" data-timestamp="2026-09-03T20:27:20.694Z">2026-09-03T20:27:20.694Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;advisor_tool_result&quot;,
+  &quot;tool_use_id&quot;: &quot;srvtoolu_01HN1cxE73X2FtvGuxUgk2yr&quot;,
+  &quot;content&quot;: {
+    &quot;type&quot;: &quot;advisor_redacted_result&quot;,
+    &quot;encrypted_content&quot;: &quot;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&quot;
+  }
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-27-26-326Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-27-26-326Z" class="timestamp-link"><time datetime="2026-09-03T20:27:26.326Z" data-timestamp="2026-09-03T20:27:26.326Z">2026-09-03T20:27:26.326Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done and committed (<code>0d083f5</code>). Reload to see it.</p>
+<p><strong>What changed from the first pass</strong></p>
+<ul>
+<li><strong>The spine now has a baseline.</strong> The ladder is one level per cell offset from the spine: <code>left 0 → spine 0.42 → right 0.76 → right-2 0.90 → right-3 1.0</code>. Moving left lifts the frame off, moving right presses it down, in shrinking steps so the first dive is the big one.</li>
+<li><strong>Stronger gradient.</strong> Corner alpha at full depth went 0.34 → 0.50, with a four-stop ramp that keeps the weight in the outer quarter of the radius.</li>
+<li>It's driven from the row's <code>scrollLeft</code> on every scroll event, not from the route, so it tracks a swipe continuously — including a half-finished one that snaps back.</li>
+</ul>
+<p><strong>One thing to look at and tell me:</strong> the title page (<code>#/0</code>) and the conclusion are single-cell rows, so they now sit at the spine baseline too. Previously they were clear. That's a taste call on full-bleed collage art — say the word and I'll exempt the bookends.</p>
+<p><strong>If a stage or the prose edge looks muddied</strong>, the knob is the gradient's inner stops in <code>layout.css</code> (push the 38%/60% clear core outward, or drop the 80% stop from 0.20) — not <code>LEVELS</code>, which is the depth ladder you just asked to make more pronounced.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-27-26-442Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-27-26-442Z" class="timestamp-link"><time datetime="2026-09-03T20:27:26.442Z" data-timestamp="2026-09-03T20:27:26.442Z">2026-09-03T20:27:26.442Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-27-28-809Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-27-28-809Z" class="timestamp-link"><time datetime="2026-09-03T20:27:28.809Z" data-timestamp="2026-09-03T20:27:28.809Z">2026-09-03T20:27:28.809Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-27-30-379Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-27-30-379Z" class="timestamp-link"><time datetime="2026-09-03T20:27:30.379Z" data-timestamp="2026-09-03T20:27:30.379Z">2026-09-03T20:27:30.379Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>TL;DR:</strong> Added a full-screen vignette that tracks how far right (deep) you've scrolled — <code>left 0 → spine 0.42 → right 0.76 → right-2 0.90 → right-3 1.0</code>, driven live off the row's scroll position so it follows the swipe. Spine has a baseline now, so moving left visibly lifts it. Committed as <code>0d083f5</code>. Reload to check; tell me if you want the title/conclusion pages exempted.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-29-13-533Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-29-13-533Z" class="timestamp-link"><time datetime="2026-09-03T20:29:13.533Z" data-timestamp="2026-09-03T20:29:13.533Z">2026-09-03T20:29:13.533Z</time></a></div><div class="message-content">
+<div class="user-content"><p>going right needs to have a more significant change, and it should max out</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-29-41-987Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-29-41-987Z" class="timestamp-link"><time datetime="2026-09-03T20:29:41.987Z" data-timestamp="2026-09-03T20:29:41.987Z">2026-09-03T20:29:41.987Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-29-48-807Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-29-48-807Z" class="timestamp-link"><time datetime="2026-09-03T20:29:48.807Z" data-timestamp="2026-09-03T20:29:48.807Z">2026-09-03T20:29:48.807Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01GNPP7cVkGiWEuh3UmmTY5z">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Make the right step max out</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd app &amp;&amp; python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;shared/main.js&#39;)
+s = p.read_text()
+
+old = &#34;&#34;&#34;// One level per cell offset from the spine, -1 (left) through +3 (the deepest right).
+const LEVELS = [0, 0.42, 0.76, 0.9, 1];
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c =&gt; c.dataset.pane === &#39;spine&#39;);
+  const at = Math.max(0, Math.min(LEVELS.length - 1,
+    row.scrollLeft / row.clientWidth - spineIndex + 1));&#34;&#34;&#34;
+
+new = &#34;&#34;&#34;// One level per cell offset from the spine: -1 (left), 0 (spine), +1 and deeper (right).
+// A single dive is already the bottom, so panel 12&#39;s chain stays there rather than reserving
+// headroom that twelve of the thirteen panels would never reach.
+const LEVELS = [0, 0.34, 1];
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c =&gt; c.dataset.pane === &#39;spine&#39;);
+  const at = Math.max(0, Math.min(LEVELS.length - 1,
+    row.scrollLeft / row.clientWidth - spineIndex + 1));&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+old2 = &#34;&#34;&#34;// lifts it as visibly as a right pane presses it down. Steps shrink as they go: the first
+// dive is the big one, and panel 12&#39;s third still adds to it.&#34;&#34;&#34;
+new2 = &#34;&#34;&#34;// lifts it as visibly as a right pane presses it down, and a dive right goes all the way.&#34;&#34;&#34;
+assert s.count(old2) == 1
+p.write_text(s.replace(old2, new2))
+print(&#39;ok&#39;)
+PY
+sed -n &#39;122,137p&#39; shared/main.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-29-50-832Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-29-50-832Z" class="timestamp-link"><time datetime="2026-09-03T20:29:50.832Z" data-timestamp="2026-09-03T20:29:50.832Z">2026-09-03T20:29:50.832Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+// ---- depth vignette ----
+// Going right is going deeper, so the frame darkens with the current row&#x27;s horizontal scroll
+// offset, read continuously rather than per route: the vignette follows the swipe itself,
+// including a half-finished one. The spine already sits under a soft frame, so a left pane
+// lifts it as visibly as a right pane presses it down, and a dive right goes all the way.
+// One level per cell offset from the spine: -1 (left), 0 (spine), +1 and deeper (right).
+// A single dive is already the bottom, so panel 12&#x27;s chain stays there rather than reserving
+// headroom that twelve of the thirteen panels would never reach.
+const LEVELS = [0, 0.34, 1];
+function updateVignette(index) {
+  const row = rows.get(index);
+  if (!row?.clientWidth) return;
+  const spineIndex = [...row.children].findIndex(c =&gt; c.dataset.pane === &#x27;spine&#x27;);
+  const at = Math.max(0, Math.min(LEVELS.length - 1,
+    row.scrollLeft / row.clientWidth - spineIndex + 1));
+  const i = Math.min(Math.floor(at), LEVELS.length - 2);   // lerp between the two it sits between</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-29-58-568Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-29-58-568Z" class="timestamp-link"><time datetime="2026-09-03T20:29:58.568Z" data-timestamp="2026-09-03T20:29:58.568Z">2026-09-03T20:29:58.568Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019P8vWHf4P5xs5zDP2RBd9L">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update plan.md and commit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;docs/plan.md&#39;)
+s = p.read_text()
+old = &#34;  spine sits at a baseline the left pane lifts and each right pane presses further down.&#34;
+new = &#34;  spine sits at a baseline the left pane lifts off and any right pane presses to the floor.&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+PY
+git add app/shared/main.js docs/plan.md &amp;&amp; git commit -q -F - &lt;&lt;&#39;MSG&#39;
+depth vignette: one dive right goes all the way to the floor
+
+The spine-to-right step was reading as a nudge. Drop the spine baseline a little
+and take any right pane to full, so entering a dive is unmistakable. Panel 12&#39;s
+chain stays at the floor rather than holding back headroom that twelve of the
+thirteen panels would never reach.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01HvvWmVeztoesTQy48J7CXX
+MSG
+git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-29-59-992Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-29-59-992Z" class="timestamp-link"><time datetime="2026-09-03T20:29:59.992Z" data-timestamp="2026-09-03T20:29:59.992Z">2026-09-03T20:29:59.992Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>6719e4b depth vignette: one dive right goes all the way to the floor</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-30-03-737Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-30-03-737Z" class="timestamp-link"><time datetime="2026-09-03T20:30:03.737Z" data-timestamp="2026-09-03T20:30:03.737Z">2026-09-03T20:30:03.737Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Ladder is now <code>left 0 → spine 0.34 → right 1.0</code>. The spine→right step went from 0.34 to 0.66 — about double — and any right pane bottoms out. Panel 12's chain stays at the floor rather than holding back headroom the other twelve panels never reach.</p>
+<p>I changed one variable only. If full depth still isn't dark enough, the next knob is the gradient max in <code>app/styles/layout.css:…</code> (corner stop <code>rgba(29,29,27,0.50)</code> → higher, and/or the 80% stop from <code>0.20</code>). Say the word and I'll push it.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-003.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 3</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 3/4</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<a href="page-004.html">4</a>
+<a href="page-004.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-03T20-30-49-038Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-30-49-038Z" class="timestamp-link"><time datetime="2026-09-03T20:30:49.038Z" data-timestamp="2026-09-03T20:30:49.038Z">2026-09-03T20:30:49.038Z</time></a></div><div class="message-content">
+<div class="user-content"><p>stronger.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-30-56-202Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-30-56-202Z" class="timestamp-link"><time datetime="2026-09-03T20:30:56.202Z" data-timestamp="2026-09-03T20:30:56.202Z">2026-09-03T20:30:56.202Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-31-01-389Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-31-01-389Z" class="timestamp-link"><time datetime="2026-09-03T20:31:01.389Z" data-timestamp="2026-09-03T20:31:01.389Z">2026-09-03T20:31:01.389Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FVmRr5ym6H6Hk4fhUqCNBT">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Strengthen gradient and commit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd app &amp;&amp; python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;styles/layout.css&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;  background: radial-gradient(ellipse farthest-corner at 50% 50%,
+    rgba(29, 29, 27, 0) 38%,
+    rgba(29, 29, 27, 0.06) 60%,
+    rgba(29, 29, 27, 0.20) 80%,
+    rgba(29, 29, 27, 0.50) 100%);&#34;&#34;&#34;
+new = &#34;&#34;&#34;  background: radial-gradient(ellipse farthest-corner at 50% 50%,
+    rgba(29, 29, 27, 0) 32%,
+    rgba(29, 29, 27, 0.10) 58%,
+    rgba(29, 29, 27, 0.30) 80%,
+    rgba(29, 29, 27, 0.70) 100%);&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;ok&#39;)
+PY
+cd .. &amp;&amp; git add app/styles/layout.css &amp;&amp; git commit -q -F - &lt;&lt;&#39;MSG&#39;
+depth vignette: lean harder on the gradient
+
+Raise the corner stop from half an alpha to 0.70 and pull the clear core in from
+38% to 32% of the radius, so the floor of the dive actually reads as a floor.
+The depth ladder is untouched; this is the gradient it multiplies.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01HvvWmVeztoesTQy48J7CXX
+MSG
+git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-31-02-836Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-31-02-836Z" class="timestamp-link"><time datetime="2026-09-03T20:31:02.836Z" data-timestamp="2026-09-03T20:31:02.836Z">2026-09-03T20:31:02.836Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+2f2455a depth vignette: lean harder on the gradient</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-31-07-314Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-31-07-314Z" class="timestamp-link"><time datetime="2026-09-03T20:31:07.314Z" data-timestamp="2026-09-03T20:31:07.314Z">2026-09-03T20:31:07.314Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Gradient max pushed from 0.50 → 0.70 alpha at the corners, with the clear core pulled in from 38% → 32% of the radius so the ramp starts earlier and covers more of the frame. The ladder is untouched — spine still 0.34, right still 1.0 — so this scales both proportionally.</p>
+<p>Still more, or is a stop overshooting? The three independent knobs in <code>app/styles/layout.css</code>: the corner stop (0.70) sets the floor's darkness, the 80% stop (0.30) is what the stage and prose edges actually feel, and the clear core (32%) sets how much of the middle stays untouched.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-31-48-634Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-31-48-634Z" class="timestamp-link"><time datetime="2026-09-03T20:31:48.634Z" data-timestamp="2026-09-03T20:31:48.634Z">2026-09-03T20:31:48.634Z</time></a></div><div class="message-content">
+<div class="user-content"><p>the conclusion should also have a liunk to https://worrydream.com/LadderOfAbstraction/</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-31-50-968Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-31-50-968Z" class="timestamp-link"><time datetime="2026-09-03T20:31:50.968Z" data-timestamp="2026-09-03T20:31:50.968Z">2026-09-03T20:31:50.968Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XrfJe5GdMJi8dyJ4nDxTK8">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find references list in conclusion</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd app/conclusion &amp;&amp; ls &amp;&amp; grep -n -i &#34;reference\|href&#34; conclusion.html | head -40</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-31-51-010Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-31-51-010Z" class="timestamp-link"><time datetime="2026-09-03T20:31:51.010Z" data-timestamp="2026-09-03T20:31:51.010Z">2026-09-03T20:31:51.010Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>conclusion.html
+conclusion.js
+94:  /* ---- references footer ---- */
+146:      &lt;p class=&quot;source&quot;&gt;Adapted from a &lt;a href=&quot;https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;two-part series&lt;/a&gt; on physical and numerical stability.&lt;/p&gt;
+150:  &lt;footer class=&quot;refs&quot; aria-label=&quot;References&quot;&gt;
+151:    &lt;h2&gt;References&lt;/h2&gt;
+153:      &lt;li&gt;&lt;a href=&quot;https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Physics engines explained (Part I)&lt;/a&gt;&lt;/li&gt;
+154:      &lt;li&gt;&lt;a href=&quot;https://thegoldenmule.medium.com/physics-engine-deep-dive-part-ii-cb8d1fda1f9b&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Physics engine deep dive (Part II)&lt;/a&gt;&lt;/li&gt;
+155:      &lt;li&gt;&lt;a href=&quot;https://www.sciencedirect.com/book/monograph/9781558607408/game-physics&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;David Eberly, &lt;em&gt;Game Physics&lt;/em&gt;&lt;/a&gt;&lt;/li&gt;
+156:      &lt;li&gt;&lt;a href=&quot;https://www.researchgate.net/publication/228548521_Stable_Rigid-body_Physics&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Graham Rhodes, “Stable Rigid-Body Physics”&lt;/a&gt;&lt;/li&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-31-52-906Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-31-52-906Z" class="timestamp-link"><time datetime="2026-09-03T20:31:52.906Z" data-timestamp="2026-09-03T20:31:52.906Z">2026-09-03T20:31:52.906Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01E67Wpff3h2Lug9JjFyEjAy">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read full references list</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd app/conclusion &amp;&amp; sed -n &#39;148,165p&#39; conclusion.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-31-52-949Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-31-52-949Z" class="timestamp-link"><time datetime="2026-09-03T20:31:52.949Z" data-timestamp="2026-09-03T20:31:52.949Z">2026-09-03T20:31:52.949Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+(eval):cd:1: no such file or directory: app/conclusion</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-31-56-367Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-31-56-367Z" class="timestamp-link"><time datetime="2026-09-03T20:31:56.367Z" data-timestamp="2026-09-03T20:31:56.367Z">2026-09-03T20:31:56.367Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016Y43g1uvcQ7ahiUdmukNs6">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read full references list</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;148,168p&#39; conclusion.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-31-56-399Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-31-56-399Z" class="timestamp-link"><time datetime="2026-09-03T20:31:56.399Z" data-timestamp="2026-09-03T20:31:56.399Z">2026-09-03T20:31:56.399Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>  &lt;/div&gt;
+
+  &lt;footer class=&quot;refs&quot; aria-label=&quot;References&quot;&gt;
+    &lt;h2&gt;References&lt;/h2&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Physics engines explained (Part I)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://thegoldenmule.medium.com/physics-engine-deep-dive-part-ii-cb8d1fda1f9b&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Physics engine deep dive (Part II)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://www.sciencedirect.com/book/monograph/9781558607408/game-physics&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;David Eberly, &lt;em&gt;Game Physics&lt;/em&gt;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://www.researchgate.net/publication/228548521_Stable_Rigid-body_Physics&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Graham Rhodes, “Stable Rigid-Body Physics”&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/footer&gt;
+&lt;/section&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-32-00-405Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-32-00-405Z" class="timestamp-link"><time datetime="2026-09-03T20:32:00.405Z" data-timestamp="2026-09-03T20:32:00.405Z">2026-09-03T20:32:00.405Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0182mwSTkLZbY2ysWNiLskyQ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Add Ladder of Abstraction reference</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;conclusion.html&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;      &lt;li&gt;&lt;a href=&#34;https://www.researchgate.net/publication/228548521_Stable_Rigid-body_Physics&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Graham Rhodes, “Stable Rigid-Body Physics”&lt;/a&gt;&lt;/li&gt;
+&#34;&#34;&#34;
+new = old + &#34;&#34;&#34;      &lt;li&gt;&lt;a href=&#34;https://worrydream.com/LadderOfAbstraction/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Bret Victor, “Up and Down the Ladder of Abstraction”&lt;/a&gt;&lt;/li&gt;
+&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;ok&#39;)
+PY
+sed -n &#39;150,159p&#39; conclusion.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-32-01-771Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-32-01-771Z" class="timestamp-link"><time datetime="2026-09-03T20:32:01.771Z" data-timestamp="2026-09-03T20:32:01.771Z">2026-09-03T20:32:01.771Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+  &lt;footer class=&quot;refs&quot; aria-label=&quot;References&quot;&gt;
+    &lt;h2&gt;References&lt;/h2&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;https://thegoldenmule.medium.com/physics-engines-explained-part-i-25c595ddc5b2&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Physics engines explained (Part I)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://thegoldenmule.medium.com/physics-engine-deep-dive-part-ii-cb8d1fda1f9b&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Physics engine deep dive (Part II)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://www.sciencedirect.com/book/monograph/9781558607408/game-physics&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;David Eberly, &lt;em&gt;Game Physics&lt;/em&gt;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://www.researchgate.net/publication/228548521_Stable_Rigid-body_Physics&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Graham Rhodes, “Stable Rigid-Body Physics”&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://worrydream.com/LadderOfAbstraction/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Bret Victor, “Up and Down the Ladder of Abstraction”&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/footer&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-32-07-744Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-32-07-744Z" class="timestamp-link"><time datetime="2026-09-03T20:32:07.744Z" data-timestamp="2026-09-03T20:32:07.744Z">2026-09-03T20:32:07.744Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01AhpUj1XEhvzNKsTMU6A8vR">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the reference addition</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; git add app/conclusion/conclusion.html &amp;&amp; git commit -q -F - &lt;&lt;&#39;MSG&#39;
+conclusion: add the Ladder of Abstraction to the references
+
+Bret Victor&#39;s essay is the form this piece borrows — a reader who moves up and
+down a ladder of concreteness instead of reading about one — so it belongs in
+the footer next to the physics sources.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01HvvWmVeztoesTQy48J7CXX
+MSG
+git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-32-09-152Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-32-09-152Z" class="timestamp-link"><time datetime="2026-09-03T20:32:09.152Z" data-timestamp="2026-09-03T20:32:09.152Z">2026-09-03T20:32:09.152Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>e6df358 conclusion: add the Ladder of Abstraction to the references</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-32-11-568Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-32-11-568Z" class="timestamp-link"><time datetime="2026-09-03T20:32:11.568Z" data-timestamp="2026-09-03T20:32:11.568Z">2026-09-03T20:32:11.568Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Added to the references footer in <code>app/conclusion/conclusion.html:157</code>, as "Bret Victor, 'Up and Down the Ladder of Abstraction'" — last in the list, same <code>target="_blank" rel="noopener"</code> treatment as the others. Committed as <code>e6df358</code>.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-41-24-734Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-41-24-734Z" class="timestamp-link"><time datetime="2026-09-03T20:41:24.734Z" data-timestamp="2026-09-03T20:41:24.734Z">2026-09-03T20:41:24.734Z</time></a></div><div class="message-content">
+<div class="user-content"><p>on page 4 spint, you can't actually drag through zero. We need to be able to</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-41-28-120Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-41-28-120Z" class="timestamp-link"><time datetime="2026-09-03T20:41:28.120Z" data-timestamp="2026-09-03T20:41:28.120Z">2026-09-03T20:41:28.120Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JUKoFxVKQ75XSx4oDAHxUG">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find panel 4</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; ls panels/ &amp;&amp; echo &#34;=== 04 ===&#34; &amp;&amp; ls panels/04*/</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-41-28-144Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-41-28-144Z" class="timestamp-link"><time datetime="2026-09-03T20:41:28.144Z" data-timestamp="2026-09-03T20:41:28.144Z">2026-09-03T20:41:28.144Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>01-point-masses
+02-newtonian-physics
+03-solving-for-x
+04-physical-stability
+05-linearize
+06-eigen-what-now
+07-finding-eigenvalues
+08-recap-real-time
+09-finding-error
+10-explicit-euler
+11-lets-break-it
+12-higher-order-rk
+13-variable-step-sizes
+=== 04 ===
+README.md
+right.html
+right.js
+spine.html
+spine.js</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-41-30-133Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-41-30-133Z" class="timestamp-link"><time datetime="2026-09-03T20:41:30.133Z" data-timestamp="2026-09-03T20:41:30.133Z">2026-09-03T20:41:30.133Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01GJTQjYTxn2Zxw8rrA3Bimo">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 4 spine.js</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd panels/04-physical-stability &amp;&amp; cat spine.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-41-30-150Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-41-30-150Z" class="timestamp-link"><time datetime="2026-09-03T20:41:30.150Z" data-timestamp="2026-09-03T20:41:30.150Z">2026-09-03T20:41:30.150Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// Panel 4, spine: the exact solution with an ε-tube around it and a handful of neighbors
+// started nearby, all closed-form (no integrator exists yet). The neighbors start on a
+// circle of radius ε in (x₀, v₀/ω), so each is exactly ε away at t = 0 and the tube is a
+// fair test. The perturbation size is aux.epsilon, so it survives a remount.
+//
+// The panel&#x27;s whole point is that a system can fail this test, and physical stability here
+// is decided by Re λ = −c / 2m. The tuple clamps c ≥ 0 (LIMITS.c = [0, 50]) because a real
+// spring&#x27;s damping is never negative, so every case the reader could select used to be
+// stable and the picture could never show its own opposite. Damping is therefore local to
+// this pane — the same trick panel 6&#x27;s spine plays with its overdamped c — in a small store
+// whose limits run negative. It is seeded from the tuple&#x27;s c and re-seeded whenever the
+// tuple&#x27;s c changes elsewhere, and it is never written back: a &quot;what if&quot; case is computed
+// locally, so visiting this panel leaves the tuple exactly as it was found.
+
+import { el, fmt } from &#x27;shared/dom.js&#x27;;
+import { createStage } from &#x27;shared/gfx/stage.js&#x27;;
+import { drawBundle } from &#x27;shared/gfx/bundle.js&#x27;;
+import { cssVar, makeView, drawGrid, drawPolyline, drawBand, drawText } from &#x27;shared/gfx/plot2d.js&#x27;;
+import { exactSolution, naturalFrequency } from &#x27;shared/math/system.js&#x27;;
+import { createStore } from &#x27;shared/state.js&#x27;;
+import { aux } from &#x27;shared/aux.js&#x27;;
+import { bindMath } from &#x27;shared/ui/livemath.js&#x27;;
+import { bindScrub } from &#x27;shared/ui/scrub.js&#x27;;
+
+const SPAN = 6;         // seconds shown
+const SAMPLES = 600;
+const NEIGHBORS = 6;    // started at equal angles around the ε-circle
+const C_RANGE = [-2, 50];   // this pane&#x27;s own damping: below zero is the unstable what-if
+const C_SCRUB = [-2, 10];   // the useful stretch of it, for the drag
+const SLACK = 1.001;    // c = 0 rides the tube&#x27;s edge by construction; don&#x27;t call that an exit
+const CAP = 3;          // y-range cap, in multiples of the readable early amplitude
+
+/** This pane&#x27;s own damping, in its own store so bindScrub() and subscribe() work unchanged. */
+function localDamping(c0) {
+  return createStore({ c: c0 }, {
+    limits: { c: C_RANGE },
+    validate: key =&gt; { throw new Error(`panel 4 spine: unknown local key: ${key}`); },
+    presets: {},
+  });
+}
+
+export function mount(root, ctx) {
+  const { store, signal } = ctx;
+  const article = root.closest(&#x27;article&#x27;) ?? root;
+
+  // seeded from the reader&#x27;s actual case; re-seeded only when the tuple&#x27;s own c changes
+  const local = localDamping(store.get().c);
+
+  // one store-shaped view over this pane&#x27;s two what-if numbers — local c and aux&#x27;s epsilon —
+  // so bindScrub can bind both from the article in a single pass, the way panels 2 and 5 bind
+  // a facade over the scene. c never reaches C_RANGE&#x27;s full stretch by drag; C_SCRUB narrows it
+  // to the readable range the old slider used.
+  const scrub = {
+    get: () =&gt; ({ c: local.get().c, epsilon: aux.get().epsilon }),
+    set(patch) {
+      if (Number.isFinite(patch.c)) local.set({ c: patch.c });
+      if (Number.isFinite(patch.epsilon)) aux.set({ epsilon: patch.epsilon });
+      return scrub.get();
+    },
+    subscribe(fn, opts) {
+      const relay = () =&gt; { const s = scrub.get(); fn(s, s); };
+      const offLocal = local.subscribe(relay, opts);
+      const offAux = aux.subscribe(relay, { immediate: false });
+      return () =&gt; { offLocal(); offAux(); };
+    },
+    limits: { c: C_SCRUB, epsilon: aux.limits.epsilon },
+  };
+
+  const stage = createStage(root, { layers: [&#x27;plot&#x27;], aspect: &#x27;wide&#x27;, signal });
+
+  const ts = new Float64Array(SAMPLES + 1);
+  for (let i = 0; i &lt;= SAMPLES; i++) ts[i] = SPAN * i / SAMPLES;
+  const sample = sol =&gt; { const xs = new Float64Array(SAMPLES + 1); for (let i = 0; i &lt;= SAMPLES; i++) xs[i] = sol.x(ts[i]); return xs; };
+
+  // The neighbor sweep (exact[], the six perturbed curves, and the tube-escape stats) is the
+  // same work the draw and the prose both need; memoized so bindMath&#x27;s synchronous derive and
+  // the next animation-frame draw agree, and a redraw or a re-render never repeats it twice.
+  let measured = null, measureKey = &#x27;&#x27;;
+  function measure(sys, eps) {
+    const key = `${sys.m}/${sys.c}/${sys.k}/${sys.x0}/${sys.v0}/${eps}`;
+    if (key === measureKey) return measured;
+    measureKey = key;
+    const omega = naturalFrequency(sys.m, sys.k);
+    const exact = sample(exactSolution(sys));
+
+    // neighbors: (x₀ + ε cos φ, v₀ + ε ω sin φ); with k = 0 there is no ω, so perturb v by ε
+    const series = [];
+    let maxDist = 0, endDist = 0, far = 0, escapeAt = -1, escaped = 0;
+    for (let j = 0; j &lt; NEIGHBORS; j++) {
+      const phi = 2 * Math.PI * j / NEIGHBORS;
+      const dx = eps * Math.cos(phi), dv = eps * (omega &gt; 0 ? omega : 1) * Math.sin(phi);
+      const xs = sample(exactSolution({ ...sys, x0: sys.x0 + dx, v0: sys.v0 + dv }));
+      let left = false;
+      for (let i = 0; i &lt;= SAMPLES; i++) {
+        const d = Math.abs(xs[i] - exact[i]);
+        if (d &gt; maxDist) maxDist = d;
+        if (i === SAMPLES &amp;&amp; d &gt; endDist) endDist = d;
+        if (Math.abs(xs[i]) &gt; far) far = Math.abs(xs[i]);
+        if (d &gt; eps * SLACK) {
+          left = true;
+          if (escapeAt &lt; 0 || ts[i] &lt; escapeAt) escapeAt = ts[i];
+        }
+      }
+      if (left) escaped++;
+      series.push({ xs: ts, ys: xs });
+    }
+    measured = { exact, series, maxDist, endDist, far, escapeAt, escaped };
+    return measured;
+  }
+
+  /** The system currently drawn: the tuple&#x27;s m, k, x₀, v₀ with this pane&#x27;s own c. */
+  const sysNow = () =&gt; ({ ...store.get(), c: local.get().c });
+
+  stage.onDraw(({ w, h, dpr }) =&gt; {
+    const s = store.get();
+    const c = local.get().c;                 // this pane&#x27;s own damping, never the tuple&#x27;s
+    const sys = { ...s, c };                 // the system actually drawn
+    const eps = aux.get().epsilon;
+    const { exact, series, far, escapeAt } = measure(sys, eps);
+    const lo = new Float64Array(SAMPLES + 1), hi = new Float64Array(SAMPLES + 1);
+    for (let i = 0; i &lt;= SAMPLES; i++) { lo[i] = exact[i] - eps; hi[i] = exact[i] + eps; }
+
+    const g = stage.ctx(&#x27;plot&#x27;);
+    // ampQ, the amplitude over the first quarter of the window, is the scale the reader can
+    // actually read; amp is the whole window, which an unstable case blows up by e^{|c|T/2m}.
+    // The view fits what it can and caps at CAP · ampQ, so a runaway leaves the top of the
+    // frame instead of squashing the ε-tube to nothing — which is what leaving looks like.
+    let amp = 0, ampQ = 0;
+    for (let i = 0; i &lt;= SAMPLES; i++) {
+      const a = Math.abs(exact[i]);
+      if (a &gt; amp) amp = a;
+      if (i &lt;= SAMPLES / 4 &amp;&amp; a &gt; ampQ) ampQ = a;
+    }
+    const base = Math.max(ampQ + eps, 0.5);
+    const yMax = 1.2 * Math.min(Math.max(amp + eps, far), CAP * base);
+    const view = makeView({ w, h, dpr, xMin: 0, xMax: SPAN, yMin: -yMax, yMax });
+    g.clearRect(0, 0, w, h);
+    drawGrid(g, view, { xLabel: &#x27;t&#x27;, yLabel: &#x27;x&#x27; });
+    drawBand(g, view, ts, lo, hi, { fill: cssVar(&#x27;--exact&#x27;), alpha: 0.16 });
+    drawBundle(g, view, series, {
+      highlight: -1,
+      color: c &lt; 0 ? cssVar(&#x27;--unstable&#x27;) : cssVar(&#x27;--approx&#x27;),
+      dimAlpha: 0.7, dimWidth: 1.25,
+    });
+    drawPolyline(g, view, ts, exact, { color: cssVar(&#x27;--exact&#x27;), width: 2 });
+    if (escapeAt &gt;= 0) {
+      const late = escapeAt &gt; 0.62 * SPAN;
+      drawPolyline(g, view, [escapeAt, escapeAt], [-yMax, yMax], { color: cssVar(&#x27;--unstable&#x27;), width: 1.25, dash: [5, 4], alpha: 0.9 });
+      drawText(g, view, `leaves the tube at t = ${fmt(escapeAt, 2)} s`, escapeAt, yMax, {
+        color: cssVar(&#x27;--unstable&#x27;), size: 11, align: late ? &#x27;right&#x27; : &#x27;left&#x27;, dx: late ? -6 : 6, dy: 16,
+      });
+    }
+    // anchored at t = 0: a runaway takes the tube off the top of the frame long before t = SPAN
+    drawText(g, view, &#x27;ε-tube around the exact solution&#x27;, 0, exact[0] - eps, { color: cssVar(&#x27;--exact&#x27;), size: 11, dx: 8, dy: 16 });
+  });
+
+  const offScrub = bindScrub(article, scrub, { signal });
+
+  // the verdict sentence in the prose: the sign of Re λ = −c / 2m, and nothing else. Bound
+  // to all three stores (the tuple for m, this pane&#x27;s own c, and aux&#x27;s ε) so it stays live
+  // whichever one moves; `measure` above is memoized, so this repeats no work the draw
+  // hasn&#x27;t already done for the same (m, c, k, x₀, v₀, ε).
+  function verdictSlots() {
+    const sys = sysNow(), eps = aux.get().epsilon;
+    const { maxDist, endDist, escaped } = measure(sys, eps);
+    const alpha = -sys.c / (2 * sys.m);
+    const verdict = sys.c &gt; 0 ? &#x27;asymptotically stable&#x27;
+      : sys.c &lt; 0 ? &#x27;unstable&#x27;
+        : escaped === 0 ? &#x27;stable&#x27; : &#x27;unstable&#x27;;
+    const cls = verdict === &#x27;unstable&#x27; ? &#x27;unstable&#x27; : &#x27;stable&#x27;;
+    return {
+      alpha, maxDist, endDist,
+      localc: sys.c,
+      verdict: el(&#x27;span&#x27;, { class: cls }, verdict),
+      tubeState: endDist &gt; eps * SLACK ? &#x27;outside&#x27; : &#x27;inside&#x27;,
+    };
+  }
+  bindMath(article, store, verdictSlots, { signal });
+  bindMath(article, local, verdictSlots, { signal });
+  bindMath(article, aux, verdictSlots, { signal });
+
+  // the tuple only re-seeds the local damping (m, k, x₀, v₀ still come from it directly)
+  const unsub = store.subscribe((s, patch) =&gt; {
+    if (&#x27;c&#x27; in patch) local.set({ c: s.c });
+    stage.invalidate();
+  }, { immediate: false });
+  const unsubLocal = local.subscribe(stage.invalidate, { immediate: false });
+  const unsubAux = aux.subscribe((s, patch) =&gt; { if (&#x27;epsilon&#x27; in patch) stage.invalidate(); }, { immediate: false });
+  return { destroy() { unsub(); unsubLocal(); unsubAux(); offScrub(); } };
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-41-34-681Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-41-34-681Z" class="timestamp-link"><time datetime="2026-09-03T20:41:34.681Z" data-timestamp="2026-09-03T20:41:34.681Z">2026-09-03T20:41:34.681Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-41-35-173Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-41-35-173Z" class="timestamp-link"><time datetime="2026-09-03T20:41:35.173Z" data-timestamp="2026-09-03T20:41:35.173Z">2026-09-03T20:41:35.173Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XicpnX3GUppZGcThfnJnGA">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read scrub.js</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ../.. &amp;&amp; cat shared/ui/scrub.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-41-35-191Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-41-35-191Z" class="timestamp-link"><time datetime="2026-09-03T20:41:35.191Z" data-timestamp="2026-09-03T20:41:35.191Z">2026-09-03T20:41:35.191Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// Scrubbable numbers: a number in a formula you drag left or right to change (panels 5, 7).
+// A prose fragment marks them with data-scrub; bindScrub binds each to a store key within
+// that store&#x27;s limits (any store shaped { get, set, subscribe, limits }: the tuple, aux, or
+// scene.paramStore(i) for one force&#x27;s parameters).
+//
+//   &lt;mn data-var=&quot;k&quot; data-scrub=&quot;k&quot; data-digits=&quot;0&quot;&gt;100&lt;/mn&gt;
+//   bindScrub(article, store, { signal });
+//
+// Drag horizontally (pointer capture, so the drag survives leaving the element); hold
+// shift for a fine step; focus it and use the arrow keys (Home/End for the ends). A
+// data-log attribute makes the drag multiplicative, for h and k. The text is written here
+// only when the element has no data-var, so it coexists with bindMath on the same
+// element: livemath owns the text, scrub owns the gesture.
+//
+// A data-snap=&quot;0&quot; (or a comma list, &quot;0,1&quot;) makes those values landable exactly, the way a
+// stepped &lt;input type=range&gt; guarantees its grid points: a move that would step past a
+// snap value, or land within one step of it, is replaced with the snap value itself. The
+// tolerance is the size of the gesture that produced the move, so a slow drag must still
+// come close and a fast one cannot skip over the value entirely. Nodes without data-snap
+// are unaffected — snaps is empty and move() returns exactly what it always did.
+
+import { fmt } from &#x27;../dom.js&#x27;;
+
+const FINE = 0.1;
+
+/**
+ * bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps = 100, digits = 3, limits })
+ *   pixelsPerRange  pixels of drag that sweep the whole range
+ *   keySteps        arrow presses that sweep the whole range
+ *   limits          overrides per key, else store.limits[key]; an unbounded key scrubs at
+ *                   max(|value|, 1) per pixelsPerRange
+ * → off()
+ */
+export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps = 100, digits = 3, limits = {} } = {}) {
+  const ac = new AbortController();
+  signal?.addEventListener(&#x27;abort&#x27;, () =&gt; ac.abort(), { once: true });
+  const sig = ac.signal;
+  const nodes = [...root.querySelectorAll(&#x27;[data-scrub]&#x27;)];
+  const offs = [];
+
+  for (const node of nodes) {
+    const key = node.dataset.scrub;
+    let [lo, hi] = limits[key] ?? store.limits?.[key] ?? [-Infinity, Infinity];
+    const bounded = Number.isFinite(lo) &amp;&amp; Number.isFinite(hi);
+    const log = node.hasAttribute(&#x27;data-log&#x27;) &amp;&amp; bounded &amp;&amp; hi &gt; 0;
+    if (log &amp;&amp; lo &lt;= 0) lo = hi / 1000;   // same floor rule as slider({ log })
+    const d = node.dataset.digits != null ? Number(node.dataset.digits) : digits;
+    const ownsText = !node.hasAttribute(&#x27;data-var&#x27;);
+    const clamp = v =&gt; Math.min(hi, Math.max(lo, v));
+    const value = () =&gt; store.get()[key];
+    const snaps = node.dataset.snap != null ? node.dataset.snap.split(&#x27;,&#x27;).map(Number).filter(Number.isFinite) : [];
+
+    node.classList.add(&#x27;scrub&#x27;);
+    node.setAttribute(&#x27;tabindex&#x27;, &#x27;0&#x27;);
+    node.setAttribute(&#x27;role&#x27;, &#x27;slider&#x27;);
+    node.setAttribute(&#x27;aria-label&#x27;, node.getAttribute(&#x27;aria-label&#x27;) ?? key);
+    if (bounded) { node.setAttribute(&#x27;aria-valuemin&#x27;, lo); node.setAttribute(&#x27;aria-valuemax&#x27;, hi); }
+
+    // one unit of gesture: a pixel of drag or 1/keySteps of a key sweep, in the key&#x27;s units
+    const perPixel = v =&gt; (log ? Math.log(hi / lo) / pixelsPerRange : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / pixelsPerRange);
+    const perKey = v =&gt; (log ? Math.log(hi / lo) / keySteps : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / keySteps);
+    const move = (v, amount) =&gt; {
+      const next = clamp(log ? v * Math.exp(amount) : v + amount);
+      if (snaps.length === 0) return next;
+      const tol = Math.max(Math.abs(next - v), 1e-9);   // this move&#x27;s own size: the snap window
+      for (const target of snaps) {
+        if (v === target) continue;   // already on the detent: let this move leave it
+        if (Math.abs(next - target) &lt; tol || (v - target) * (next - target) &lt;= 0) return target;
+      }
+      return next;
+    };
+    const write = v =&gt; { if (v !== value()) store.set({ [key]: v }); };
+
+    let drag = null;   // { id, lastX, v }
+    node.addEventListener(&#x27;pointerdown&#x27;, e =&gt; {
+      if (e.button !== 0 &amp;&amp; e.pointerType === &#x27;mouse&#x27;) return;
+      drag = { id: e.pointerId, lastX: e.clientX, v: value() };
+      node.setPointerCapture(e.pointerId);
+      node.dataset.active = &#x27;&#x27;;
+      node.focus({ preventScroll: true });
+      e.preventDefault();
+    }, { signal: sig });
+    node.addEventListener(&#x27;pointermove&#x27;, e =&gt; {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.lastX;
+      drag.lastX = e.clientX;
+      if (dx === 0) return;
+      drag.v = move(drag.v, dx * perPixel(drag.v) * (e.shiftKey ? FINE : 1));
+      write(drag.v);
+    }, { signal: sig });
+    const release = e =&gt; {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      delete node.dataset.active;
+    };
+    node.addEventListener(&#x27;pointerup&#x27;, release, { signal: sig });
+    node.addEventListener(&#x27;pointercancel&#x27;, release, { signal: sig });
+    node.addEventListener(&#x27;keydown&#x27;, e =&gt; {
+      const v = value();
+      let next = null;
+      if (e.key === &#x27;ArrowRight&#x27; || e.key === &#x27;ArrowUp&#x27;) next = move(v, perKey(v) * (e.shiftKey ? FINE : 1));
+      else if (e.key === &#x27;ArrowLeft&#x27; || e.key === &#x27;ArrowDown&#x27;) next = move(v, -perKey(v) * (e.shiftKey ? FINE : 1));
+      else if (e.key === &#x27;Home&#x27; &amp;&amp; bounded) next = lo;
+      else if (e.key === &#x27;End&#x27; &amp;&amp; bounded) next = hi;
+      if (next === null) return;
+      e.preventDefault();   // main.js&#x27;s arrow-key navigation checks defaultPrevented
+      write(next);
+    }, { signal: sig });
+    // No wheel handler: wheel is the page&#x27;s swipe gesture and must never be cancelled.
+
+    offs.push(store.subscribe((s, patch) =&gt; {
+      if (!(key in patch)) return;
+      const v = s[key];
+      node.setAttribute(&#x27;aria-valuenow&#x27;, v);
+      if (ownsText) {
+        const text = fmt(v, d);
+        if (node.textContent !== text) node.textContent = text;
+      }
+    }));
+  }
+
+  sig.addEventListener(&#x27;abort&#x27;, () =&gt; { for (const o of offs) o(); }, { once: true });
+  return () =&gt; ac.abort();
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-41-43-902Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-41-43-902Z" class="timestamp-link"><time datetime="2026-09-03T20:41:43.902Z" data-timestamp="2026-09-03T20:41:43.902Z">2026-09-03T20:41:43.902Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-41-43-902Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-41-43-902Z" class="timestamp-link"><time datetime="2026-09-03T20:41:43.902Z" data-timestamp="2026-09-03T20:41:43.902Z">2026-09-03T20:41:43.902Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01BuZLeTeesaaiitzCxrG2ou">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 4 spine.html</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd panels/04-physical-stability &amp;&amp; cat spine.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-41-43-918Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-41-43-918Z" class="timestamp-link"><time datetime="2026-09-03T20:41:43.918Z" data-timestamp="2026-09-03T20:41:43.918Z">2026-09-03T20:41:43.918Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&lt;article&gt;
+  &lt;h2&gt;Physical stability&lt;/h2&gt;
+  &lt;div class=&quot;prose&quot;&gt;
+    &lt;p&gt;Physical stability is a statement about a solution to our system of equations. It roughly
+      says that a solution is physically stable if it starts out close to the real solution and
+      stays close to the real solution, &lt;em&gt;forever&lt;/em&gt;.&lt;/p&gt;
+    &lt;blockquote&gt;&lt;p&gt;&lt;em&gt;“…the intuitive description is that a solution &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;φ&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;
+      is [physically] stable if each solution &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;ψ&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;
+      that starts out close to &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;φ&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;
+      remains close to it for all time.”&lt;/em&gt; — &lt;em&gt;&lt;a
+      href=&quot;https://www.sciencedirect.com/book/monograph/9781558607408/game-physics&quot;&gt;Game
+      Physics&lt;/a&gt; by David Eberly&lt;/em&gt;&lt;/p&gt;&lt;/blockquote&gt;
+    &lt;p&gt;This is a property of the &lt;em&gt;system&lt;/em&gt;, before any integrator is chosen. The exact
+      solution is drawn with an &lt;math&gt;&lt;mi&gt;ε&lt;/mi&gt;&lt;/math&gt;-tube around it and a handful of neighbors
+      started nearby. A stable system pulls the neighbors into the tube; an unstable one lets
+      them leave, however close they started.&lt;/p&gt;
+    &lt;p&gt;So before we can answer any sort of optimization problem, we need to figure out if our
+      solutions are physically stable. We can analyze this using something called Linear
+      Stability Theory (LST). However, this requires us to make some concessions, which is the
+      next panel.&lt;/p&gt;
+    &lt;p&gt;Whether the neighbors converge or leave is decided by the damping. Drag the tube’s
+      &lt;math&gt;&lt;mrow&gt;&lt;mo&gt;|&lt;/mo&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mi&gt;φ&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;mo&gt;|&lt;/mo&gt;&lt;mo&gt;≤&lt;/mo&gt;&lt;mi&gt;ε&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-scrub=&quot;epsilon&quot; data-digits=&quot;3&quot; data-log&gt;0.100&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;,
+      then drag the damping down through zero and watch the neighbors stop converging and
+      leave the tube.&lt;/p&gt;
+    &lt;p&gt;Right now this case is &lt;span data-var=&quot;verdict&quot;&gt;stable&lt;/span&gt;, since
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;Re&lt;/mi&gt;&lt;mi&gt;λ&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn data-var=&quot;localc&quot; data-scrub=&quot;c&quot; data-snap=&quot;0&quot; data-digits=&quot;2&quot;&gt;0.10&lt;/mn&gt;&lt;mo&gt;/&lt;/mo&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;alpha&quot; data-digits=&quot;3&quot;&gt;0&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;.
+      The farthest any neighbor has strayed from the exact curve is
+      &lt;math&gt;&lt;mn data-var=&quot;maxDist&quot; data-digits=&quot;4&quot;&gt;0&lt;/mn&gt;&lt;/math&gt;; at
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;6&lt;/mn&gt;&lt;mtext&gt; s&lt;/mtext&gt;&lt;/mrow&gt;&lt;/math&gt; it sits
+      &lt;math&gt;&lt;mn data-var=&quot;endDist&quot; data-digits=&quot;4&quot;&gt;0&lt;/mn&gt;&lt;/math&gt; away,
+      &lt;span data-var=&quot;tubeState&quot;&gt;inside&lt;/span&gt; the ε-tube.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;viz&quot;&gt;&lt;/div&gt;
+&lt;/article&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-41-53-553Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-41-53-553Z" class="timestamp-link"><time datetime="2026-09-03T20:41:53.553Z" data-timestamp="2026-09-03T20:41:53.553Z">2026-09-03T20:41:53.553Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Request interrupted by user]</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-44-36-233Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-44-36-233Z" class="timestamp-link"><time datetime="2026-09-03T20:44:36.233Z" data-timestamp="2026-09-03T20:44:36.233Z">2026-09-03T20:44:36.233Z</time></a></div><div class="message-content">
+<div class="user-content"><p>on page 5 spine, starting gravity parameters need to be more crazy to show non-linearity. If the top is 1, 10, 120 and the bottom squared term in 5 this works</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-39-308Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-39-308Z" class="timestamp-link"><time datetime="2026-09-03T20:44:39.308Z" data-timestamp="2026-09-03T20:44:39.308Z">2026-09-03T20:44:39.308Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-40-047Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-40-047Z" class="timestamp-link"><time datetime="2026-09-03T20:44:40.047Z" data-timestamp="2026-09-03T20:44:40.047Z">2026-09-03T20:44:40.047Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01SvSaBvU14d4pGuKWAxCGrC">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find panel 5</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd app/panels &amp;&amp; ls | head -20 &amp;&amp; echo &#34;---&#34; &amp;&amp; ls 05*</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-44-40-062Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-44-40-062Z" class="timestamp-link"><time datetime="2026-09-03T20:44:40.062Z" data-timestamp="2026-09-03T20:44:40.062Z">2026-09-03T20:44:40.062Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+(eval):cd:1: no such file or directory: app/panels</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-42-830Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-42-830Z" class="timestamp-link"><time datetime="2026-09-03T20:44:42.830Z" data-timestamp="2026-09-03T20:44:42.830Z">2026-09-03T20:44:42.830Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XaPRdTG1AZFsJRJRr3X6ki">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List panels</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels &amp;&amp; ls &amp;&amp; echo &#34;---05---&#34; &amp;&amp; ls 05*</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-44-42-850Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-44-42-850Z" class="timestamp-link"><time datetime="2026-09-03T20:44:42.850Z" data-timestamp="2026-09-03T20:44:42.850Z">2026-09-03T20:44:42.850Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>01-point-masses
+02-newtonian-physics
+03-solving-for-x
+04-physical-stability
+05-linearize
+06-eigen-what-now
+07-finding-eigenvalues
+08-recap-real-time
+09-finding-error
+10-explicit-euler
+11-lets-break-it
+12-higher-order-rk
+13-variable-step-sizes
+---05---
+left.html
+left.js
+README.md
+right.html
+right.js
+spine.html
+spine.js</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-45-521Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-45-521Z" class="timestamp-link"><time datetime="2026-09-03T20:44:45.521Z" data-timestamp="2026-09-03T20:44:45.521Z">2026-09-03T20:44:45.521Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0131v5eBnL9iLwHpiqHGDzY7">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 5 spine</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/05-linearize &amp;&amp; cat spine.html &amp;&amp; echo &#34;=====JS=====&#34; &amp;&amp; cat spine.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-44-45-540Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-44-45-540Z" class="timestamp-link"><time datetime="2026-09-03T20:44:45.540Z" data-timestamp="2026-09-03T20:44:45.540Z">2026-09-03T20:44:45.540Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&lt;article&gt;
+  &lt;h2&gt;Stability analysis: linearize&lt;/h2&gt;
+  &lt;div class=&quot;prose&quot;&gt;
+    &lt;p&gt;Like the name implies, LST requires that our system of equations is &lt;em&gt;linear&lt;/em&gt;. This
+      means we can’t have any squared or higher power terms. Notice the squared term under
+      Newton’s gravitation,
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;G&lt;/mi&gt;&lt;msub&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msub&gt;&lt;msub&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msub&gt;&lt;mo&gt;/&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;r&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;/math&gt;?
+      That makes this thing non-linear, which is bad news for LST. This is why physics engines
+      generally do not use the “real” Newtonian model. Instead, we simplify to a linear model that
+      doesn’t divide by distance at all: gravity is a constant &lt;math&gt;&lt;mi&gt;g&lt;/mi&gt;&lt;/math&gt; times mass,
+      drag is proportional to velocity, and a spring is proportional to the distance it is
+      stretched. Anything else is linearized with a Taylor series expansion.&lt;/p&gt;
+    &lt;p&gt;Any combination of those models will sum to something that looks like this:&lt;/p&gt;
+    &lt;math display=&quot;block&quot;&gt;
+      &lt;mrow&gt;&lt;mn data-var=&quot;m&quot;&gt;1&lt;/mn&gt;&lt;mo&gt;·&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;″&lt;/mo&gt;&lt;/msup&gt;
+      &lt;mo&gt;+&lt;/mo&gt;&lt;mn data-var=&quot;c&quot;&gt;0.1&lt;/mn&gt;&lt;mo&gt;·&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;′&lt;/mo&gt;&lt;/msup&gt;
+      &lt;mo&gt;+&lt;/mo&gt;&lt;mn data-var=&quot;k&quot;&gt;100&lt;/mn&gt;&lt;mo&gt;·&lt;/mo&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mrow&gt;
+    &lt;/math&gt;
+    &lt;p&gt;What we’re left with is a description of force that is proportional to position,
+      velocity, and acceleration. &lt;math&gt;&lt;mi&gt;M&lt;/mi&gt;&lt;/math&gt;, &lt;math&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;/math&gt;, and
+      &lt;math&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;/math&gt; in
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;M&lt;/mi&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;″&lt;/mo&gt;&lt;/msup&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;′&lt;/mo&gt;&lt;/msup&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;
+      are constants derived from our specific force parameters; from here on they are the
+      &lt;math&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;/math&gt;, &lt;math&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;/math&gt;, &lt;math&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/math&gt; you drag. There
+      is also a constant term, but we can discard that as it will not affect stability.&lt;/p&gt;
+    &lt;p&gt;Every number in a force’s equation is draggable, and gravitation has a switch between its
+      real model and its linear one; watch which parameters survive into the coefficients above.
+      Each force draws its own arrow in the colour of the swatch beside its equation; the wide
+      pale arrow behind them is their sum. The four span three orders of magnitude, so an arrow’s
+      &lt;em&gt;length&lt;/em&gt; is a log of its force and nothing else — switching one off leaves the rest
+      exactly where they were. The numbers beside each equation are the literal force.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;viz&quot;&gt;&lt;/div&gt;
+&lt;/article&gt;
+=====JS=====
+// Panel 5, spine: each force as its equation with every parameter a scrubbable number, a
+// real-vs-linear switch (only gravitation differs: G m₁ m₂ / r² against m₁ g), the force
+// arrows, a, and a short predicted trajectory updating live; below, M, C, K assembling from
+// the scene&#x27;s linear models into M x″ + C x′ + K x = 0 (the MathML block under the stage and
+// the equation in the prose) and pushed into the tuple&#x27;s m, c, k.
+//
+// The scrubs bind to one facade over the scene store (unique keys per parameter, each routed
+// to scene.setForceParam / setMass), so bindScrub and bindMath take the article once. The
+// bridge to Part II, scene.pushToTuple(), runs on resume and on every scene change while this
+// pane is on screen; not on mount, because the pane manager mounts this spine off-screen
+// beside panels 4 and 6, and panel 6 sets the tuple&#x27;s c for its own overdamped preset.
+//
+// Arrow length is a *static* log map of force magnitude (see LEN): the four forces span
+// three orders of magnitude at the defaults (spring 112, wind 1, gravity 0.9, drag 0.2), so
+// a linear scale off the largest active force both hides the small arrows and — the bug the
+// map removes — resizes every other arrow whenever one is switched off or a parameter is
+// dragged. Here an arrow&#x27;s length depends on nothing but its own magnitude, so a toggle
+// only removes its own arrow. The numbers beside each equation stay the literal force.
+
+import { el, fmt, fragment } from &#x27;shared/dom.js&#x27;;
+import { createStage } from &#x27;shared/gfx/stage.js&#x27;;
+import { createDragHandles } from &#x27;shared/gfx/drag.js&#x27;;
+import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText, drawArrow } from &#x27;shared/gfx/plot2d.js&#x27;;
+import { netForce, forceOf, gravityG, assemble, MODELS } from &#x27;shared/math/forces.js&#x27;;
+import { scene, FORCE_LIMITS, BODY_LIMITS } from &#x27;shared/scene.js&#x27;;
+import { toggleFn } from &#x27;shared/ui/controls.js&#x27;;
+import { bindScrub } from &#x27;shared/ui/scrub.js&#x27;;
+import { bindMath } from &#x27;shared/ui/livemath.js&#x27;;
+
+const HALF_W = 3;
+const PREDICT = { dt: 1 / 60, steps: 120 };   // a 2 s look-ahead, RK4 in 2D
+
+/** One hue per force, all four far apart in light mode; the net force is neutral. */
+const COLOR = { wind: &#x27;--force-wind&#x27;, gravity: &#x27;--force-gravity&#x27;, drag: &#x27;--force-drag&#x27;, spring: &#x27;--force-spring&#x27; };
+const SUM_COLOR = &#x27;--fg&#x27;;
+const PATH_COLOR = &#x27;--muted&#x27;;   // neutral: the four force hues carry the colour here
+
+/**
+ * The static length map: |F| in force units → plot units, log across [LO, HI]. Nothing but
+ * |F| enters, so toggling a force off or scrubbing k leaves every other arrow where it was.
+ */
+const LEN = { LO: 0.05, HI: 500, MIN: 0.2, MAX: 0.75 };
+const LOG_LO = Math.log10(LEN.LO), LOG_SPAN = Math.log10(LEN.HI) - LOG_LO;
+function arrowLength(magnitude) {
+  if (!(magnitude &gt; 1e-9)) return 0;   // a genuinely zero force (drag at v = 0) draws nothing
+  const f = Math.min(1, Math.max(0, (Math.log10(magnitude) - LOG_LO) / LOG_SPAN));
+  return LEN.MIN + (LEN.MAX - LEN.MIN) * f;
+}
+
+/** One store-shaped view over every scrubbable parameter of the scene, keyed uniquely. */
+function paramFacade() {
+  const at = type =&gt; scene.forceIndex(type);
+  const map = {
+    &#x27;wind-fx&#x27;: [at(&#x27;wind&#x27;), &#x27;fx&#x27;, FORCE_LIMITS.fx], &#x27;wind-fy&#x27;: [at(&#x27;wind&#x27;), &#x27;fy&#x27;, FORCE_LIMITS.fy],
+    G: [at(&#x27;gravity&#x27;), &#x27;G&#x27;, FORCE_LIMITS.G], m2: [at(&#x27;gravity&#x27;), &#x27;m2&#x27;, FORCE_LIMITS.m2], r: [at(&#x27;gravity&#x27;), &#x27;r&#x27;, FORCE_LIMITS.r],
+    &#x27;drag-c&#x27;: [at(&#x27;drag&#x27;), &#x27;c&#x27;, FORCE_LIMITS.c], &#x27;spring-k&#x27;: [at(&#x27;spring&#x27;), &#x27;k&#x27;, FORCE_LIMITS.k],
+    m1: [&#x27;body&#x27;, &#x27;m&#x27;, BODY_LIMITS.m],
+  };
+  const get = () =&gt; {
+    const s = scene.get(), o = {};
+    for (const [key, [i, p]] of Object.entries(map)) o[key] = i === &#x27;body&#x27; ? s.body.m : s.forces[i][p];
+    return o;
+  };
+  return {
+    get,
+    set(patch) {
+      for (const [key, v] of Object.entries(patch)) {
+        if (!map[key] || !Number.isFinite(v)) continue;
+        const [i, p] = map[key];
+        if (i === &#x27;body&#x27;) scene.setMass(v); else scene.setForceParam(i, p, v);
+      }
+      return get();
+    },
+    subscribe: (fn, opts) =&gt; scene.subscribe(() =&gt; { const g = get(); fn(g, g); }, opts),
+    limits: Object.fromEntries(Object.entries(map).map(([key, [, , lim]]) =&gt; [key, lim])),
+  };
+}
+
+const mn = (key, digits, log = false) =&gt; `&lt;mn data-scrub=&quot;${key}&quot; data-digits=&quot;${digits}&quot;${log ? &#x27; data-log&#x27; : &#x27;&#x27;}&gt;0&lt;/mn&gt;`;
+const EQUATIONS = {
+  wind: `&lt;math&gt;&lt;mrow&gt;&lt;mi&gt;F&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo&gt;(&lt;/mo&gt;${mn(&#x27;wind-fx&#x27;, 1)}&lt;mo&gt;,&lt;/mo&gt;${mn(&#x27;wind-fy&#x27;, 1)}&lt;mo&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;`,
+  gravityReal: `&lt;math&gt;&lt;mrow&gt;&lt;mi&gt;F&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mfrac&gt;&lt;mrow&gt;${mn(&#x27;G&#x27;, 2)}&lt;mo&gt;·&lt;/mo&gt;${mn(&#x27;m1&#x27;, 2)}&lt;mo&gt;·&lt;/mo&gt;${mn(&#x27;m2&#x27;, 0, true)}&lt;/mrow&gt;&lt;msup&gt;&lt;mn data-scrub=&quot;r&quot; data-digits=&quot;1&quot; data-log&gt;0&lt;/mn&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mfrac&gt;&lt;/mrow&gt;&lt;/math&gt;`,
+  gravityLinear: `&lt;math&gt;&lt;mrow&gt;&lt;mi&gt;F&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;${mn(&#x27;m1&#x27;, 2)}&lt;mo&gt;·&lt;/mo&gt;&lt;mi&gt;g&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width=&quot;0.5em&quot;/&gt;&lt;mi&gt;g&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mfrac&gt;&lt;mrow&gt;${mn(&#x27;G&#x27;, 2)}&lt;mo&gt;·&lt;/mo&gt;${mn(&#x27;m2&#x27;, 0, true)}&lt;/mrow&gt;&lt;msup&gt;&lt;mn data-scrub=&quot;r&quot; data-digits=&quot;1&quot; data-log&gt;0&lt;/mn&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mfrac&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;g&quot; data-digits=&quot;2&quot;&gt;0&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;`,
+  drag: `&lt;math&gt;&lt;mrow&gt;&lt;mi&gt;F&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo&gt;−&lt;/mo&gt;${mn(&#x27;drag-c&#x27;, 2)}&lt;mo&gt;·&lt;/mo&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt;`,
+  spring: `&lt;math&gt;&lt;mrow&gt;&lt;mi&gt;F&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo&gt;−&lt;/mo&gt;${mn(&#x27;spring-k&#x27;, 0, true)}&lt;mo&gt;·&lt;/mo&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt;`,
+};
+const ASSEMBLY = `&lt;math display=&quot;block&quot;&gt;&lt;mrow&gt;
+  &lt;mi&gt;M&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;M&quot; data-digits=&quot;2&quot;&gt;0&lt;/mn&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width=&quot;1em&quot;/&gt;
+  &lt;mi&gt;C&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi data-var=&quot;C-from&quot;&gt;c&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;C&quot; data-digits=&quot;2&quot;&gt;0&lt;/mn&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width=&quot;1em&quot;/&gt;
+  &lt;mi&gt;K&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi data-var=&quot;K-from&quot;&gt;k&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;K&quot; data-digits=&quot;1&quot;&gt;0&lt;/mn&gt;
+&lt;/mrow&gt;&lt;/math&gt;`;
+
+/** A 2D RK4 look-ahead from the body&#x27;s state under the scene&#x27;s current models. */
+function predict(s) {
+  const { linear } = s;
+  const acc = (x, v) =&gt; netForce({ body: { m: s.body.m, x, v }, forces: s.forces }, { linear }).map(F =&gt; F / s.body.m);
+  let x = [...s.body.x], v = [...s.body.v];
+  const xs = [x[0]], ys = [x[1]];
+  const h = PREDICT.dt;
+  for (let i = 0; i &lt; PREDICT.steps; i++) {
+    const a1 = acc(x, v);
+    const v2 = [v[0] + h / 2 * a1[0], v[1] + h / 2 * a1[1]], x2 = [x[0] + h / 2 * v[0], x[1] + h / 2 * v[1]], a2 = acc(x2, v2);
+    const v3 = [v[0] + h / 2 * a2[0], v[1] + h / 2 * a2[1]], x3 = [x[0] + h / 2 * v2[0], x[1] + h / 2 * v2[1]], a3 = acc(x3, v3);
+    const v4 = [v[0] + h * a3[0], v[1] + h * a3[1]], x4 = [x[0] + h * v3[0], x[1] + h * v3[1]], a4 = acc(x4, v4);
+    x = [x[0] + h / 6 * (v[0] + 2 * v2[0] + 2 * v3[0] + v4[0]), x[1] + h / 6 * (v[1] + 2 * v2[1] + 2 * v3[1] + v4[1])];
+    v = [v[0] + h / 6 * (a1[0] + 2 * a2[0] + 2 * a3[0] + a4[0]), v[1] + h / 6 * (a1[1] + 2 * a2[1] + 2 * a3[1] + a4[1])];
+    xs.push(x[0]); ys.push(x[1]);
+  }
+  return { xs, ys };
+}
+
+export function mount(root, ctx) {
+  const { store, signal } = ctx;
+  const article = root.closest(&#x27;article&#x27;) ?? root;
+  const facade = paramFacade();
+  let active = false;   // on screen: the only time the scene writes the tuple
+  let view = null;
+
+  // ---- the force rows: switch, equation, value ----
+  const rows = [];
+  const values = {};
+  const forceRow = (type, label, ...math) =&gt; {
+    const i = scene.forceIndex(type);
+    const on = toggleFn({ label, get: () =&gt; scene.get().forces[i].on, set: v =&gt; scene.toggleForce(i, v), subscribe: scene.subscribe, signal });
+    // the legend: the same colour as this force&#x27;s arrow, keyed to its equation
+    const swatch = el(&#x27;span&#x27;, { class: `swatch ${type}`, title: `${label} arrow` });
+    const value = el(&#x27;span&#x27;, { class: &#x27;mono muted&#x27; });
+    values[type] = value;
+    const row = el(&#x27;div&#x27;, { class: &#x27;transport&#x27; }, swatch, on, ...math, value);
+    rows.push(row);
+    return row;
+  };
+  forceRow(&#x27;wind&#x27;, &#x27;Wind&#x27;, fragment(EQUATIONS.wind));
+  const realEq = el(&#x27;span&#x27;, {}, fragment(EQUATIONS.gravityReal));
+  const linEq = el(&#x27;span&#x27;, {}, fragment(EQUATIONS.gravityLinear));
+  const linearSwitch = toggleFn({ label: &#x27;linear&#x27;, get: () =&gt; scene.get().linear, set: v =&gt; scene.setLinear(v), subscribe: scene.subscribe, signal });
+  forceRow(&#x27;gravity&#x27;, &#x27;Gravity&#x27;, realEq, linEq, linearSwitch);
+  forceRow(&#x27;drag&#x27;, &#x27;Drag&#x27;, fragment(EQUATIONS.drag));
+  forceRow(&#x27;spring&#x27;, &#x27;Spring&#x27;, fragment(EQUATIONS.spring));
+  root.append(el(&#x27;div&#x27;, { class: &#x27;controls&#x27; }, rows));
+
+  // ---- the stage: body, arrows, a, and the look-ahead ----
+  const stage = createStage(root, { layers: [&#x27;plane&#x27;], aspect: &#x27;tall&#x27;, signal });
+  root.append(fragment(ASSEMBLY));
+
+  /** One arrow from the body along F, at its own static length, with its name at the tip. */
+  function drawForce(g, from, F, { color, label, width, head }) {
+    const m = Math.hypot(F[0], F[1]);
+    const len = arrowLength(m);
+    if (len === 0) return;
+    const tip = [from[0] + F[0] / m * len, from[1] + F[1] / m * len];
+    drawArrow(g, view, from[0], from[1], tip[0], tip[1], { color: cssVar(color), width, head });
+    if (!label) return;
+    const right = F[0] &gt;= 0;
+    drawText(g, view, label, tip[0], tip[1], {
+      color: cssVar(color), size: 11, align: right ? &#x27;left&#x27; : &#x27;right&#x27;,
+      dx: right ? 7 : -7, dy: F[1] &gt;= 0 ? -6 : 14,
+    });
+  }
+
+  stage.onDraw(({ w, h, dpr }) =&gt; {
+    const s = scene.get();
+    const { body, linear } = s;
+    const g = stage.ctx(&#x27;plane&#x27;);
+    view = makeView({ w, h, dpr, halfW: HALF_W });
+    g.clearRect(0, 0, w, h);
+    drawGrid(g, view, { xLabel: &#x27;x&#x27;, yLabel: &#x27;y&#x27;, ticks: 4 });
+
+    // every force, on or off: the off ones only fill their row&#x27;s number, but computing them
+    // all keeps the picture&#x27;s geometry independent of which switches are set
+    const all = s.forces.map((f, i) =&gt; ({ f, i, F: forceOf(f, body, { linear }) }));
+    const list = all.filter(v =&gt; v.f.on);
+    const sum = list.reduce((acc, v) =&gt; [acc[0] + v.F[0], acc[1] + v.F[1]], [0, 0]);
+    const a = [sum[0] / body.m, sum[1] / body.m];
+
+    const path = predict(s);
+    drawPolyline(g, view, path.xs, path.ys, { color: cssVar(PATH_COLOR), width: 1.5, dash: [5, 4], alpha: 0.8 });
+
+    // the net force first and neutral, so the four coloured arrows read on top of it
+    g.save();
+    g.globalAlpha = 0.5;
+    drawForce(g, body.x, sum, { color: SUM_COLOR, width: 4, head: 11 });
+    g.restore();
+
+    for (const v of all) values[v.f.type].textContent = v.f.on ? `= (${fmt(v.F[0], 2)}, ${fmt(v.F[1], 2)})` : &#x27;off&#x27;;
+    // longest first: gravity and drag are nearly collinear here, so the shorter arrow must
+    // land on top of the longer one or it disappears inside it
+    const drawn = list.slice().sort((p, q) =&gt; Math.hypot(...q.F) - Math.hypot(...p.F));
+    for (const v of drawn) drawForce(g, body.x, v.F, { color: COLOR[v.f.type], label: MODELS[v.f.type].label, width: 2, head: 7 });
+
+    drawPoint(g, view, body.x[0], body.x[1], { r: 7, fill: cssVar(&#x27;--fg&#x27;) });
+    drawText(g, view, `a = (${fmt(a[0], 2)}, ${fmt(a[1], 2)})   ${linear ? &#x27;linear&#x27; : &#x27;real&#x27;} models   next 2 s dashed   (drag the mass)`, view.xMin, view.yMax, { color: cssVar(&#x27;--muted&#x27;), size: 11, dx: 8, dy: 16 });
+  });
+
+  createDragHandles(stage.canvas(&#x27;plane&#x27;), {
+    signal, hitRadius: 14,
+    handles: () =&gt; [{ id: &#x27;body&#x27;, x: scene.get().body.x[0], y: scene.get().body.x[1] }],
+    view: () =&gt; view ?? makeView({ w: 1, h: 1, dpr: 1, halfW: HALF_W }),
+    onMove: (id, p) =&gt; scene.moveBody(Math.max(-HALF_W, Math.min(HALF_W, p.x)), Math.max(-1, Math.min(1, p.y))),
+  });
+
+  // ---- live math: scrubs on the facade, derived values from the scene, the tuple&#x27;s m c k from the store ----
+  bindScrub(article, facade, { signal });
+  bindMath(article, facade, () =&gt; {
+    const s = scene.get();
+    const gi = scene.forceIndex(&#x27;gravity&#x27;), di = scene.forceIndex(&#x27;drag&#x27;), si = scene.forceIndex(&#x27;spring&#x27;);
+    const { M, C, K } = assemble(s);
+    return {
+      g: gravityG(s.forces[gi]), M, C, K,
+      &#x27;C-from&#x27;: s.forces[di].on ? &#x27;c&#x27; : &#x27;0 (drag off)&#x27;,
+      &#x27;K-from&#x27;: s.forces[si].on ? &#x27;k&#x27; : &#x27;0 (spring off)&#x27;,
+    };
+  }, { signal });
+  bindMath(article, store, () =&gt; ({}), { signal });
+
+  function refresh() {
+    const s = scene.get();
+    realEq.hidden = s.linear;
+    linEq.hidden = !s.linear;
+    stage.invalidate();
+  }
+  const push = () =&gt; { if (active) scene.pushToTuple(); };
+
+  const unsub = scene.subscribe(() =&gt; { push(); refresh(); }, { immediate: false });
+  refresh();
+  return {
+    resume() { active = true; scene.pushToTuple(); refresh(); },
+    pause() { active = false; },
+    destroy() { unsub(); },
+  };
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-52-963Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-52-963Z" class="timestamp-link"><time datetime="2026-09-03T20:44:52.963Z" data-timestamp="2026-09-03T20:44:52.963Z">2026-09-03T20:44:52.963Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-53-785Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-53-785Z" class="timestamp-link"><time datetime="2026-09-03T20:44:53.785Z" data-timestamp="2026-09-03T20:44:53.785Z">2026-09-03T20:44:53.785Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01SmDgEhmHgJphrD5mthzEWc">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read scene.js</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; cat shared/scene.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-44-53-801Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-44-53-801Z" class="timestamp-link"><time datetime="2026-09-03T20:44:53.801Z" data-timestamp="2026-09-03T20:44:53.801Z">2026-09-03T20:44:53.801Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// The scene store for the 2D panels (1, 2, 5): one point mass on a plane and the list of
+// force arrows acting on it, with a real-vs-linear switch. Panel 2&#x27;s left pane draws the
+// same arrows the reviewer just dragged on the spine and the pane manager remounts side
+// panes freely, so this state lives here, not in a pane.
+//
+//   scene.get() → { body: { m, x: [x, y], v: [vx, vy] }, forces: [force, …], linear }
+//
+// The shape is exactly math/forces.js&#x27;s createScene, so netForce(scene.get()) and
+// assemble(scene.get()) work unchanged. Values are immutable: every setter replaces `body`
+// or `forces` with a new object (the store detects change by identity).
+//
+// Sync with the tuple, in one direction: scene → tuple. setMass writes the tuple&#x27;s `m`
+// as well, so panels 1–5 and the spring of Part II agree on the mass; pushToTuple() is the
+// bridge panel 5 uses to write the assembled M, C, K. Nothing flows back: a later panel
+// changing the tuple&#x27;s m, c, k (panel 7&#x27;s sliders) leaves the scene alone, because those
+// panels are past the scene and the scene is the record of what the reviewer set up.
+
+import { createStore, store as tupleStore, DEFAULTS, LIMITS } from &#x27;./state.js&#x27;;
+import { MODELS, createForce, createScene, assemble } from &#x27;./math/forces.js&#x27;;
+
+/** Ranges of every force parameter, by parameter name (shared across models). */
+export const FORCE_LIMITS = Object.freeze({
+  fx: [-20, 20], fy: [-20, 20],     // wind
+  G: [0, 10], m2: [1, 1000], r: [0.5, 50],   // gravity
+  c: LIMITS.c,                      // drag
+  k: LIMITS.k,                      // spring
+});
+
+/** Ranges of the body&#x27;s numbers; x and v apply per component. */
+export const BODY_LIMITS = Object.freeze({
+  m: LIMITS.m,
+  x: [-5, 5],
+  v: [-20, 20],
+});
+
+const clamp = (v, [lo, hi]) =&gt; Math.min(hi, Math.max(lo, v));
+const finite = v =&gt; typeof v === &#x27;number&#x27; &amp;&amp; Number.isFinite(v);
+const pair = (p, lim, fallback) =&gt; (Array.isArray(p) &amp;&amp; finite(p[0]) &amp;&amp; finite(p[1]) ? [clamp(p[0], lim), clamp(p[1], lim)] : fallback);
+
+/**
+ * The scene every 2D panel starts from: the demo mass with all four force models.
+ * The body is displaced and moving, not at rest at the origin: drag is −c v and the spring
+ * is −k x, so a body at rest at the origin makes two of the four arrows zero vectors and
+ * panels 2 and 5 open on a picture that cannot show what they are about.
+ */
+export function defaultScene() {
+  return createScene({
+    m: DEFAULTS.m,
+    x: [1, 0.5],
+    v: [0, 2],
+    forces: [
+      createForce(&#x27;wind&#x27;, { fx: 2, fy: 1 }),
+      createForce(&#x27;gravity&#x27;),
+      createForce(&#x27;drag&#x27;, { c: DEFAULTS.c }),
+      createForce(&#x27;spring&#x27;, { k: DEFAULTS.k }),
+    ],
+  });
+}
+
+function cleanBody(body, prev) {
+  if (!body || typeof body !== &#x27;object&#x27;) throw new Error(&#x27;scene: body must be an object&#x27;);
+  return Object.freeze({
+    m: finite(body.m) ? clamp(body.m, BODY_LIMITS.m) : prev.m,
+    x: Object.freeze(pair(body.x, BODY_LIMITS.x, prev.x)),
+    v: Object.freeze(pair(body.v, BODY_LIMITS.v, prev.v)),
+  });
+}
+
+function cleanForce(f) {
+  const model = MODELS[f?.type];
+  if (!model) throw new Error(`scene: unknown force type ${f?.type}`);
+  const out = { type: f.type, on: Boolean(f.on) };
+  for (const key of Object.keys(model.defaults)) {
+    const v = finite(f[key]) ? f[key] : model.defaults[key];
+    out[key] = FORCE_LIMITS[key] ? clamp(v, FORCE_LIMITS[key]) : v;
+  }
+  return Object.freeze(out);
+}
+
+function sceneValidate(key, value, state) {
+  switch (key) {
+    case &#x27;body&#x27;: return cleanBody(value, state.body);
+    case &#x27;forces&#x27;:
+      if (!Array.isArray(value)) throw new Error(&#x27;scene: forces must be an array&#x27;);
+      return Object.freeze(value.map(cleanForce));
+    case &#x27;linear&#x27;: return Boolean(value);
+    default: throw new Error(`unknown scene key: ${key}`);
+  }
+}
+
+/**
+ * createSceneStore({ initial = defaultScene(), tuple = null })
+ *   tuple: the tuple store that setMass and pushToTuple write to (null: no sync)
+ * → the store (get, set, subscribe, reset, limits) plus the setters below.
+ */
+export function createSceneStore({ initial = defaultScene(), tuple = null } = {}) {
+  // the initial state goes through the same cleaning as set()
+  const blank = { body: { m: DEFAULTS.m, x: [0, 0], v: [0, 0] } };
+  const initialState = {
+    body: cleanBody(initial.body ?? blank.body, blank.body),
+    forces: sceneValidate(&#x27;forces&#x27;, initial.forces ?? []),
+    linear: Boolean(initial.linear),
+  };
+  const s = createStore(initialState, { limits: {}, validate: sceneValidate, presets: {} });
+
+  const forceAt = i =&gt; {
+    const f = s.get().forces[i];
+    if (!f) throw new Error(`scene: no force at index ${i}`);
+    return f;
+  };
+  const replaceForce = (i, next) =&gt; {
+    const forces = s.get().forces.slice();
+    forces[i] = next;
+    return s.set({ forces });
+  };
+
+  const api = {
+    ...s,
+    /** Index of the first force of a type, or −1. */
+    forceIndex: type =&gt; s.get().forces.findIndex(f =&gt; f.type === type),
+    forceAt,
+    /** moveBody(x, y) or moveBody([x, y]) */
+    moveBody(x, y) {
+      const p = Array.isArray(x) ? x : [x, y];
+      return s.set({ body: { ...s.get().body, x: p } });
+    },
+    setVelocity(vx, vy) {
+      const p = Array.isArray(vx) ? vx : [vx, vy];
+      return s.set({ body: { ...s.get().body, v: p } });
+    },
+    /** The one automatic sync: the scene&#x27;s mass is also the tuple&#x27;s m. */
+    setMass(m) {
+      const state = s.set({ body: { ...s.get().body, m } });
+      tuple?.set({ m: state.body.m });
+      return state;
+    },
+    /** toggleForce(i) flips; toggleForce(i, on) sets. */
+    toggleForce(i, on) {
+      const f = forceAt(i);
+      return replaceForce(i, { ...f, on: on === undefined ? !f.on : Boolean(on) });
+    },
+    setForceParam(i, key, value) {
+      const f = forceAt(i);
+      if (!(key in MODELS[f.type].defaults)) throw new Error(`scene: ${f.type} has no parameter ${key}`);
+      return replaceForce(i, { ...f, [key]: value });
+    },
+    setLinear: linear =&gt; s.set({ linear: Boolean(linear) }),
+    toggleLinear: () =&gt; s.set({ linear: !s.get().linear }),
+    /** { M, C, K } of the active forces&#x27; linear models. */
+    coefficients: () =&gt; assemble(s.get()),
+    /** The bridge: write M, C, K into the tuple&#x27;s m, c, k. Returns the tuple state (or null). */
+    pushToTuple() {
+      const { M, C, K } = assemble(s.get());
+      return tuple ? tuple.set({ m: M, c: C, k: K }) : null;
+    },
+    /**
+     * A store-shaped view of one force&#x27;s parameters (or of the body with target &#x27;body&#x27;):
+     * { get, set, subscribe, limits }, keyed by parameter name, so slider() and bindScrub()
+     * can bind to `G`, `r`, `k`, … exactly as they bind to the tuple&#x27;s keys.
+     */
+    paramStore(target) {
+      if (target === &#x27;body&#x27;) {
+        return {
+          get: () =&gt; ({ m: s.get().body.m }),
+          set: patch =&gt; { if (finite(patch.m)) api.setMass(patch.m); return s.get(); },
+          subscribe: (fn, opts) =&gt; s.subscribe((state, patch) =&gt; fn({ m: state.body.m }, &#x27;body&#x27; in patch ? { m: state.body.m } : {}), opts),
+          limits: { m: BODY_LIMITS.m },
+        };
+      }
+      const i = target;
+      const keys = Object.keys(MODELS[forceAt(i).type].defaults);
+      const limits = Object.fromEntries(keys.map(k =&gt; [k, FORCE_LIMITS[k] ?? [-Infinity, Infinity]]));
+      const view = () =&gt; forceAt(i);
+      return {
+        get: view,
+        set(patch) {
+          for (const [key, v] of Object.entries(patch)) if (finite(v)) api.setForceParam(i, key, v);
+          return view();
+        },
+        subscribe: (fn, opts) =&gt; s.subscribe((state, patch) =&gt; fn(view(), &#x27;forces&#x27; in patch ? view() : {}), opts),
+        limits,
+      };
+    },
+  };
+  return api;
+}
+
+/** The shared scene, synced to the shared tuple store. */
+export const scene = createSceneStore({ tuple: tupleStore });</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-44-57-276Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-44-57-276Z" class="timestamp-link"><time datetime="2026-09-03T20:44:57.276Z" data-timestamp="2026-09-03T20:44:57.276Z">2026-09-03T20:44:57.276Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017UvSoLnyJkeEecVwAqB71B">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read forces.js models/defaults</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;1,90p&#39; shared/math/forces.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-44-57-295Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-44-57-295Z" class="timestamp-link"><time datetime="2026-09-03T20:44:57.295Z" data-timestamp="2026-09-03T20:44:57.295Z">2026-09-03T20:44:57.295Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// The force models of Part I, each as a real and a linearized function, and the scene they
+// act on. A scene is plain data so a store can hold and clone it:
+//
+//   scene = { body: { m, x: [x, y], v: [vx, vy] }, forces: [force, …] }
+//   force = { type, on, …params }            (see createForce)
+//
+// Models are looked up by `type`. Each has parameter defaults, real(force, body) and
+// linear(force, body) returning a 2D force vector, and coefficients(force) → { C, K }: what
+// the linear model contributes to  M x&#x27;&#x27; + C x&#x27; + K x = 0.  Constant forces (wind, m g)
+// contribute nothing; the equation is homogeneous and they are forcing terms.
+//
+// Coordinates: the body&#x27;s reference position is the origin, &quot;down&quot; is −y.
+
+const DOWN = [0, -1];
+const ZERO = () =&gt; [0, 0];
+const scale = ([x, y], s) =&gt; [x * s, y * s];
+
+export const MODELS = Object.freeze({
+  /** A constant vector, the same everywhere. Already linear. */
+  wind: {
+    label: &#x27;Wind&#x27;,
+    defaults: { fx: 1, fy: 0 },
+    real: f =&gt; [f.fx, f.fy],
+    linear: f =&gt; [f.fx, f.fy],
+    coefficients: () =&gt; ({ C: 0, K: 0 }),
+  },
+  /**
+   * Newton&#x27;s gravitation toward an attractor of mass m2 sitting a distance r below the
+   * origin. Real: G m1 m2 / dist² along the line to the attractor. Linear: m1 g straight
+   * down with g = G m2 / r², which equals the real force at the operating point (the origin).
+   */
+  gravity: {
+    label: &#x27;Gravity&#x27;,
+    defaults: { G: 1, m2: 100, r: 10 },
+    real: (f, body) =&gt; {
+      const dx = 0 - body.x[0], dy = -f.r - body.x[1];
+      const dist = Math.hypot(dx, dy);
+      if (dist === 0) return ZERO();
+      return scale([dx / dist, dy / dist], f.G * body.m * f.m2 / (dist * dist));
+    },
+    linear: (f, body) =&gt; scale(DOWN, body.m * gravityG(f)),
+    coefficients: () =&gt; ({ C: 0, K: 0 }),
+  },
+  /** Drag proportional to velocity, −c v. Already linear: real and linear coincide. */
+  drag: {
+    label: &#x27;Drag&#x27;,
+    defaults: { c: 0.1 },
+    real: (f, body) =&gt; scale(body.v, -f.c),
+    linear: (f, body) =&gt; scale(body.v, -f.c),
+    coefficients: f =&gt; ({ C: f.c, K: 0 }),
+  },
+  /** A spring anchored at the origin with zero rest length, −k x. Already linear. */
+  spring: {
+    label: &#x27;Spring&#x27;,
+    defaults: { k: 100 },
+    real: (f, body) =&gt; scale(body.x, -f.k),
+    linear: (f, body) =&gt; scale(body.x, -f.k),
+    coefficients: f =&gt; ({ C: 0, K: f.k }),
+  },
+});
+export const FORCE_TYPES = Object.freeze(Object.keys(MODELS));
+
+/** The linear model&#x27;s g for a gravity force: G m2 / r². */
+export const gravityG = f =&gt; f.G * f.m2 / (f.r * f.r);
+
+/** A force instance: plain data, defaults filled in, on unless told otherwise. */
+export function createForce(type, overrides = {}) {
+  const model = MODELS[type];
+  if (!model) throw new Error(`unknown force: ${type}`);
+  return { type, on: true, ...model.defaults, ...overrides };
+}
+
+/** A body at rest at the origin plus the given forces. */
+export function createScene({ m = 1, x = [0, 0], v = [0, 0], forces = [] } = {}) {
+  return { body: { m, x: [...x], v: [...v] }, forces: forces.map(f =&gt; ({ ...f })) };
+}
+
+/** One force&#x27;s vector on the body, real or linear. */
+export function forceOf(force, body, { linear = false } = {}) {
+  const model = MODELS[force.type];
+  if (!model) throw new Error(`unknown force: ${force.type}`);
+  return linear ? model.linear(force, body) : model.real(force, body);
+}
+
+/** Sum of the active forces as [fx, fy]. */
+export function netForce(scene, opts = {}) {
+  const sum = ZERO();
+  for (const f of scene.forces) {
+    if (!f.on) continue;
+    const [fx, fy] = forceOf(f, scene.body, opts);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-45-13-127Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-45-13-127Z" class="timestamp-link"><time datetime="2026-09-03T20:45:13.127Z" data-timestamp="2026-09-03T20:45:13.127Z">2026-09-03T20:45:13.127Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-45-15-869Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-45-15-869Z" class="timestamp-link"><time datetime="2026-09-03T20:45:15.869Z" data-timestamp="2026-09-03T20:45:15.869Z">2026-09-03T20:45:15.869Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TZaXTeJt34sfJ3bQAF9Bvo">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check DEFAULTS and idea.md gravity mentions</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; grep -n &#34;m=1\|m = 1\|m: 1\|DEFAULTS&#34; app/shared/state.js | head -20; echo &#34;---idea panel5---&#34;; grep -n &#34;gravit\|m₂\|m2\|non-linear\|nonlinear&#34; docs/idea.md | sed -n &#39;1,40p&#39;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-45-15-926Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-45-15-926Z" class="timestamp-link"><time datetime="2026-09-03T20:45:15.926Z" data-timestamp="2026-09-03T20:45:15.926Z">2026-09-03T20:45:15.926Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>11:export const DEFAULTS = Object.freeze({
+14:  m: 1, c: 0.1, k: 100,   // demo parameters: λ = −0.05 ± 10i, Euler blows up in seconds
+20:  demo:  { m: 1,  c: 0.1, k: 100 },
+21:  essay: { m: 10, c: 0.1, k: 10 },  // Part II&#x27;s own example: λ = −0.005 ± i
+45: * createStore(initial = DEFAULTS, { limits = LIMITS, validate = tupleValidate, presets = PRESETS })
+60:export function createStore(initial = DEFAULTS, { limits = LIMITS, validate = tupleValidate, presets = PRESETS } = {}) {
+---idea panel5---
+11:- Part I: rigid bodies, linearized force models (gravity, drag, spring), the sum
+42:   a constant wind vector, Newton&#x27;s gravitation `G m₁ m₂ / r²`. *Beat:* drag force arrows
+55:   engines drop `1/r²` gravity for `m g`, use drag proportional to velocity, springs
+136:  add space, add nonlinearity. That is what a drill-down is. The usual form is to
+161:   [what &quot;linear&quot; means] &lt;---- 5  Linearize  -------------&gt; [Taylor expansion; 1/r² gravity]
+196:- *Spine viz:* force arrows on the point mass (wind, gravity, drag), the summed vector, the
+203:  direction its model gives it (gravity has one parameter and always points at the
+234:  in it is a draggable number. Gravitation reads `G m₁ m₂ / r²`; drag `G`, `m₁`, `m₂`, or
+237:  real model and its linear one (`G m₁m₂/r²` vs `m g`); drag and spring are already linear,
+244:- *Right, step up (add nonlinearity, add terms):* Taylor expansion of `1/r²` around an
+246:  against the true curve. The payoff beat that once sat under it — the nonlinear simulation
+515:  1, 2, and 5 draw a point mass on a plane with a set of force arrows (wind, gravity, drag,
+538:  functions, real and linearized, with its parameters: constant wind, gravitation
+539:  `G m₁ m₂ / r²` vs `m g`, drag `c v`, spring `k x`. `assemble(scene) → { M, C, K }` sums
+544:  the *nonlinear* simulation next to the linearized verdict, so the explicit steppers
+726:  projectile under constant gravity, where RK4&#x27;s next term is exactly zero while Euler&#x27;s</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-45-43-014Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-45-43-014Z" class="timestamp-link"><time datetime="2026-09-03T20:45:43.014Z" data-timestamp="2026-09-03T20:45:43.014Z">2026-09-03T20:45:43.014Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-45-45-356Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-45-45-356Z" class="timestamp-link"><time datetime="2026-09-03T20:45:45.356Z" data-timestamp="2026-09-03T20:45:45.356Z">2026-09-03T20:45:45.356Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01GBFe7qmHrjoDwLiJNta2Rx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check downstream panels setting m</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; grep -rn &#34;store.set({ *m\b\|m: *1\b\|PRESETS\|preset(&#34; panels/*/spine.js panels/*/right*.js panels/*/left.js 2&gt;/dev/null | grep -v &#34;^panels/05&#34; | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-45-45-432Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-45-45-432Z" class="timestamp-link"><time datetime="2026-09-03T20:45:45.432Z" data-timestamp="2026-09-03T20:45:45.432Z">2026-09-03T20:45:45.432Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>panels/12-higher-order-rk/right-3.js:48:  const sim = simulate({ method, h, m: 1, c: 2 * zeta, k: 1, x0: 1, v0: 0 }, T_END);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-45-51-020Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-45-51-020Z" class="timestamp-link"><time datetime="2026-09-03T20:45:51.020Z" data-timestamp="2026-09-03T20:45:51.020Z">2026-09-03T20:45:51.020Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-45-51-672Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-45-51-672Z" class="timestamp-link"><time datetime="2026-09-03T20:45:51.672Z" data-timestamp="2026-09-03T20:45:51.672Z">2026-09-03T20:45:51.672Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012vM6WjmgL6jPtPN38DCp41">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read DEFAULTS</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;8,30p&#39; shared/state.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-45-51-719Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-45-51-719Z" class="timestamp-link"><time datetime="2026-09-03T20:45:51.719Z" data-timestamp="2026-09-03T20:45:51.719Z">2026-09-03T20:45:51.719Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>import { METHODS } from &#x27;./math/integrators.js&#x27;;
+
+export const DEFAULTS = Object.freeze({
+  method: &#x27;euler&#x27;,
+  h: 1 / 30,
+  m: 1, c: 0.1, k: 100,   // demo parameters: λ = −0.05 ± 10i, Euler blows up in seconds
+  x0: 1, v0: 0,
+  t: 0,
+});
+
+export const PRESETS = Object.freeze({
+  demo:  { m: 1,  c: 0.1, k: 100 },
+  essay: { m: 10, c: 0.1, k: 10 },  // Part II&#x27;s own example: λ = −0.005 ± i
+});
+
+/** Slider ranges. Values are clamped on set(). */
+export const LIMITS = Object.freeze({
+  h:  [0.001, 0.5],
+  m:  [0.1, 50],
+  c:  [0, 50],
+  k:  [0, 2000],
+  x0: [-2, 2],</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-11-105Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-11-105Z" class="timestamp-link"><time datetime="2026-09-03T20:46:11.105Z" data-timestamp="2026-09-03T20:46:11.105Z">2026-09-03T20:46:11.105Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-12-774Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-12-774Z" class="timestamp-link"><time datetime="2026-09-03T20:46:12.774Z" data-timestamp="2026-09-03T20:46:12.774Z">2026-09-03T20:46:12.774Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01NAbWe4YkZWrEkLscBHWQRq">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find dependents on scene gravity defaults</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;defaultScene\|m2\|r: 10\|gravity&#34; shared/scene.test.js shared/aux.test.js shared/state.test.js panels/*/left.js panels/*/spine.js 2&gt;/dev/null | grep -v &#34;^panels/05-linearize/spine.js&#34; | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-46-12-814Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-46-12-814Z" class="timestamp-link"><time datetime="2026-09-03T20:46:12.814Z" data-timestamp="2026-09-03T20:46:12.814Z">2026-09-03T20:46:12.814Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>panels/02-newtonian-physics/left.js:10:// along the direction its model gives it (gravity has one parameter and always points at the
+shared/scene.test.js:3:import { createSceneStore, defaultScene, FORCE_LIMITS, BODY_LIMITS } from &#x27;./scene.js&#x27;;
+shared/scene.test.js:14:  assert.deepEqual(forces.map(f =&gt; f.type), [&#x27;wind&#x27;, &#x27;gravity&#x27;, &#x27;drag&#x27;, &#x27;spring&#x27;]);
+shared/scene.test.js:32:  const gi = s.forceIndex(&#x27;gravity&#x27;);
+shared/scene.test.js:79:  const g = s.paramStore(s.forceIndex(&#x27;gravity&#x27;));
+shared/scene.test.js:80:  assert.deepEqual(Object.keys(g.limits), [&#x27;G&#x27;, &#x27;m2&#x27;, &#x27;r&#x27;]);
+shared/scene.test.js:98:  const s = createSceneStore({ initial: { ...defaultScene(), body: { m: 1000, x: [0, 0], v: [0, 0] }, linear: 1 } });
+panels/02-newtonian-physics/spine.js:25:import { scene, defaultScene } from &#x27;shared/scene.js&#x27;;
+panels/02-newtonian-physics/spine.js:175:    const body = defaultScene().body;   // the displaced, moving body: drag and spring are not zero vectors</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-15-807Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-15-807Z" class="timestamp-link"><time datetime="2026-09-03T20:46:15.807Z" data-timestamp="2026-09-03T20:46:15.807Z">2026-09-03T20:46:15.807Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DWer7Sd8wiUxXPrW9s9amX">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read scene.test.js defaults assertions</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;8,40p&#39; shared/scene.test.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-46-15-878Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-46-15-878Z" class="timestamp-link"><time datetime="2026-09-03T20:46:15.878Z" data-timestamp="2026-09-03T20:46:15.878Z">2026-09-03T20:46:15.878Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>  const s = createSceneStore();
+  const { body, forces, linear } = s.get();
+  assert.equal(body.m, DEFAULTS.m);
+  assert.deepEqual(body.x, [1, 0.5], &#x27;displaced, so the spring arrow has a length&#x27;);
+  assert.deepEqual(body.v, [0, 2], &#x27;moving, so the drag arrow has a length&#x27;);
+  assert.equal(linear, false);
+  assert.deepEqual(forces.map(f =&gt; f.type), [&#x27;wind&#x27;, &#x27;gravity&#x27;, &#x27;drag&#x27;, &#x27;spring&#x27;]);
+  assert.equal(forces[s.forceIndex(&#x27;drag&#x27;)].c, DEFAULTS.c);
+  assert.equal(forces[s.forceIndex(&#x27;spring&#x27;)].k, DEFAULTS.k);
+  assert.deepEqual(assemble(s.get()), { M: DEFAULTS.m, C: DEFAULTS.c, K: DEFAULTS.k });
+  assert.ok(Object.isFrozen(s.get().forces) &amp;&amp; Object.isFrozen(s.get().body));
+});
+
+test(&#x27;setters replace objects, clamp to limits, and notify with the changed key&#x27;, () =&gt; {
+  const s = createSceneStore();
+  const seen = [];
+  s.subscribe((state, patch) =&gt; seen.push(Object.keys(patch)), { immediate: false });
+  const before = s.get();
+  s.moveBody(99, -1);
+  assert.deepEqual(s.get().body.x, [BODY_LIMITS.x[1], -1]);
+  assert.notEqual(s.get().body, before.body, &#x27;a new body object&#x27;);
+  assert.equal(s.get().forces, before.forces, &#x27;forces untouched&#x27;);
+  s.setVelocity([1, 2]);
+  assert.deepEqual(s.get().body.v, [1, 2]);
+  const gi = s.forceIndex(&#x27;gravity&#x27;);
+  s.toggleForce(gi);
+  assert.equal(s.get().forces[gi].on, false);
+  s.toggleForce(gi, true);
+  assert.equal(s.get().forces[gi].on, true);
+  s.setForceParam(gi, &#x27;r&#x27;, 0.01);
+  assert.equal(s.get().forces[gi].r, FORCE_LIMITS.r[0]);
+  assert.throws(() =&gt; s.setForceParam(gi, &#x27;k&#x27;, 1), /no parameter/);
+  assert.throws(() =&gt; s.setForceParam(9, &#x27;k&#x27;, 1), /no force/);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-26-125Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-26-125Z" class="timestamp-link"><time datetime="2026-09-03T20:46:26.125Z" data-timestamp="2026-09-03T20:46:26.125Z">2026-09-03T20:46:26.125Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-36-365Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-36-365Z" class="timestamp-link"><time datetime="2026-09-03T20:46:36.365Z" data-timestamp="2026-09-03T20:46:36.365Z">2026-09-03T20:46:36.365Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01A1MhtH8WXbBTdXDyZwYZ7w">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Set panel 5 starting gravity parameters</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;shared/scene.js&#39;)
+s = p.read_text()
+
+old = &#34;&#34;&#34;/**
+ * The scene every 2D panel starts from: the demo mass with all four force models.
+ * The body is displaced and moving, not at rest at the origin: drag is −c v and the spring
+ * is −k x, so a body at rest at the origin makes two of the four arrows zero vectors and
+ * panels 2 and 5 open on a picture that cannot show what they are about.
+ */
+export function defaultScene() {
+  return createScene({
+    m: DEFAULTS.m,
+    x: [1, 0.5],
+    v: [0, 2],
+    forces: [
+      createForce(&#39;wind&#39;, { fx: 2, fy: 1 }),
+      createForce(&#39;gravity&#39;),
+      createForce(&#39;drag&#39;, { c: DEFAULTS.c }),
+      createForce(&#39;spring&#39;, { k: DEFAULTS.k }),
+    ],
+  });
+}&#34;&#34;&#34;
+
+new = &#34;&#34;&#34;/**
+ * The scene every 2D panel starts from: all four force models on one body.
+ * The body is displaced and moving, not at rest at the origin: drag is −c v and the spring
+ * is −k x, so a body at rest at the origin makes two of the four arrows zero vectors and
+ * panels 2 and 5 open on a picture that cannot show what they are about.
+ *
+ * The gravity parameters are picked so panel 5&#39;s real-vs-linear switch has something to
+ * show. Nonlinearity is the gap between dist² and r², so the attractor sits at r = 5 rather
+ * than far enough away that the body&#39;s own displacement rounds off; and G m₁ m₂ = 1200
+ * makes gravity a force in the same league as the spring instead of a whisper under it.
+ * The scene&#39;s mass is its own number, not the tuple&#39;s DEFAULTS.m: panel 5 pushes it into
+ * the tuple as M when the reader gets there.
+ */
+export const SCENE_MASS = 10;
+export function defaultScene() {
+  return createScene({
+    m: SCENE_MASS,
+    x: [1, 0.5],
+    v: [0, 2],
+    forces: [
+      createForce(&#39;wind&#39;, { fx: 2, fy: 1 }),
+      createForce(&#39;gravity&#39;, { G: 1, m2: 120, r: 5 }),
+      createForce(&#39;drag&#39;, { c: DEFAULTS.c }),
+      createForce(&#39;spring&#39;, { k: DEFAULTS.k }),
+    ],
+  });
+}&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;scene.js ok&#39;)
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-46-38-020Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-46-38-020Z" class="timestamp-link"><time datetime="2026-09-03T20:46:38.020Z" data-timestamp="2026-09-03T20:46:38.020Z">2026-09-03T20:46:38.020Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>scene.js ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-43-725Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-43-725Z" class="timestamp-link"><time datetime="2026-09-03T20:46:43.725Z" data-timestamp="2026-09-03T20:46:43.725Z">2026-09-03T20:46:43.725Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DcgS7EgXGTUMkpKyuB9Fmx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update test and run suite</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;shared/scene.test.js&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;  assert.equal(body.m, DEFAULTS.m);&#34;&#34;&#34;
+new = &#34;&#34;&#34;  assert.equal(body.m, SCENE_MASS, &#39;the scene has its own mass; the tuple default is not it&#39;);&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+old = &#34;&#34;&#34;  assert.deepEqual(assemble(s.get()), { M: DEFAULTS.m, C: DEFAULTS.c, K: DEFAULTS.k });&#34;&#34;&#34;
+new = &#34;&#34;&#34;  assert.deepEqual(assemble(s.get()), { M: SCENE_MASS, C: DEFAULTS.c, K: DEFAULTS.k });&#34;&#34;&#34;
+assert s.count(old) == 1
+s = s.replace(old, new)
+
+old = &#34;import { createSceneStore, defaultScene, FORCE_LIMITS, BODY_LIMITS } from &#39;./scene.js&#39;;&#34;
+new = &#34;import { createSceneStore, defaultScene, SCENE_MASS, FORCE_LIMITS, BODY_LIMITS } from &#39;./scene.js&#39;;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;test ok&#39;)
+PY
+node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | tail -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-46-45-372Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-46-45-372Z" class="timestamp-link"><time datetime="2026-09-03T20:46:45.372Z" data-timestamp="2026-09-03T20:46:45.372Z">2026-09-03T20:46:45.372Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>test ok
+✔ stepCost memoizes per method and h (13.603334ms)
+✔ player cost is the benchmark times the steps of the frame, re-run only when method or h change (0.875459ms)
+✔ the default scene starts consistent with the tuple defaults (1.342458ms)
+✔ setters replace objects, clamp to limits, and notify with the changed key (0.434084ms)
+✔ mass syncs scene → tuple only; pushToTuple is the bridge (0.163ms)
+✔ the linear switch changes the force sum away from the operating point (0.166792ms)
+✔ paramStore views one force (or the body) as a store for the controls (0.238958ms)
+✔ createSceneStore accepts a custom initial scene and cleans it (0.091833ms)
+✔ store: set merges, clamps, notifies with the patch only (1.37775ms)
+✔ store: reset and presets (0.098875ms)
+✔ createStore with its own schema: limits clamp, validate cleans other keys, unknown keys throw (0.133916ms)
+✔ the default store still is the tuple store (0.16275ms)
+ℹ tests 88
+ℹ suites 0
+ℹ pass 88
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.358209</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-48-121Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-48-121Z" class="timestamp-link"><time datetime="2026-09-03T20:46:48.121Z" data-timestamp="2026-09-03T20:46:48.121Z">2026-09-03T20:46:48.121Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-52-149Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-52-149Z" class="timestamp-link"><time datetime="2026-09-03T20:46:52.149Z" data-timestamp="2026-09-03T20:46:52.149Z">2026-09-03T20:46:52.149Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01GUmbBmryeaJekHKQW8sxPQ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Compute new force magnitudes</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;shared/scene.test.js&#39;)
+s = p.read_text()
+old = &#34;test(&#39;the default scene starts consistent with the tuple defaults&#39;&#34;
+new = &#34;test(&#39;the default scene starts consistent with the tuple defaults, mass aside&#39;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+PY
+node -e &#34;
+const { defaultScene } = await import(&#39;./shared/scene.js&#39;);
+const { forceOf, gravityG, assemble } = await import(&#39;./shared/math/forces.js&#39;);
+const s = defaultScene();
+for (const f of s.forces) {
+  const R = forceOf(f, s.body, { linear: false }), L = forceOf(f, s.body, { linear: true });
+  console.log(f.type.padEnd(8), &#39;real&#39;, Math.hypot(...R).toFixed(2).padStart(7), &#39; linear&#39;, Math.hypot(...L).toFixed(2).padStart(7));
+}
+console.log(&#39;g =&#39;, gravityG(s.forces[1]).toFixed(3), &#39; assemble&#39;, JSON.stringify(assemble(s)));
+&#34; --input-type=module</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-46-53-809Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-46-53-809Z" class="timestamp-link"><time datetime="2026-09-03T20:46:53.809Z" data-timestamp="2026-09-03T20:46:53.809Z">2026-09-03T20:46:53.809Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>wind     real    2.24  linear    2.24
+gravity  real   38.40  linear   48.00
+drag     real    0.20  linear    0.20
+spring   real  111.80  linear  111.80
+g = 4.800  assemble {&quot;M&quot;:10,&quot;C&quot;:0.1,&quot;K&quot;:100}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-46-56-515Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-46-56-515Z" class="timestamp-link"><time datetime="2026-09-03T20:46:56.515Z" data-timestamp="2026-09-03T20:46:56.515Z">2026-09-03T20:46:56.515Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-47-05-966Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-47-05-966Z" class="timestamp-link"><time datetime="2026-09-03T20:47:05.966Z" data-timestamp="2026-09-03T20:47:05.966Z">2026-09-03T20:47:05.966Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Ap9tTVaPx3ZT9b7LrdzzgS">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update comment and commit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;panels/05-linearize/spine.js&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;// Arrow length is a *static* log map of force magnitude (see LEN): the four forces span
+// three orders of magnitude at the defaults (spring 112, wind 1, gravity 0.9, drag 0.2), so&#34;&#34;&#34;
+new = &#34;&#34;&#34;// Arrow length is a *static* log map of force magnitude (see LEN): the four forces span
+// three orders of magnitude at the defaults (spring 112, gravity 38, wind 2.2, drag 0.2), so&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;ok&#39;)
+PY
+cd .. &amp;&amp; git add app/shared/scene.js app/shared/scene.test.js app/panels/05-linearize/spine.js &amp;&amp; git commit -q -F - &lt;&lt;&#39;MSG&#39;
+panel 5: open on gravity parameters where the linear model visibly lies
+
+The scene started the attractor at r = 10 with G m1 m2 = 100, so the real model
+and the linear one drew the same arrow (0.90 against 1.00) and gravity was a
+whisper next to the spring&#39;s 112 — the real-vs-linear switch, which is the
+point of the panel, appeared to do nothing.
+
+Start at G = 1, m1 = 10, m2 = 120, r = 5: the body&#39;s own displacement is now a
+fifth of the way to the attractor, so dist^2 is visibly not r^2 and the switch
+moves the arrow from 38.4 to 48.0 and tilts it. G m1 m2 = 1200 puts gravity in
+the same league as the spring rather than under the drag.
+
+The scene&#39;s mass is now its own number rather than the tuple&#39;s DEFAULTS.m, so
+panel 5 pushes M = 10 into the tuple when the reader reaches it.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01HvvWmVeztoesTQy48J7CXX
+MSG
+git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-47-08-389Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-47-08-389Z" class="timestamp-link"><time datetime="2026-09-03T20:47:08.389Z" data-timestamp="2026-09-03T20:47:08.389Z">2026-09-03T20:47:08.389Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+f4675ff panel 5: open on gravity parameters where the linear model visibly lies</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-47-16-423Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-47-16-423Z" class="timestamp-link"><time datetime="2026-09-03T20:47:16.423Z" data-timestamp="2026-09-03T20:47:16.423Z">2026-09-03T20:47:16.423Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-47-18-402Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-47-18-402Z" class="timestamp-link"><time datetime="2026-09-03T20:47:18.402Z" data-timestamp="2026-09-03T20:47:18.402Z">2026-09-03T20:47:18.402Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XoFeRj5SGwBXEpoM4GS43K">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Measure Euler blow-up time at m=1 vs m=10</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd app &amp;&amp; node -e &#34;
+const { simulate } = await import(&#39;./shared/math/integrators.js&#39;);
+for (const m of [1, 10]) {
+  const s = simulate({ method: &#39;euler&#39;, h: 1/30, m, c: 0.1, k: 100, x0: 1, v0: 0 }, 60);
+  const t100 = s.t[s.x.findIndex(v =&gt; Math.abs(v) &gt; 100)];
+  console.log(&#39;m =&#39;, String(m).padStart(2), &#39; |x| reaches 100 at t =&#39;, t100 === undefined ? &#39;&gt;60 s&#39; : t100.toFixed(1) + &#39; s&#39;);
+}
+&#34; --input-type=module</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-47-19-860Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-47-19-860Z" class="timestamp-link"><time datetime="2026-09-03T20:47:19.860Z" data-timestamp="2026-09-03T20:47:19.860Z">2026-09-03T20:47:19.860Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>m =  1  |x| reaches 100 at t = 3.2 s
+m = 10  |x| reaches 100 at t = 28.9 s</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-47-28-793Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-47-28-793Z" class="timestamp-link"><time datetime="2026-09-03T20:47:28.793Z" data-timestamp="2026-09-03T20:47:28.793Z">2026-09-03T20:47:28.793Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done — <code>f4675ff</code>. Panel 5 now opens at <strong>G = 1, m₁ = 10, m₂ = 120, r = 5</strong>, set in <code>defaultScene()</code> in <code>app/shared/scene.js</code> (starting parameters, not the model defaults). All 88 tests pass.</p>
+<p>What that buys, measured:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>before</th>
+<th>after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gravity, real</td>
+<td>0.90</td>
+<td><strong>38.4</strong></td>
+</tr>
+<tr>
+<td>gravity, linear</td>
+<td>1.00</td>
+<td><strong>48.0</strong></td>
+</tr>
+<tr>
+<td>vs. spring (112)</td>
+<td>a whisper</td>
+<td>same league</td>
+</tr>
+</tbody>
+</table>
+<p>The switch now moves the arrow ~20% <em>and</em> tilts it, because at r = 5 the body's own displacement is a fifth of the way to the attractor, so <code>dist²</code> is visibly not <code>r²</code>. Before, at r = 10, the two models drew the same arrow.</p>
+<p><strong>One consequence you should know about, since m₁ is the body mass and panel 5 pushes M into the tuple:</strong> the rest of the piece now runs at m = 10 instead of m = 1. I measured what that does to Part II's headline demo — explicit Euler at h = 1/30:</p>
+<ul>
+<li>m = 1: |x| passes 100 at <strong>t = 3.2 s</strong> — "blows up in seconds"</li>
+<li>m = 10: |x| passes 100 at <strong>t = 28.9 s</strong></li>
+</ul>
+<p>Panels 10 and 11 still blow up, just an order of magnitude more slowly. If you want to keep both, <code>G = 10, m₁ = 1, m₂ = 120, r = 5</code> gives the <em>identical</em> gravity arrow (G·m₁·m₂ = 1200 either way) and leaves the tuple at m = 1 — the cost is that the net acceleration and the dashed look-ahead are 10× larger, so the trajectory preview changes. Say which you'd rather have.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<a href="page-004.html">4</a>
+<a href="page-004.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

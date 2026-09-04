@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 2</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/2</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-02T20-56-14-396Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-56-14-396Z" class="timestamp-link"><time datetime="2026-09-02T20:56:14.396Z" data-timestamp="2026-09-02T20:56:14.396Z">2026-09-02T20:56:14.396Z</time></a></div><div class="message-content">
+<div class="user-content"><p>sorry, continue</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-56-16-816Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-56-16-816Z" class="timestamp-link"><time datetime="2026-09-02T20:56:16.816Z" data-timestamp="2026-09-02T20:56:16.816Z">2026-09-02T20:56:16.816Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;server_tool_use&quot;,
+  &quot;id&quot;: &quot;srvtoolu_017nysU2faQJGPaFtbpeMEai&quot;,
+  &quot;name&quot;: &quot;advisor&quot;,
+  &quot;input&quot;: {}
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-22-916Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-22-916Z" class="timestamp-link"><time datetime="2026-09-02T20:57:22.916Z" data-timestamp="2026-09-02T20:57:22.916Z">2026-09-02T20:57:22.916Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;advisor_tool_result&quot;,
+  &quot;tool_use_id&quot;: &quot;srvtoolu_017nysU2faQJGPaFtbpeMEai&quot;,
+  &quot;content&quot;: {
+    &quot;type&quot;: &quot;advisor_redacted_result&quot;,
+    &quot;encrypted_content&quot;: &quot;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&quot;
+  }
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-26-161Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-26-161Z" class="timestamp-link"><time datetime="2026-09-02T20:57:26.161Z" data-timestamp="2026-09-02T20:57:26.161Z">2026-09-02T20:57:26.161Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FYjjN1xZgvaFFEsj5pU2pd">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check the documented system field shape</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /private/tmp/claude-501/bundled-skills/2.1.258/7b486dbe5f89c81933ac7ef761b92d95/claude-api; grep -n -i &#39;system:&#39; typescript/claude-api/README.md | head; grep -n -i &#39;system.*document\|document.*system&#39; shared/prompt-caching.md typescript/claude-api/README.md | head; grep -n -B3 -A8 &#39;system: \[&#39; typescript/claude-api/README.md | head -40</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-57-26-224Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-57-26-224Z" class="timestamp-link"><time datetime="2026-09-02T20:57:26.224Z" data-timestamp="2026-09-02T20:57:26.224Z">2026-09-02T20:57:26.224Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>56:  system:
+71:  system: [
+147:  system: &quot;You are an expert on this large document...&quot;,
+160:  system: [
+174:  system: [
+386:  system: largeDocumentText, // e.g., 50KB of context
+400:  system: system,
+typescript/claude-api/README.md:147:  system: &quot;You are an expert on this large document...&quot;,
+typescript/claude-api/README.md:386:  system: largeDocumentText, // e.g., 50KB of context
+shared/prompt-caching.md:128:- Goes on any content block: system text blocks, tool definitions, message content blocks (`text`, `image`, `tool_use`, `tool_result`, `document`).
+shared/prompt-caching.md:164:Automatic caching is a top-level `cache_control` field on the request, not on any content block. The system places the breakpoint on the last cacheable block and moves it forward as the conversation grows; if the last block isn&#x27;t an eligible target it silently walks backward to the nearest eligible one, and skips caching if none is found. The automatic breakpoint defaults to the 5-minute TTL (the top-level field accepts `ttl: &quot;1h&quot;`) and consumes one of the 4 breakpoint slots. It composes with explicit markers in the same request, with two documented 400s: all 4 slots already taken by explicit markers, and an explicit marker on the last block whose TTL differs from the top-level field&#x27;s (an explicit marker there with the same TTL makes automatic caching a no-op).
+68-const response = await client.messages.create({
+69-  model: MODEL_ID, // must support mid-conversation system messages
+70-  max_tokens: 16000,
+71:  system: [
+72-    { type: &quot;text&quot;, text: STABLE_SYSTEM, cache_control: { type: &quot;ephemeral&quot; } },
+73-  ],
+74-  messages: [
+75-    ...history,
+76-    { role: &quot;user&quot;, content: userMessage },
+77-    { role: &quot;system&quot;, content: &quot;Terse mode enabled - keep responses under 40 words.&quot; },
+78-  ],
+79-});
+--
+157-const response = await client.messages.create({
+158-  model: &quot;claude-opus-5&quot;,
+159-  max_tokens: 16000,
+160:  system: [
+161-    {
+162-      type: &quot;text&quot;,
+163-      text: &quot;You are an expert on this large document...&quot;,
+164-      cache_control: { type: &quot;ephemeral&quot; }, // default TTL is 5 minutes
+165-    },
+166-  ],
+167-  messages: [{ role: &quot;user&quot;, content: &quot;Summarize the key points&quot; }],
+168-});
+--
+171-const response2 = await client.messages.create({
+172-  model: &quot;claude-opus-5&quot;,
+173-  max_tokens: 16000,
+174:  system: [
+175-    {
+176-      type: &quot;text&quot;,
+177-      text: &quot;You are an expert on this large document...&quot;,
+178-      cache_control: { type: &quot;ephemeral&quot;, ttl: &quot;1h&quot; }, // 1 hour TTL
+179-    },
+180-  ],
+181-  messages: [{ role: &quot;user&quot;, content: &quot;Summarize the key points&quot; }],
+182-});
+Shell cwd was reset to /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-29-830Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-29-830Z" class="timestamp-link"><time datetime="2026-09-02T20:57:29.830Z" data-timestamp="2026-09-02T20:57:29.830Z">2026-09-02T20:57:29.830Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-29-833Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-29-833Z" class="timestamp-link"><time datetime="2026-09-02T20:57:29.833Z" data-timestamp="2026-09-02T20:57:29.833Z">2026-09-02T20:57:29.833Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The advisor caught four real issues. The docs confirm <code>system</code> takes text blocks only, so the essays become text blocks. Applying the fixes now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-32-803Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-32-803Z" class="timestamp-link"><time datetime="2026-09-02T20:57:32.803Z" data-timestamp="2026-09-02T20:57:32.803Z">2026-09-02T20:57:32.803Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01MYZevSiRDJRKav3qPcobtD">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">checkpoints.md</span></div>
+<div class="file-tool-fullpath">/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">2. The two essays (`docs/reference/*.md`) as two `document` blocks, read from disk at
+   boot, titled &#34;Part I&#34; and &#34;Part II&#34;. `cache_control` goes on the last of them.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">2. The two essays (`docs/reference/*.md`) as two more `text` blocks, read from disk at
+   boot, each headed &#34;Part I&#34; / &#34;Part II&#34;. `system` takes text blocks only (`document`
+   blocks belong in message content), so they are text. `cache_control` goes on the last
+   of them.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-57-32-820Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-57-32-820Z" class="timestamp-link"><time datetime="2026-09-02T20:57:32.820Z" data-timestamp="2026-09-02T20:57:32.820Z">2026-09-02T20:57:32.820Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-40-300Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-40-300Z" class="timestamp-link"><time datetime="2026-09-02T20:57:40.300Z" data-timestamp="2026-09-02T20:57:40.300Z">2026-09-02T20:57:40.300Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01AX34wksissHBkCgvC5Eei8">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">checkpoints.md</span></div>
+<div class="file-tool-fullpath">/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| `shared/router.js` | `parseRoute` / `formatRoute` accept `#/N/check`; `normalize` drops `check` when the panel has none; `canOpen(index, &#39;check&#39;, 1)`. |
+| `shared/main.js` | Stamp a `section.panel.check` row after each panel that has one (`data-index`, `data-check`); key `rows` by `&#34;N&#34;` and `&#34;N/check&#34;`; `scrollToPanel` takes a row key; the vertical observer reads `data-check` and routes to `#/N/check`; keyboard `ArrowDown`/`ArrowUp` step through check rows; `onRoute` keeps `panes.activate(N, null, 1)` so panel N&#39;s panes stay warm while its checkpoint is showing; the bottom rail shows the single cell. |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| `shared/router.js` | The route becomes `{ index, check, side, depth }`. `check` is a **row position**, not a third side: `#/N/check` parses to `{ index: N, check: true, side: null }`, `formatRoute` emits it, `normalize` drops `check` when the panel has none, and `check` and `side` are mutually exclusive (a check row has no side panes). `canOpen` is unchanged. |
+| `shared/main.js` | Stamp a `section.panel.check` row after each panel that has one (`data-index`, `data-check`); key `rows` by `&#34;N&#34;` and `&#34;N/check&#34;`; `scrollToPanel` takes a row key; the vertical observer reads `data-check` and routes to `#/N/check`, and it must keep running on a check row (it returns early only on `router.current.side`, which is null here); `side-open` must never toggle on for a check row, or vertical scroll locks and the reader cannot leave; keyboard `ArrowDown`/`ArrowUp` step through check rows in row order; `onRoute` keeps `panes.activate(N, null, 1)` so panel N&#39;s panes stay warm while its checkpoint is showing; the bottom rail shows the single cell. |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-57-40-319Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-57-40-319Z" class="timestamp-link"><time datetime="2026-09-02T20:57:40.319Z" data-timestamp="2026-09-02T20:57:40.319Z">2026-09-02T20:57:40.319Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-42-617Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-42-617Z" class="timestamp-link"><time datetime="2026-09-02T20:57:42.617Z" data-timestamp="2026-09-02T20:57:42.617Z">2026-09-02T20:57:42.617Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01LgvGEyL9JqCnyTQ6Ep4pGs">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">checkpoints.md</span></div>
+<div class="file-tool-fullpath">/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">States: `idle`, `checking`, `pass`, `miss`, `verbatim`, `error`, `off`. The reader may</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">States: `idle`, `checking`, `pass`, `miss`, `error`, `off`. A verbatim copy is an
+ordinary `miss` whose `missing` sentence is the fixed one above; the wire shape does not
+distinguish it and the card does not need to. The reader may</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-57-42-640Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-57-42-640Z" class="timestamp-link"><time datetime="2026-09-02T20:57:42.640Z" data-timestamp="2026-09-02T20:57:42.640Z">2026-09-02T20:57:42.640Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-44-452Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-44-452Z" class="timestamp-link"><time datetime="2026-09-02T20:57:44.452Z" data-timestamp="2026-09-02T20:57:44.452Z">2026-09-02T20:57:44.452Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_017iD2x7Uo18rmNrYodich69">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">checkpoints.md</span></div>
+<div class="file-tool-fullpath">/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| Input (essays + rules + prose + rubric + answer) | ~9K tokens | ~$0.045 uncached, ~$0.006 with the essays cached |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| Input (essays + rules + prose + rubric + answer) | ~9K tokens | ~$0.045 uncached; ~$0.015 with the ~7K prefix cached (reads are about a tenth of input price) |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-57-44-476Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-57-44-476Z" class="timestamp-link"><time datetime="2026-09-02T20:57:44.476Z" data-timestamp="2026-09-02T20:57:44.476Z">2026-09-02T20:57:44.476Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/docs/checkpoints.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-57-49-146Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-57-49-146Z" class="timestamp-link"><time datetime="2026-09-02T20:57:49.146Z" data-timestamp="2026-09-02T20:57:49.146Z">2026-09-02T20:57:49.146Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UYvAyDs4T2w3w6a2G27vhY">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the plan corrections</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/checkpoints.md &amp;&amp; git commit -q -m &#34;checkpoints: essays as system text blocks; check is a row position, not a side; verbatim is a plain miss; fix cached cost
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01JUicK4oNWJnkXuKq9gjoai&#34; &amp;&amp; git log --oneline -2</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-57-50-791Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-57-50-791Z" class="timestamp-link"><time datetime="2026-09-02T20:57:50.791Z" data-timestamp="2026-09-02T20:57:50.791Z">2026-09-02T20:57:50.791Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>3673f8f checkpoints: essays as system text blocks; check is a row position, not a side; verbatim is a plain miss; fix cached cost
+826f163 docs: plan the own-words checkpoints (Claude API grader behind a small server/)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-58-00-389Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-58-00-389Z" class="timestamp-link"><time datetime="2026-09-02T20:58:00.389Z" data-timestamp="2026-09-02T20:58:00.389Z">2026-09-02T20:58:00.389Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The plan is written and committed to main as <code>docs/checkpoints.md</code>, in two commits (826f163 and 3673f8f). I also added one-line pointers in <code>CLAUDE.md</code> and <code>docs/idea.md</code> so a future session knows the feature is specified there and not yet built.</p>
+<p><strong>What the plan decides</strong></p>
+<ul>
+<li>Each checkpoint is its own row in the spine grid, routed as <code>#/N/check</code>, so "scroll down and it prompts you" is literal. The table in the doc enumerates every shell touch point, including the trap that a check row must not be modeled as a side pane, since that would lock vertical scrolling.</li>
+<li>The browser only ever sends a checkpoint id and the answer text. Rubrics, the grading rules, and the two essays live on a small Node server outside <code>app/</code>, so <code>app/</code> keeps its no-dependency rule and the API key never reaches a browser.</li>
+<li>The grader returns exactly <code>{ pass, missing }</code>. The missing sentence is a nudge capped at 160 characters by the server, since structured outputs do not enforce string length. Verbatim copies are caught locally before any API call.</li>
+<li>Ten checkpoints are proposed, with the eigenvector rubric written in full as the template. The doc says to calibrate on four first, using a hand-run eval script with fixture answers, and to keep a calibration log in the doc.</li>
+</ul>
+<p><strong>Two things left open on purpose</strong></p>
+<ul>
+<li>Hosting is undecided. The repo has no remote and no deploy config, so the doc gives both paths: the Node process as-is, or a static host plus one serverless function using the same grading module.</li>
+<li>One API-shape check for build time: whether the beta path that accepts <code>fallbacks</code> also accepts <code>output_config.format</code>. The doc says to drop <code>fallbacks</code> rather than structured output if they conflict.</li>
+</ul></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-58-00-492Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-58-00-492Z" class="timestamp-link"><time datetime="2026-09-02T20:58:00.492Z" data-timestamp="2026-09-02T20:58:00.492Z">2026-09-02T20:58:00.492Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-58-03-723Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-58-03-723Z" class="timestamp-link"><time datetime="2026-09-02T20:58:03.723Z" data-timestamp="2026-09-02T20:58:03.723Z">2026-09-02T20:58:03.723Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Wrote and committed <code>docs/checkpoints.md</code>: a plan for "restate it in your own words" checkpoint rows, graded by the Claude API through a small <code>server/</code> proxy that returns <code>{ pass, missing }</code>. Hosting and one beta-API compatibility check are left open in the doc.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

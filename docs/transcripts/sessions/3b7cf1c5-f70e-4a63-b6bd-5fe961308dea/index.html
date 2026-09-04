@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - Index</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Claude Code transcript</h1>
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+            </div>
+        </div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+        <p style="color: var(--text-muted); margin-bottom: 24px;">23 prompts · 356 messages · 88 tool calls · 0 commits · 8 pages</p>
+        
+<div class="index-item"><a href="page-001.html#msg-2026-09-02T19-59-24-554Z"><div class="index-item-header"><span class="index-item-number">#1</span><time datetime="2026-09-02T19:59:24.554Z" data-timestamp="2026-09-02T19:59:24.554Z">2026-09-02T19:59:24.554Z</time></div><div class="index-item-content"><p>Read idea.md. Look through app pages and map out what shared code we will need. Then update the idea.md with a shared code section that outlines this code.</p></div></a><div class="index-item-stats"><span>13 bash · 1 read</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Done. <code>docs/idea.md</code> now has a <code>## Shared code</code> section, inserted after "Rendering research" and before "Numeric confirmations", about 190 lines. Committed to main in two commits, the last being <code>15143b6</code>. Nothing outside idea.md changed.</p>
+<p><strong>What the section does.</strong> It inventories what <code>app/shared/</code> already provides, then lists the missing pieces by group (state beyond the tuple, math, simulation, rendering, UI, shell), naming the panels and panes that consume each. A table cross-references every panel to its existing and new shared modules, followed by the tests each new math module gets and a build order aligned with plan.md.</p>
+<p><strong>The biggest gaps it identifies:</strong>
+- A second store for the 2D scene that panels 1, 2, and 5 share, plus small per-panel knobs that must survive a pane remount.
+- A live simulation player for panels 8 through 13, and a sweep/bundle/highlight pair used by seven of the explode panes.
+- Region shader changes: layered draws, a degree-n Taylor mode, and one shared WebGL context blitted into 2D canvases to stay under the browser's context cap.
+- Live MathML binding and scrubbable numbers for the formula-driven panels 5, 7, and 10-left.
+- Custom acceleration in the explicit steppers, exported 2×2 matrix helpers with eigenvectors, modal decomposition, Taylor tools, and an adaptive step controller.</p>
+<p><strong>Follow-up for you to decide.</strong> The manifest has drifted from the current outline and I left it untouched. Panel 1's spine and left pane are inverted relative to idea.md, panel 8 has no right pane where the outline explodes <code>h</code>, and the right-pane titles for 6, 10, 11, and 12 no longer match. The section also flags that the router, loader, and shell all assume one right pane, so panel 12's chain of three right panes is a shell change to schedule before that panel is built.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2026-09-02T20-08-12-033Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-09-02T20:08:12.033Z" data-timestamp="2026-09-02T20:08:12.033Z">2026-09-02T20:08:12.033Z</time></div><div class="index-item-content"><p>I do not want information duplicated between idea.md and plan.md. We don't need both, so remove the duplicate info in plan.md. Secondly, info.md is authoritative, so spawn a subagent (probably only sonnet needed) to update the panel skeleton to match idea.md.</p></div></a><div class="index-item-stats"><span>1 agent · 1 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>plan.md is trimmed and committed as <code>7e118da</code>. It now keeps only mechanics: ground rules, directory layout, load sequence, pane contract, store API, router internals, rendering conventions, stylesheet split, testing and serving commands, and status. The rendering research, tuple rationale, numeric confirmations, and build order now live only in idea.md, with pointers from plan.md.</p>
+<p>The Sonnet subagent is still running on the skeleton sync (manifest, chained right panes in router/loader/main, panel 1 rename, per-panel READMEs, browser verification). When it reports back I'll update CLAUDE.md's route and pane notes to match and give you the full recap.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2026-09-02T20-17-21-297Z"><div class="index-item-header"><span class="index-item-number">#3</span><time datetime="2026-09-02T20:17:21.297Z" data-timestamp="2026-09-02T20:17:21.297Z">2026-09-02T20:17:21.297Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>abe4cd5ee94ba61a9</task-id>
+<tool-use-id>toolu_01Gsa46jFvdbGT8CcwazqViC</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/abe4cd5ee94ba61a9.output</output-file>
+<status>killed</status></p>
+<summary>Agent "Sync panel skeleton to idea.md" was stopped by user</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Now let's update contents of each file for panel 1.</result>
+</task-notification></p></div></a><div class="index-item-stats"><span>1 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The skeleton subagent was stopped before it finished. It left uncommitted work in the tree and nothing verified:</p>
+<ul>
+<li><code>app/panels/01-rigid-bodies/</code> renamed to <code>app/panels/01-point-masses/</code>, with the old left pane moved to the spine and the old spine moved to the right pane. The renames are staged; the file contents were mid-edit.</li>
+<li><code>manifest.js</code>, <code>router.js</code>, <code>loader.js</code>, and <code>main.js</code> modified in place, unstaged. Whether the chained-route support is complete is unknown.</li>
+<li>Not done: per-panel README updates, <code>app/README.md</code>, tests, browser checks, commit.</li>
+</ul>
+<p>plan.md is finished and committed as <code>7e118da</code>. I have not touched the subagent's files.</p>
+<p>Tell me which way to go: resume the agent to finish and verify, have me finish the skeleton sync directly, or discard its partial changes with <code>git checkout</code> and <code>git clean</code> on <code>app/</code>.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-02T20-21-36-869Z"><div class="index-item-header"><span class="index-item-number">#4</span><time datetime="2026-09-02T20:21:36.869Z" data-timestamp="2026-09-02T20:21:36.869Z">2026-09-02T20:21:36.869Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>abe4cd5ee94ba61a9</task-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/abe4cd5ee94ba61a9.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Sync panel skeleton to idea.md" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Working tree is clean for everything I touched. Task complete.</p>
+<h2>Summary</h2>
+<p><strong>Final manifest</strong> (<code>app/shared/manifest.js</code>), one line per panel — title / left / right(s):</p>
+<ol>
+<li>Point masses / — / Rigid bodies: extent and rotation</li>
+<li>Newtonian physics: F = ma / Vectors / Torque and moment of inertia</li>
+<li>Solving for x / x, v, a: derivatives / ODEs vs PDEs; intractability</li>
+<li>Physical stability / What "close" means / Lyapunov vs asymptotic</li>
+<li>Stability analysis: linearize / What "linear" means / Taylor expansion and 1/r² gravity</li>
+<li>Eigen-what-now / Matrices as transforms / Explode the eigenvector over a sweep</li>
+<li>Finding eigenvalues / Quadratics and complex numbers / Under-, critically, and overdamped</li>
+<li>Recap: real time / Frame budget, ms per frame / Explode h: all step sizes at once</li>
+<li>Finding error / Geometric growth / The modal equation</li>
+<li>Runge-Kutta family: explicit Euler / Euler, step by step, to the disk / Explode h: nested disks</li>
+<li>Let's break it / The exact solution, no method / Explode the plane: a grid of λ</li>
+<li>Higher-order Runge-Kutta / Taylor series / [Explode order, Implicit Euler, Verlet]</li>
+<li>Variable step sizes / Local vs global error / Adaptive step controllers</li>
+</ol>
+<p><code>right</code> is now always <code>null</code> or an array of <code>{ title }</code> (documented in the manifest's header comment); <code>left</code> stays a single object or <code>null</code> since it never chains.</p>
+<p><strong>Shell changes:</strong> <code>router.js</code> routes now carry an optional depth (<code>#/N/right/2</code>), clamped downward by <code>canOpen</code>/<code>normalize</code> when out of range. <code>loader.js</code> gained <code>paneFileId(pane, depth)</code> mapping to <code>right</code>/<code>right-2</code>/<code>right-3</code> file basenames, and <code>createPaneManager</code> mounts a panel's full right chain. <code>main.js</code> stamps one cell per pane in chain order, rebuilds the bottom rail to one dot per pane per panel, and ArrowLeft/ArrowRight walk the chain one step at a time, falling back to the spine at either end.</p>
+<p><strong>Panel 1</strong> renamed <code>01-rigid-bodies/</code> → <code>01-point-masses/</code>; its spine is now the point-mass content (formerly <code>left.*</code>), its right pane is the rigid body (formerly <code>spine.*</code>). <code>app/README.md</code> and every other panel's <code>README.md</code> updated to match.</p>
+<p><strong>Tests:</strong> <code>node --test "shared/**/*.test.js"</code> — 22/22 pass.</p>
+<p><strong>Browser verification</strong> (chrome-devtools MCP): <code>#/1</code> shows the point mass with no left dot; ArrowRight opens the rigid body, ArrowLeft returns; <code>#/1/left</code> redirects to <code>#/1</code>; <code>#/12/right</code> → <code>#/12/right/2</code> → <code>#/12/right/3</code> each land on their own cell (Explode order / Implicit Euler / Verlet placeholders) and ArrowRight/ArrowLeft walk the chain both ways, stopping at the ends; <code>#/12/right/4</code> normalizes to <code>#/12/right/3</code>; <code>#/8/right</code> opens ("Explode h: all step sizes at once"). Console held only expected 404s for unbuilt panes (7, 8, 9, 12's right chain). Server killed after verification.</p>
+<p>Nothing in idea.md's navigation rules or panel structure required omission — everything specified was implementable within the existing shell architecture.</p>
+<p>Committed as <code>258d80e</code> on <code>main</code> (docs/ untouched; a concurrent docs-editing agent's commits are unaffected).</result>
+<usage><subagent_tokens>163493</subagent_tokens><tool_uses>67</tool_uses><duration_ms>740634</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>4 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Both requests are done and committed on main. The tree is clean.</p>
+<p><strong>plan.md deduplicated</strong> (<code>7e118da</code>). It now holds only mechanics: ground rules, directory layout, load sequence, pane contract, store API, router internals, rendering conventions, stylesheet split, test and serve commands, and status. Rendering research, the tuple rationale, numeric confirmations, the shared-code inventory, and build order live only in idea.md, and plan.md points at them.</p>
+<p><strong>Panel skeleton synced to idea.md</strong> by the Sonnet subagent (<code>258d80e</code>). I verified the commit, a clean tree, and 22 passing tests myself.
+- Manifest now matches idea.md for all 13 panels. Panel 1 is "Point masses" with no left and a rigid-body right pane, panel 8 has its right pane, and panel 12's right is a three-step chain.
+- Router, loader, and main.js support chained right panes: <code>#/12/right/2</code> and <code>#/12/right/3</code>, one cell and one rail dot per pane, and arrow keys walk the chain. Files for deeper panes are named <code>right-2.js</code> and <code>right-3.js</code>.
+- Panel 1's directory is now <code>01-point-masses</code>, with the old left pane promoted to the spine and the old spine moved to the right pane. Every other panel's README lists its idea.md panes.
+- The subagent checked routing, the panel-1 swap, and the chain in Chrome. The console held only the expected 404s for unbuilt panes.</p>
+<p><strong>CLAUDE.md</strong> (<code>d649dfd</code>) now documents the depth routes, the new manifest shape, and that idea.md is authoritative for what each pane is.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-02T20-23-18-288Z"><div class="index-item-header"><span class="index-item-number">#5</span><time datetime="2026-09-02T20:23:18.288Z" data-timestamp="2026-09-02T20:23:18.288Z">2026-09-02T20:23:18.288Z</time></div><div class="index-item-content"><p>do we still have more shared code to build?</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Yes. Nothing from the "Shared code" section in idea.md has been built yet. The existing <code>shared/</code> covers the math core, the store, the shell, the region shader, and basic plot helpers. Still to write, roughly two dozen pieces:</p>
+<ul>
+<li><strong>State:</strong> a scene store for the 2D panels (1, 2, 5), an aux store for per-panel knobs, and a generalized <code>createStore</code> to back both.</li>
+<li><strong>Math:</strong> <code>forces.js</code>, <code>matrix2.js</code> (extracted from stability.js plus eigenvectors), <code>modes.js</code>, <code>taylor.js</code>, <code>adaptive.js</code>, <code>sweep.js</code>, plus custom acceleration in the steppers, eigenvalue inversion and normalized stability in the existing modules.</li>
+<li><strong>Simulation:</strong> the live player with transport controls.</li>
+<li><strong>Rendering:</strong> stage helper, trajectory plots, bundles with highlight, the complex plane, drag handles, shader layers and Taylor mode with one shared GL canvas, and small plot2d additions (log-y, band, vector field, heatmap, small-multiple layout, color).</li>
+<li><strong>UI:</strong> live MathML binding, scrubbable numbers, log sliders, toggles, and the sweep strip.</li>
+</ul>
+<p>The order in idea.md says to start with what panels 7, 10, 11, and 12 need: <code>cplane</code>, <code>stage</code>, <code>livemath</code>, <code>player</code>, <code>trajectory</code>, and the shader layers. If you want, I can start on that first group.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-02T20-24-20-651Z"><div class="index-item-header"><span class="index-item-number">#6</span><time datetime="2026-09-02T20:24:20.651Z" data-timestamp="2026-09-02T20:24:20.651Z">2026-09-02T20:24:20.651Z</time></div><div class="index-item-content"><p>Create a subagent to execute those first shared modules.</p></div></a><div class="index-item-stats"><span>1 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The subagent is running. Its brief covers, in idea.md's order: the math additions (eigenvalue inversion, Taylor amplification), <code>stage</code>, <code>trajectory</code> with log-y, the <code>player</code> and transport controls, region shader layers with a Taylor mode and one shared GL canvas, <code>cplane</code>, and <code>livemath</code>. As its browser proof it builds minimal spines for panels 7 and 11, which are the first consumers, and refactors panel 1 onto the stage helper. It commits per module and reports what the docs should say. I'll update idea.md and CLAUDE.md from that report when it finishes.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-09-02T20-26-47-901Z"><div class="index-item-header"><span class="index-item-number">#7</span><time datetime="2026-09-02T20:26:47.901Z" data-timestamp="2026-09-02T20:26:47.901Z">2026-09-02T20:26:47.901Z</time></div><div class="index-item-content"><p>is there any content or pages that can be built in parallel to the shared code?</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Yes, two tracks are independent of the shared code and of the files the subagent is editing.</p>
+<p><strong>Prose.</strong> Every pane's <code>.html</code> fragment is plain HTML with MathML and depends on nothing in <code>shared/</code>. That is the bulk of the piece: 13 spine fragments plus about 25 side-pane fragments, all specified in idea.md's panel-by-panel entries and sourced from the two essays in <code>docs/reference/</code>. A writer could draft all of them now. The only fragments to skip until the subagent finishes are panels 1, 7, and 11, where it is writing placeholder prose.</p>
+<p><strong>Pure math modules.</strong> The third build group has new files that import only the existing math and do not touch what the subagent is changing: <code>forces.js</code> (force models and the M, C, K assembly), <code>modes.js</code> (modal decomposition), <code>adaptive.js</code> (the step controller), <code>sweep.js</code> (memoized parameter sweeps), and the <code>1/r²</code> expansion for <code>taylor.js</code>. Each ships with <code>node --test</code> coverage and needs no browser. <code>drag.js</code> and <code>bundle.js</code> are also safe as new files under <code>gfx/</code>.</p>
+<p><strong>What must wait.</strong> Anything editing <code>stability.js</code>, <code>plot2d.js</code>, <code>region-gl.js</code>, <code>index.html</code>, or <code>controls.css</code> will collide with the subagent, so <code>matrix2.js</code> (which moves helpers out of stability.js), the log-y and band-fill additions, and the store generalization should follow it. Interactive panes that need <code>trajectory</code>, <code>cplane</code>, <code>player</code>, or <code>livemath</code> also wait.</p>
+<p>If you want, I can launch two more agents now: one drafting the prose fragments and one building the pure math modules with tests.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-09-02T20-27-42-391Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2026-09-02T20:27:42.391Z" data-timestamp="2026-09-02T20:27:42.391Z">2026-09-02T20:27:42.391Z</time></div><div class="index-item-content"><p>Launch both agents, prose and math. The prose agent should do its best to use wording straight from the articles.</p></div></a><div class="index-item-stats"><span>2 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Three agents are now running in parallel, each fenced to its own files:</p>
+<ul>
+<li><strong>Shared code</strong> (started earlier): stage, trajectory, player, region layers, cplane, livemath, plus spines for panels 7 and 11 as proof.</li>
+<li><strong>Prose</strong>: every pane fragment except panel 1 and the two spines above, quoting the essays wherever they cover the point, with stub scripts so the page reads end to end.</li>
+<li><strong>Math</strong>: forces, modes, taylor, adaptive, sweep, bundle, and drag handles, each with Node tests, and a narrow step-size setter in the integrators.</li>
+</ul>
+<p>All three commit with explicit paths to avoid clobbering each other. When each reports back I'll fold their findings into idea.md, the preload list, and CLAUDE.md, and consolidate the one known overlap (two Taylor helpers) once both sides exist.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-09-02T20-44-12-273Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-09-02T20:44:12.273Z" data-timestamp="2026-09-02T20:44:12.273Z">2026-09-02T20:44:12.273Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a8ef436434f63de46</task-id>
+<tool-use-id>toolu_014grnu7yG3qsDZe4oZ6z2wX</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a8ef436434f63de46.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build pure math modules" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>All seven modules are built, tested, and committed (8 commits, each by explicit pathspec, containing only my files). Suite: <strong>60 tests, 60 pass</strong> (25 pre-existing, 31 new from me, 4 from the other agent). Working tree clean.</p>
+<h2>Exported APIs</h2>
+<ul>
+<li><strong><code>app/shared/math/forces.js</code></strong> — <code>MODELS</code> (wind, gravity, drag, spring: <code>{ label, defaults, real(f, body), linear(f, body), coefficients(f) → { C, K } }</code>), <code>FORCE_TYPES</code>, <code>createForce(type, overrides)</code> → plain <code>{ type, on, ...params }</code>, <code>createScene({ m, x, v, forces })</code>, <code>forceOf(force, body, { linear })</code>, <code>netForce(scene, { linear })</code>, <code>acceleration(scene, opts)</code>, <code>assemble(scene) → { M, C, K }</code>, <code>gravityG(f)</code>. Gravity's linear model is the essay's <code>m g</code> with <code>g = G m₂/r²</code>, equal to the real force at the operating point (body at origin, attractor <code>r</code> below); constant forces contribute 0 to <code>C</code>, <code>K</code>. Drag and spring are already linear (real === linear).</li>
+<li><strong><code>app/shared/math/modes.js</code></strong> — <code>decompose(m, c, k) → { lambdas, vectors: [[1, λ]…], defective }</code>, <code>project(modes, x, v) → [a₁, a₂]</code> (complex; NaN when critical/defective), <code>reconstruct(modes, [a₁, a₂]) → { x, v }</code>, <code>modalFactors(method, h, modes)</code>, <code>modalStep(method, h, modes, coeffs)</code>, <code>simulateModal(params, tEnd) → { t, x, v, coefficients, magnitudes, modes }</code>. Test pins the modal iteration to <code>createStepper</code> at 1e-9 over 300 steps for Euler, RK4, implicit, in three regimes.</li>
+<li><strong><code>app/shared/math/taylor.js</code></strong> — <code>expCoefficients(n)</code>, <code>expPartialSum(x, n)</code>, <code>expTerms(x, n)</code>, <code>expPartialSums(x, n)</code>, <code>inverseSquareExpansion(r0, n) → { coefficients, terms(r), evaluate(r) }</code>, <code>derivatives(m, c, k, x, v, n)</code> (from the ODE recursion, exact in every regime), <code>truncationTerm(order, h, d)</code>, <code>localTruncationError({ m, c, k, x, v, h, order }) → { x, v, max }</code>.</li>
+<li><strong><code>app/shared/math/adaptive.js</code></strong> — <code>estimateByDoubling(stepper, h, order, norm)</code>, <code>estimateByTaylor(stepper, h, order, { m, c, k }, norm)</code>, <code>createController({ order, tol, safety, growMax, shrinkMin, hMin, hMax })</code>, <code>CONTROLLER_DEFAULTS</code>, <code>runAdaptive({ method, tol, m, c, k, x0, v0, hInit, hMax, hMin, estimate: 'doubling'|'taylor', norm: 'state'|'x', … }, tEnd) → { t, x, v, h, exact, error, n, rejected, forced, hPeak, attempts, complete, blewUp }</code>. <code>h[i]</code> is the step from <code>t[i]</code>; <code>h[n−1]</code> is the proposed next step. Rejected steps always retry at ≤ 0.9 h so the loop cannot stall.</li>
+<li><strong><code>app/shared/math/sweep.js</code></strong> — <code>sweep(values, fn, { key }) → [{ value, result }]</code> (same array reference on a hit; hit requires same key and same values; bounded LRU cache), <code>sweepRange(lo, hi, n, { log })</code>, <code>sweepKey(params)</code>, <code>createSweeper({ capacity })</code>, <code>nearestIndex(values, target)</code>, <code>clearSweeps()</code>.</li>
+<li><strong><code>app/shared/gfx/bundle.js</code></strong> — <code>drawBundle(ctx, view, series, { highlight, color, dimAlpha, width, dimWidth, dash })</code>, <code>MAX_SERIES = 12</code> (warns once, draws only the first 12).</li>
+<li><strong><code>app/shared/gfx/drag.js</code></strong> — <code>createDragHandles(canvas, { handles, view, onStart, onMove, onEnd, signal, hitRadius }) → { active() }</code>. Hit test in device pixels via <code>view().X/Y</code> against <code>(clientX − rect.left)·dpr</code>; sets <code>data-grab="active"</code> while dragging and <code>"hover"</code> over a handle (removed otherwise); null-safe when no <code>.stage</code> ancestor; leaves <code>touch-action</code> to the stylesheet owner; never touches wheel.</li>
+</ul>
+<h2>The integrators.js change (<code>app/shared/math/integrators.js</code>)</h2>
+<p><code>createStepper</code> is now a thin wrapper over a private <code>makeStepper(params, init)</code>; signature and behaviour unchanged, all 7 existing tests untouched. Additive: <code>get h()</code>, <code>setH(next)</code>, <code>clone()</code> (carries <code>x, v, t, xPrev</code>, <code>h</code>). For Verlet, <code>setH</code> rebuilds <code>x_{n−1}</code> as <code>x − h'·v(t) + h'²a/2</code> with <code>v(t) = (x − x_{n−1})/h + a·h/2</code> — the backward difference is the velocity at <code>t − h/2</code>, and a naive <code>x − v·h'</code> re-seed was off by <code>a·h/4</code> in velocity (2e-3 in x on the demo params). The consistent form is the old <code>x_{n−1}</code> exactly when <code>h' = h</code>, and makes one step of h agree with two of h/2 to fourth order (gap 6.5e-5 at h = 0.01, 4.4e-6 at 0.005).</p>
+<h2>Adaptive numbers (for idea.md's confirmations)</h2>
+<ul>
+<li><strong>RK4, essay <code>m=10, c=0.1, k=10</code>, tol 0.01, step doubling: h peaks at 2.10 s</strong>, median 1.81 s, 70 steps for 120 s, no rejections from hInit = 1/30, max global error 0.29 (the test asserts <code>&amp;gt; 1.5</code> and records the value in its message). <code>hMax</code> (default 20) is not binding.</li>
+<li>With the essay's own recipe (next Taylor term, x only) the peak is 1.55 s under the default clamps and <strong>1.86 s fully unclamped</strong>. On this spring the 16 s is not reachable: <code>h⁵/120·|x⁽⁵⁾| ≤ 0.01</code> at h = 16 needs <code>|x⁽⁵⁾| ≈ 1e-6</code>, and with ω ≈ 1 the fifth derivative is O(1). The <em>mechanism</em> that does produce it is demonstrated in a test: with <code>k = c = 0</code> every derivative past <code>a</code> vanishes, both estimators read zero error, and h runs straight to <code>hMax</code> (16 in the test). A plausible but unestablished inference is that the college engine was integrating a projectile under constant gravity, where RK4's next term is exactly zero while Euler's <code>h²/2·|a|</code> is not — which matches "Euler worked well but RK4 tried 16 s".</li>
+<li><strong>Explicit Euler, demo params, tol 0.01: adaptive peak |x| ≈ 3.2 by t = 12</strong> (11.8 by t = 60) versus 9.8e7 for fixed h = 1/30, with h held at 0.005–0.018 and 112 rejections. Slowed, not stabilized: the Euler disk needs h ≤ 0.001 there, and a local-error tolerance never enforces stability. Worth adding as a confirmation.</li>
+<li>A controller with <code>safety = 1</code> can propose the same h after a rejection (error ≈ tol to rounding); that is why the reject branch forces a shrink.</li>
+</ul>
+<h2>For the other agent</h2>
+<ul>
+<li><strong>modulepreload</strong>: <code>shared/math/forces.js</code>, <code>shared/math/modes.js</code>, <code>shared/math/taylor.js</code>, <code>shared/math/adaptive.js</code>, <code>shared/math/sweep.js</code>, <code>shared/gfx/bundle.js</code>, <code>shared/gfx/drag.js</code>.</li>
+<li><strong>Taylor overlap to consolidate</strong>: <code>stability.js</code> now has complex <code>taylorAmplification(z, n)</code>; <code>taylor.js</code> has real <code>expPartialSum(x, n)</code> / <code>expCoefficients(n)</code>. They are the same series (my test checks the real sums equal <code>amplification('euler'/'rk4', [x, 0])</code> on the real axis). Consolidation option: <code>taylorAmplification</code> could import <code>expCoefficients</code> from <code>taylor.js</code>, or <code>taylor.js</code> could grow a complex <code>expPartialSumC</code> and <code>stability.js</code> delegate to it.</li>
+<li>Panels consuming <code>drag.js</code> need a <code>.stage[data-grab]</code> cursor rule in <code>controls.css</code> (<code>'hover'</code> and <code>'active'</code>).</result>
+<usage><subagent_tokens>147917</subagent_tokens><tool_uses>30</tool_uses><duration_ms>892425</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>4 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The math agent is done and its results are folded in. Two agents are still running.</p>
+<p><strong>Math modules</strong> (committed, 60 tests passing): <code>forces</code>, <code>modes</code>, <code>taylor</code>, <code>adaptive</code>, <code>sweep</code>, <code>bundle</code>, <code>drag</code>, plus a narrow <code>setH</code> on the stepper so the step size can change per step.</p>
+<p><strong>One finding changed idea.md</strong> (<code>24e00af</code>). The essay's 16-second RK4 step cannot happen on this spring: with a 0.01 error bound the controller peaks near 2 s, because the spring's higher derivatives are order 1. The step runs to the cap only when the higher derivatives vanish, which is the constant-gravity projectile case. Panel 13's beat now says so and gains a constant-force switch to show the mechanism. The numbers are recorded in the confirmations.</p>
+<p><strong>Pending on the shared-code agent:</strong> adding the seven new modules to the preload list, a cursor rule for drag handles in controls.css, and consolidating the two Taylor helpers, since it owns those files. I'll do those and update the "What exists" inventory when it reports.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-004.html#msg-2026-09-02T20-46-50-283Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-09-02T20:46:50.283Z" data-timestamp="2026-09-02T20:46:50.283Z">2026-09-02T20:46:50.283Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ad32e10428c364c71</task-id>
+<tool-use-id>toolu_01Y46npPtbgs8ShLFbD1mKrY</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/ad32e10428c364c71.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build first shared modules" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>All work is committed and the server is down. Here is the report.</p>
+<h2>What was built (commits cfe5b92 → deb6cff on main, explicit paths only)</h2>
+<p><strong>New modules, exported API in one line each</strong></p>
+<ul>
+<li><code>shared/gfx/stage.js</code>: <code>createStage(root, { layers=['2d'], aspect='square'|'wide'|'strip'|'half', signal, grab, draw }) → { el, canvases, canvas(name), ctx(name), size, onDraw(fn)→off, invalidate(), flush(), grabbing(bool), destroy() }</code>. Layer names are free labels; 2D contexts are created lazily so a layer can still take a dedicated WebGL2 context. <code>invalidate()</code> coalesces to one flush per rAF.</li>
+<li><code>shared/gfx/trajectory.js</code>: <code>drawTrajectory(ctx, size, { t, x, v?, exact?, n? }, { tMin, tMax, y:'auto'|[lo,hi], yLog, cap, markers, tangents, h, grid, xLabel, yLabel }) → view</code>; <code>nearestSample(view, xs, ys, px, py, n) → { i, dist }|null</code>; <code>windowIndices</code>, <code>autoRange</code>.</li>
+<li><code>shared/player.js</code>: <code>createPlayer({ store, loop, signal, autoplay=true, speed, maxStepsPerFrame=400, maxSamples, ratioWindow=1 }) → { play, pause, toggle, reset, step, playing, ended, speed, h, t, n, series{t,x,v,exact,err,n}, current, cost{perFrame,perStep,steps}, growth()→{ratio,doublingTime,steps}|null, onChange(fn)→off, destroy }</code>. Adaptive seam is marked in <code>stepOnce()</code>.</li>
+<li><code>shared/ui/transport.js</code>: <code>transport(player, { signal, speeds? }) → element</code> (<code>.transport</code> / <code>.transport-group</code> in controls.css).</li>
+<li><code>shared/gfx/cplane.js</code>: <code>createComplexPlane({ stage|canvases, layers={region,plane}, store, signal, halfRange: number|fn(state), region: false|true|{layers,highlight}|fn, drag, circles: null|h[]|fn, labels, grid, onDraw }) → { draw(size), view, report, setHalfRange, invalidate, destroy }</code>; <code>handleIndex(lambdas)</code>.</li>
+<li><code>shared/ui/livemath.js</code>: <code>bindMath(root, store, derive=()=&amp;gt;({}), { signal, digits=3 }) → off</code>; slots are <code>[data-var]</code> with optional <code>data-digits</code>; numbers through <code>fmt</code>, strings/Nodes as-is.</li>
+</ul>
+<p><strong>Changes to existing modules</strong></p>
+<ul>
+<li><code>math/system.js</code>: <code>paramsFromEigenvalue(m, λ) → { c, k }</code>, <code>exactFromEigenvalue({ m=1, lambda, x0, v0 })</code>.</li>
+<li><code>math/stability.js</code>: <code>taylorAmplification(z, n)</code> (Horner; n=1 ≡ Euler, n=4 ≡ RK4).</li>
+<li><code>gfx/plot2d.js</code>: <code>makeView({ yLog })</code>, <code>drawGrid</code> draws decades on a log axis, <code>fmtTick</code> handles exponents.</li>
+<li><code>gfx/region-gl.js</code>: rewritten. <code>draw({ view, layers:[{ method, h, alpha, order }], highlight })</code> composites up to <code>MAX_LAYERS=8</code> in one pass (old <code>{ method, h, view }</code> still works); <code>order: n</code> Taylor mode (fixed-bound Horner loop, <code>MAX_ORDER=12</code>); premultiplied output over transparent (<code>alpha: true</code>); <code>drawRegion(ctx2d, opts)</code> renders on one hidden shared canvas (grow-only, source-rect blit from WebGL's bottom-left) and <code>drawImage</code>s in; context-loss recovery; <code>normalizeLayers</code>, <code>hasSharedContext</code>.</li>
+<li><code>panels/01-point-masses/{spine,right}.js</code> use the stage (<code>stage.invalidate()</code> from pointermove).</li>
+<li><code>styles/controls.css</code>: <code>.stage.half</code> (0.62 × <code>--stage-max</code>), <code>.viz-row</code> (definite first column; a <code>%</code>-width stage in an <code>auto</code> column collapses to zero, which I hit), <code>.transport</code>.</li>
+<li><code>index.html</code>: modulepreload for stage, trajectory, player, cplane, transport, livemath.</li>
+<li>Panels 7 and 11 <code>spine.{html,js}</code> built as proofs, prose marked placeholder; their READMEs note this.</li>
+</ul>
+<p><strong>Tests</strong>: 7 new (3 math: round-trip, real-axis critical case, Taylor parity at large |z|; 4 player with a fake loop, including the measured Euler error ratio matching |1+hλ| = 1.0525 on the demo parameters). Suite is at 60 passing, which includes ~31 added concurrently by another session.</p>
+<h2>Browser verification (chrome-devtools MCP, 1440×900)</h2>
+<p>Confirmed: <code>#/7</code> shows both roots at −0.05 ± 10i moving with m/c/k sliders and the MathML slots updating (formula, discriminant, regime, λ₁/λ₂, α). <code>#/11</code>: Euler disk center −30 r 30 with its arc beside the red demo eigenvalues (|R| = 1.053); the run hit x = 1.3e9 by t = 13.7 s with measured ratio 1.0521 / doubling 0.45 s vs predicted 1.0525 / 0.45 s; switching to RK4 gives |R| = 0.998, x tracks exact (−0.160 vs −0.158); synthesized pointer drag of λ to Re = −3 wrote c = 6.03, k = 109.2, verdict green/stable, run decayed (x = 0.026 at t = 3); a drag to Re &gt; 0 clamps c to 0; <code>store.set({ h: 0.2 })</code> shrank the disk to center −5 r 5 with |R| = 2.23 and measured 2.24. Panel 1 works after the refactor: both panes draw, the right pane drag moves the body, a <code>m</code> patch reaches both readouts.</p>
+<p>Console on the <code>#/11</code> tab: only the loader 404s for panels 10, 12, 11-left, 11-right; no WebGL context warnings. The <code>#/7</code> and <code>#/1</code> tabs returned empty console listings (MCP attach timing), so they are not evidence either way.</p>
+<p>Did not work / fixed along the way: the square stage plus strip plus controls overflowed <code>.pane-body</code> and was silently clipped (fixed with <code>.stage.half</code> + <code>.viz-row</code>); the first <code>.viz-row</code> collapsed the stage to zero width (fixed with a definite column). Known cosmetic: <code>drawGrid</code>'s <code>xLabel</code> collides with the last tick label ("Re λ" over "10"), pre-existing.</p>
+<p><strong>Not exercised in the browser</strong> (compiled and rendered on the Euler path only): the Taylor <code>order</code> mode, multi-layer compositing with <code>highlight</code>, the <code>--region-none</code> flat fill for semi/Verlet, the grow-only blit when a smaller stage follows a larger one, and a destroy→remount cycle of panel 11.</p>
+<h2>Concurrent work you should know about</h2>
+<p>Another session was committing into the same working tree and using the same server/browser during this run (e81008c, 735474b, 3674f10, 37ca33d, b4b380b, 684133e, ca640a5): <code>math/adaptive.js</code>, <code>math/taylor.js</code>, <code>math/modes.js</code>, <code>math/forces.js</code>, <code>math/sweep.js</code>, <code>gfx/bundle.js</code>, <code>gfx/drag.js</code>, <code>stepper.setH</code>, and prose/stub panes for panels 3, 7-sides, 8–10, 12, 13. I updated my player seam comment to point at <code>setH</code> and <code>adaptive.js</code>. I killed the server as instructed while that session's tabs (<code>#/2</code>, <code>#/12/right/3</code>) were on the same origin.</p>
+<h2>What the docs should now say</h2>
+<p><strong>idea.md "What exists"</strong>: add stage (<code>onDraw</code>/<code>invalidate</code>), trajectory (with <code>nearestSample</code>, log-y in <code>makeView</code>), player + transport, cplane (region blit, λ drag, Euler circles), region-gl layers + Taylor mode + shared canvas via <code>drawRegion</code>, livemath (<code>bindMath</code>), and <code>paramsFromEigenvalue</code> / <code>exactFromEigenvalue</code> / <code>taylorAmplification</code>. Panels 7 and 11 spines exist as module proofs with placeholder prose.</p>
+<p><strong>idea.md "Shared code" discrepancies</strong>: <code>taylorAmplification</code> lives in <code>stability.js</code> and <code>amplification()</code> did not gain a <code>taylor</code> case; the other session's <code>math/taylor.js</code> has <code>expPartialSum</code> etc., so there are now two partial-sum implementations to reconcile. The function is <code>bindMath</code>, not <code>bind</code>. Stage is <code>onDraw(fn)</code> + <code>invalidate()</code>, not <code>redraw()</code>. Region layers carry <code>{ method, h, alpha, order }</code> plus a <code>highlight</code> index; <code>drawRegion(ctx2d, opts)</code> is the entry point, <code>createRegionRenderer</code> is only for a dedicated canvas. <code>simulate()</code> does not return the error series; the player does, and the "measured ratio matches |1+hλ|" test lives in <code>player.test.js</code>. Player verbs include <code>toggle</code> and a <code>speed</code> property; <code>growth()</code> measures over peak-error windows so oscillation zero-crossings don't swing it.</p>
+<p><strong>plan.md / CLAUDE.md rules to add</strong>: call <code>stage.invalidate()</code>, never a draw function directly; never open a WebGL2 context per stage, go through <code>drawRegion</code>; the player owns <code>t</code> and restarts on any non-<code>t</code> patch, so panes must not write <code>t</code> or reset the run themselves; <code>data-var</code>/<code>data-digits</code> is the MathML slot contract and <code>bindMath</code> takes the <code>&amp;lt;article&amp;gt;</code>, not <code>.viz</code>; <code>--stage-max</code> budgets one square plus a readout, so a pane with a square and a strip uses <code>.stage.half</code> inside <code>.viz-row</code> (whose first column must stay definite); <code>aspect: 'half'</code> is a stage option.</result>
+<usage><subagent_tokens>203235</subagent_tokens><tool_uses>62</tool_uses><duration_ms>1262088</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>11 bash · 2 write · 2 mcp__chrome-devtools__evaluate_script · 2 mcp__chrome-devtools__list_console_messages · 1 toolsearch · 1 mcp__chrome-devtools__new_page · 1 mcp__chrome-devtools__navigate_page</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>All three agents finished. Tests pass at 60, the tree is clean, and the work runs from <code>24e00af</code> through <code>11dc373</code> on main. I loaded the merged tree after my last commits: panels 7 and 11 mount with no console errors, live MathML numbers fill, and the player runs.</p>
+<p><strong>What exists now</strong>
+- <strong>Shared code:</strong> stage, trajectory with log-y, the live player and transport controls, region shader with layers, a Taylor mode and one shared GL context, the complex plane with λ drag, live MathML binding, and the eigenvalue inversion. Panels 7 and 11 have working spines as proofs.
+- <strong>Math:</strong> forces, modes, taylor, adaptive, sweep, bundle, and drag handles, each with tests, plus a per-step <code>setH</code> on the stepper. I consolidated the two Taylor sums into one implementation and added the new modules to the preload list.
+- <strong>Prose:</strong> every pane except panel 1 and the two proof spines has its fragment, quoting the essays wherever they cover the point, with stub scripts so the whole page reads end to end with no missing-pane placeholders.</p>
+<p><strong>Two design changes I made to idea.md from agent findings.</strong> Accept or revert:
+- Panel 13 now includes a constant-force switch. The 16-second RK4 step is unreachable on the spring, where the controller peaks near 2 s. It only appears when higher derivatives vanish, which is the constant-gravity case.
+- Panel 6 now starts from an overdamped preset. At the underdamped defaults the eigenvalues are complex, so there is no real invariant direction to land on.</p>
+<p><strong>Follow-ups</strong>
+- Panels 1 and 11 spines overflow their pane by about 100 px on an 800-tall viewport. I confirmed panel 11 myself. Panel 7 fits.
+- Shader paths not yet seen in a browser: the Taylor order mode, multi-layer compositing with highlight, the flat fill for methods with no scalar R, and a destroy-then-remount of panel 11. Panels 10 and 12 will be the first to exercise them.
+- Still unbuilt from the shared-code list: scene and aux stores, matrix2, custom acceleration, normalized stability, the small plot2d helpers, scrub, toggles, the log slider, and the sweep strip.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-004.html#msg-2026-09-02T20-55-24-456Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-09-02T20:55:24.456Z" data-timestamp="2026-09-02T20:55:24.456Z">2026-09-02T20:55:24.456Z</time></div><div class="index-item-content"><p>okay, what parallel work can we do now? It looks like there is still a list of shared-code we need to build, but also some page content that we can build in parallel on top of already delivered work. Is that accurate?</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Yes, that's accurate. Enough shared code has landed that most of Part II's interactives can be built now, while the remaining shared list mostly unblocks Part I.</p>
+<p><strong>Panes buildable now on delivered code</strong> (replace the stubs, no shared changes needed):
+- Plane group, which also exercises the unproven shader paths: panel 10 spine, left, right; panel 12 spine, left, right, right-2; panel 7 left and right; panel 11 left.
+- Trajectory group: panel 3 spine and left; panel 8 spine; panel 9 spine, left, right; panel 13 left and right; panel 12 right-2's h bundle.
+- Near-buildable with a local stand-in: panel 8 right and panel 10 right want the sweep strip control but a plain slider works for the highlight; panel 13 spine wants the aux store for its target error but can hold it locally until that lands; panel 11 right can hand-place its small multiples.</p>
+<p><strong>Still blocked on shared code:</strong> panels 1, 2, and 5 (scene store, custom acceleration), panel 6 (matrix2, transformed grid), panel 4 (band fill, vector field), and panel 12 right-3 (heatmap, normalized stability).</p>
+<p><strong>The remaining shared list</strong> touches <code>state.js</code>, <code>stability.js</code>, <code>integrators.js</code>, <code>plot2d.js</code>, <code>controls.js</code>, <code>controls.css</code>, and <code>index.html</code>. Panel agents only import those, so one shared agent can run alongside panel agents as long as the panel agents stay out of those files and out of each other's directories.</p>
+<p>A workable split is three agents: one on the remaining shared modules, one on the plane group (which should also fix the panel 11 spine overflow), and one on the trajectory group. Panel 7 and 11 spine prose is still placeholder and could go to the plane agent too. Say the word and I'll launch them.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-02T20-56-36-036Z"><div class="index-item-header"><span class="index-item-number">#12</span><time datetime="2026-09-02T20:56:36.036Z" data-timestamp="2026-09-02T20:56:36.036Z">2026-09-02T20:56:36.036Z</time></div><div class="index-item-content"><p>launch the three agent split</p></div></a><div class="index-item-stats"><span>3 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Three agents are running, each on its own files and its own server port:</p>
+<ul>
+<li><strong>Shared</strong> (owns <code>shared/</code>, <code>styles/</code>, <code>index.html</code>, panel 1): store generalization with scene and aux stores, matrix2, custom acceleration, normalized stability, the plot helpers and color map, log slider, toggle, scrub, and the sweep strip, plus the panel 1 overflow fix.</li>
+<li><strong>Plane panes</strong> (panels 7 sides, 10, 11 left, 12 spine/left/right/right-2): also replaces the placeholder prose in the 7 and 11 spines and fixes the panel 11 overflow. This is the first real use of region layers, the Taylor mode, and the shared GL canvas across several stages.</li>
+<li><strong>Trajectory panes</strong> (panels 3, 8, 9, 13): built on the player, trajectory, bundle, sweep, adaptive, and modes, with local stand-ins for the aux store and sweep strip until those land.</li>
+</ul>
+<p>When they report I'll swap any stand-ins for the shared pieces, fold findings into idea.md, and give you the full picture.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-02T21-18-36-149Z"><div class="index-item-header"><span class="index-item-number">#13</span><time datetime="2026-09-02T21:18:36.149Z" data-timestamp="2026-09-02T21:18:36.149Z">2026-09-02T21:18:36.149Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a07522e93f4fe289c</task-id>
+<tool-use-id>toolu_01XyuTrontbY711e7bJRaWvw</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a07522e93f4fe289c.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build remaining shared modules" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Eight commits on <code>main</code>, 83 tests passing at every step (60 → 83), no exported signature changed.</p>
+<h2>New exports</h2>
+<p><strong><code>shared/state.js</code></strong>
+- <code>createStore(initial = DEFAULTS, { limits = LIMITS, validate, presets = PRESETS })</code> — keys in <code>limits</code> clamp (non-numbers skipped); other keys go through <code>validate(key, value, state)</code> (returns cleaned value, <code>undefined</code> to skip, or throws). Store now exposes <code>store.limits</code>.</p>
+<p><strong><code>shared/scene.js</code></strong> (<code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/shared/scene.js</code>)
+- <code>scene</code> (singleton, synced to the shared tuple), <code>createSceneStore({ initial, tuple })</code>, <code>defaultScene()</code>, <code>FORCE_LIMITS</code>, <code>BODY_LIMITS</code>
+- State <code>{ body: { m, x, v }, forces, linear }</code> — exactly <code>createScene</code>'s shape, so <code>netForce</code>/<code>assemble</code> work on <code>scene.get()</code>.
+- Setters: <code>moveBody</code>, <code>setVelocity</code>, <code>setMass</code>, <code>toggleForce(i, on?)</code>, <code>setForceParam(i, key, v)</code>, <code>setLinear</code>, <code>toggleLinear</code>, <code>forceIndex(type)</code>, <code>forceAt(i)</code>, <code>coefficients()</code>, <code>pushToTuple()</code>, <code>paramStore(i | 'body')</code> (a <code>{ get, set, subscribe, limits }</code> view of one force's parameters, so <code>slider</code>/<code>bindScrub</code> bind to <code>G</code>, <code>r</code>, <code>k</code>…).
+- <strong>Sync direction: scene → tuple.</strong> <code>setMass</code> also writes the tuple's <code>m</code>; <code>pushToTuple()</code> writes M, C, K. Nothing flows back.</p>
+<p><strong><code>shared/aux.js</code></strong> — <code>aux</code>, <code>createAuxStore</code>, <code>AUX_DEFAULTS</code>, <code>AUX_LIMITS</code>. Keys: <code>epsilon</code> [1e-3, 1] (panel 4), <code>tol</code> [1e-5, 1] (panel 13), <code>highlight</code> (integer ≥ −1, −1 = none; shared by every sweep, panes clamp on read).</p>
+<p><strong><code>shared/math/matrix2.js</code></strong> — <code>I2</code>, <code>identity</code>, <code>madd</code>, <code>msub</code>, <code>mscale</code>, <code>mmul</code>, <code>mdet</code>, <code>mtrace</code>, <code>mtranspose</code>, <code>minv</code>, <code>rotation(θ)</code>, <code>scale(sx, sy = sx)</code>, <code>shear(kx, ky = 0)</code>, <code>apply(M, v)</code>, <code>eigen(M) → { values: [[re, im], [re, im]], vectors | null, real, defective }</code> (relative tolerance on the discriminant as in <code>regime</code>; a shear is <code>defective</code> with its one direction twice).</p>
+<p><strong><code>shared/math/integrators.js</code></strong> — <code>EXPLICIT_METHODS</code>; <code>createStepper</code>/<code>simulate</code> accept <code>accel(x, v, t)</code> (RK4 stage times <code>t, t+h/2, t+h/2, t+h</code>; <code>clone</code> carries it); implicit/Verlet throw "integrates the linear system only". <code>simulate</code> with <code>accel</code> fills <code>exact</code> with NaN and returns <code>hasExact: false</code>.</p>
+<p><strong><code>shared/math/stability.js</code></strong> — <code>updateMatrixNormalized(method, hw, zeta)</code>, <code>spectralRadiusNormalized(...)</code>; mapping m = 1, k = 1 (ω = 1), c = 2ζ, h = hω. Test checks ρ against the direct matrix for all five methods (similarity invariance) and reproduces 0.19/0.20 as (1.9, 0.005) ≈ 0.990, (2.0, 0.005) ≈ 1.21.</p>
+<p><strong><code>shared/gfx/plot2d.js</code></strong> — <code>drawBand</code>, <code>drawVectorField(ctx, view, f, { spacing, scale, maxLength, normalize })</code>, <code>drawTransformedGrid(ctx, view, M, { spacing, extent, axes })</code>, <code>drawShape(ctx, view, points, M | null, opts)</code>, <code>drawHeatmap(ctx, view, f, { nx, ny, colormap }) → { min, max }</code> (pixel-space cells, so log y works), <code>layoutGrid(w, h, rows, cols, gap)</code> in the caller's units (device px → pass <code>gap * dpr</code>; doc-comment shows the translate/clip/<code>makeView</code> pattern).</p>
+<p><strong><code>shared/gfx/color.js</code></strong> — <code>parseColor</code>, <code>toCss</code>, <code>withAlpha</code>, <code>mix</code>, <code>divergingColormap({ lo, mid, hi, center, spanLo, spanHi, none })</code>, <code>rhoColormap({ spanLo = 1, spanHi = 0.5 })</code> (ρ = 1 → <code>--surface</code>, toward <code>--stable</code>/<code>--unstable</code>). Named colors unsupported.</p>
+<p><strong><code>shared/ui/controls.js</code></strong> — <code>limitsOf(store, key)</code>; <code>slider(..., { log })</code> (input in log space; non-positive min floors to max/1000 so <code>slider(store, 'k', { log: true })</code> spans 2..2000); <code>toggle(store, key, { label, signal, on, off })</code>; <code>toggleFn({ label, get, set, subscribe, signal })</code> (element carries <code>sync()</code>).
+<strong><code>shared/ui/scrub.js</code></strong> — <code>bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps = 100, digits, limits }) → off</code>. Pointer capture, shift = ×0.1, arrows/Home/End with <code>preventDefault</code>, <code>data-log</code> for multiplicative drag, writes text only when the element has no <code>data-var</code> (bindMath owns it).
+<strong><code>shared/ui/sweep.js</code></strong> — <code>sweepStrip({ values, format, signal, onSelect, initial, label, hover }) → { el, select(i, { notify }), index, values }</code>.</p>
+<h2>Changes to existing modules / behavior</h2>
+<ul>
+<li><code>createStore(custom).reset()</code> returns to <code>initial</code> (was <code>DEFAULTS</code>); identical for the shared store. <code>preset()</code> throws on an unknown name.</li>
+<li><code>slider</code> reads <code>store.limits[key]</code> before <code>LIMITS[key]</code>; input↔store sync uses a tolerance instead of <code>!==</code>.</li>
+<li><code>stability.js</code> imports the matrix helpers from <code>matrix2.js</code> (no private copies).</li>
+<li><code>layout.css</code>: the article grid gap is now <code>1rem 3rem</code> (row gap under the h2 was 48 px) — affects every panel. <code>base.css</code>: <code>--stage-max</code> 19rem → 21rem. <code>controls.css</code>: <code>.toggle</code>, <code>.scrub</code>, <code>.sweep*</code> classes. <code>index.html</code>: six new preloads.</li>
+</ul>
+<h2>Browser verification (1280×800 and 1440×900, port 8765, own tab, closed after)</h2>
+<ul>
+<li><code>#/1</code>, <code>#/1/right</code>: <code>.pane-body</code> overflow 0 at both sizes (was 18/39 px at 800 tall). <code>#/7</code>: overflow 0, slider <code>k</code> 100→250 drives the store and every MathML slot (disc −399.99 → −999.99). <code>#/11</code>: sliders/player/readout live. Console on all: only the pre-existing <code>favicon.ico</code> 404. All 33 preloads 200.</li>
+<li>Widgets exercised on a throwaway element: log slider (h and k), <code>toggle</code> on <code>scene.linear</code>, <code>toggleFn</code>, <code>bindScrub</code> on an <code>&amp;lt;mn data-var data-scrub&amp;gt;</code> alongside <code>bindMath</code> and on a gravity <code>r</code> through <code>paramStore</code>, <code>sweepStrip</code> hover/drag/keys writing <code>aux.highlight</code>; abort drops subscriptions. Also smoke-ran the five canvas helpers plus <code>rhoColormap</code> on an offscreen canvas.</li>
+</ul>
+<h2>Panel 1 fix and panel 11</h2>
+<p>The overflow was chrome, not the stage: 80 padding + 20 meta + 16 gap + 34 h2 + <strong>48 row gap</strong> + 16 viz gap + 102–123 px readout ≈ 316–337 px vs. the 304 px budget. Fix: row gap 1rem and <code>--stage-max: calc(100dvh − 21rem)</code>. <strong>Panel 11</strong> at 1280×800 overflowed 103 px before, 71 px after: the row-gap fix applies, <code>--stage-max</code> does not reach it because its <code>half</code> stage is column-limited (48% of the viz column = 234 px, below 0.62·stage-max). The remaining 71 px is panel 11's own controls column + strip stage + readout; it fits at 1440×900.</p>
+<h2>idea.md "Shared code" lines that no longer match</h2>
+<ul>
+<li>"still to write are the scene and aux stores, … the sweep strip" — all built now.</li>
+<li>"<code>createStore</code> grows an options argument (<code>{ limits, validate }</code>)" → <code>{ limits, validate, presets }</code>, and stores expose <code>limits</code>.</li>
+<li>"That single <code>store.set()</code> … is the one place the two stores touch" → <code>pushToTuple()</code> plus one automatic sync: <code>scene.setMass</code> writes the tuple's <code>m</code> (scene → tuple only).</li>
+<li>matrix2 entry lists <code>madd, mmul, mdet, minv</code> → also <code>msub, mscale, mtrace, mtranspose, I2, identity, apply</code>; <code>eigen</code> reports <code>defective</code> for shears.</li>
+<li>"<code>updateMatrix</code> in (hω, ζ) coordinates" → the names are <code>updateMatrixNormalized</code> / <code>spectralRadiusNormalized</code>.</li>
+<li>Custom-accel entry: <code>simulate</code> also returns <code>hasExact</code>, and <code>EXPLICIT_METHODS</code> is the picker's restriction list.</result>
+<usage><subagent_tokens>241230</subagent_tokens><tool_uses>71</tool_uses><duration_ms>1249413</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>3 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The shared-modules agent is done and its inventory is folded into idea.md (<code>60aa89f</code>).</p>
+<p><strong>Shared code is now complete</strong> against idea.md's list: scene and aux stores on a generalized <code>createStore</code>, matrix2 with eigen-decomposition, custom acceleration for the explicit steppers, normalized stability in <code>(hω, ζ)</code>, the plot helpers and color map, log sliders, toggles, scrubbable numbers, and the sweep strip. Tests went from 60 to 83, all passing, with no existing export changed.</p>
+<p><strong>Panel 1 overflow is fixed.</strong> The cause was layout chrome, not the stage: a 48 px row gap under the heading. The gap is now 1 rem and the stage budget grew. Panel 11 improved from 103 px to 71 px of overflow at 800 tall, and the plane agent is finishing that inside the pane.</p>
+<p>The plane and trajectory agents are still running. Their commits so far cover panels 7, 8, 9, and 10. When they report I'll swap their local stand-ins for the aux store and sweep strip, and give the full picture.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-02T21-25-16-706Z"><div class="index-item-header"><span class="index-item-number">#14</span><time datetime="2026-09-02T21:25:16.706Z" data-timestamp="2026-09-02T21:25:16.706Z">2026-09-02T21:25:16.706Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ac6ed91bd978d2ef3</task-id>
+<tool-use-id>toolu_019rSrpPGwzSEYQnGpiKWCS7</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/ac6ed91bd978d2ef3.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build trajectory panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>All twelve panes are built, committed, browser-verified at 1280×800, and the shared tests pass (83/83). The remaining uncommitted files (<code>panels/12-*</code>) belong to the other agent.</p>
+<h2>Commits (all on <code>main</code>, explicit paths only)</h2>
+<ul>
+<li><code>3174ac2</code> panel 3 spine · <code>eca64b9</code> panel 3 left/right · <code>517d74c</code> panel 8 · <code>fd724cd</code> panel 9 · <code>070e98a</code> panel 13 · <code>0b372b2</code> swatch classes in readouts, READMEs</li>
+</ul>
+<h2>What each pane shows</h2>
+<p><strong>Panel 3</strong> (<code>app/panels/03-solving-for-x/</code>)
+- <em>spine</em>: <code>simulate</code> over 6 s, <code>drawTrajectory</code> with markers (<code>maxMarkers</code> raised to 2000 so the segmented look survives at dt = 0.005), <code>h</code> slider labeled <code>dt</code>, prose has a live <code>data-var="h"</code> slot. Pointer down/drag on the canvas picks a sample via <code>nearestSample</code> on either curve (or nearest-in-time elsewhere), draws a marker line and reads out <code>t</code>, approx <code>x</code>, exact <code>x</code>, <code>|error|</code>.
+- <em>left</em>: two stacked strips (exact <code>x(t)</code>, <code>v(t)</code>), a local <code>t</code> slider; tangent segment + point on each; readout <code>x</code>, <code>v = x′</code>, <code>a = v′</code> (via <code>acceleration</code>).
+- <em>right</em>: strip 1 the point mass <code>x(t)</code> rolling window on the pane's own clock; strip 2 a 64-cell string integrated locally (leapfrog wave equation, fixed internal <code>dt</code> under CFL, light damping, substeps bounded per frame). Click to pluck; "Still the string" button; readout "1 number vs 63 numbers".</p>
+<p><strong>Panel 8</strong> (<code>app/panels/08-recap-real-time/</code>, plus a local <code>cost.js</code> shared by the three panes)
+- <em>spine</em>: player + trajectory in a wide stage with a frame-budget bar across the top (<strong>log scale</strong>, 0.1 µs … 16.7 ms, because a spring costs ~50 ns–1 µs per frame; linear would be invisible), <code>h</code> slider, transport, readout of steps/frame × per-step cost, current and largest error, and the player's raw timer.
+- <em>left</em>: strip: one frame at 60 or 30 fps (local toggle) with the physics slice at true scale, then the slice magnified with one box per step (fractional when <code>h &amp;gt; 1/60</code>), <code>h</code> slider, readout.
+- <em>right</em>: <code>sweep</code>/<code>sweepRange</code> of 9 log-spaced <code>h</code> from <code>h/4</code> to <code>4h</code> (middle = the spine's <code>h</code>), <code>simulate</code> each, <code>drawBundle</code> + exact dashed, local highlight slider, readout of steps per simulated second, compute per simulated second, and max error.</p>
+<p><strong>Panel 9</strong> (<code>app/panels/09-finding-error/</code>)
+- <em>spine</em>: run strip + error strip on <code>yLog</code> from <code>player.series.err</code>; readouts of <code>growth()</code> ratio and doubling/halving time with the <code>h·ln2/ln z</code> arithmetic spelled out; <code>h</code> slider, transport.
+- <em>left</em>: local <code>z</code> slider (0.5–1.5), Step / +10 / Reset / preset 1.05 and 0.95 buttons; dot plot of <code>zⁱ</code>; readout with <code>e₁ = z·e₀</code>, <code>e_n</code>, steps and seconds to double/halve at the store's <code>h</code> (via <code>doublingTime</code>/<code>halvingTime</code>).
+- <em>right</em>: <code>createComplexPlane</code> (half stage, <code>halfRange</code> scaled to <code>|λ|</code>) with both roots and <code>|R|</code> labels; <code>x0</code>, <code>v0</code>, <code>h</code> sliders and a method picker (Euler/RK4/implicit); a strip split left/right: <code>|a₁|, |a₂|</code> on a log axis against exact <code>e^{Re λ t}</code>, and reconstructed <code>x</code> vs exact; readout of <code>a₁</code>, <code>a₂</code> from <code>project</code>, both <code>λ</code>, both <code>|R(hλ)|</code>, with the conjugate-pair note. Guards: notice text for semi/Verlet (no scalar <code>R</code>) and the critical (defective) regime.</p>
+<p><strong>Panel 13</strong> (<code>app/panels/13-variable-step-sizes/</code>)
+- <em>spine</em>: local log target-error slider (1e-3 … 0.3), <code>runAdaptive</code> with the store's method/params, <code>hInit = h</code>, <code>hMax = 16</code>, <code>tEnd = 120</code>; one wide stage split: <code>x</code> with one dot per step over <code>h(t)</code> on a log axis; method picker (Euler/RK4/implicit), presets, "Constant force only" toggle passing <code>k = c = 0</code> to the run only; readout of steps vs fixed-<code>h</code> steps, rejected/forced, <code>h</code> peak (flags the cap), max error, blow-up.
+- <em>left</em>: <code>simulate</code> over 60 steps vs exact; a single step from the exact state at a local step-index slider drawn as a green segment; readout of the actual one-step error, the next Taylor term from <code>localTruncationError</code>, the global error at the same time, and their ratio.
+- <em>right</em>: 7 log-spaced targets (1e-3 … 0.1, index 3 = 0.01) through <code>sweep</code> → <code>runAdaptive</code>; split stage: the highlighted run's per-step error estimates against its target line, and the <code>h(t)</code> bundle via <code>drawBundle</code> on a log view; local highlight slider; readout of accept/reject/forced counts, <code>h</code> peak, max error, and the controller's last decision (<code>0.9·(tol/err)^{1/(p+1)}</code>, growth cap, resulting next <code>h</code>, cap flag).</p>
+<h2>Numbers observed vs idea.md</h2>
+<ul>
+<li>Demo defaults, Euler, <code>h = 1/30</code>: measured ratio <strong>1.0521</strong>, doubling <strong>0.45 s</strong> (spec 1.0525 / 0.45). <code>|R(hλ)|</code> on 9-right: 1.0525.</li>
+<li>Essay preset, RK4, tol 0.01, 120 s: <code>h</code> peaks <strong>2.10 s</strong>, <strong>69 steps</strong>, <strong>0 rejected</strong>, max global error <strong>0.293</strong> (spec 2.10 / 70 / 0 / 0.29). The last controller decision: <code>h = 0.535 → 2.045 s</code>. Peak depends on <code>tEnd</code> (1.70 at 20 s, 1.80 at 40 s, 1.89 at 60 s), which is why the spine runs 120 s.</li>
+<li><code>k = c = 0</code>: <code>h</code> reaches <strong>16.00 s</strong> (the cap) in 12 steps, both estimators zero.</li>
+<li>Demo, adaptive Euler, tol 0.01: <code>h</code> held at ≤ 0.018–0.02, 112 rejected over 12 s (peak |x| 3.22, in node), 786 rejected and max error 16 over 120 s in the browser: slowed, not saved.</li>
+</ul>
+<h2>Local stand-ins (swap targets)</h2>
+<ul>
+<li>Panel 13 spine <code>tol</code> → <code>aux.tol</code> (<code>shared/aux.js</code> with <code>AUX_DEFAULTS.tol</code> landed after I started).</li>
+<li>Highlight sliders in 8-right and 13-right → <code>aux.highlight</code> + <code>ui/sweep.js</code>'s <code>sweepStrip</code> (also landed meanwhile).</li>
+<li>13-spine "Constant force only" button → <code>toggleFn</code>; 3-left <code>t</code> scrub, 8-left fps, 9-left <code>z</code>/step count, 13-left step index are closure-local and are lost on remount.</li>
+<li><code>panels/08-recap-real-time/cost.js</code>: a warmed per-step benchmark (<code>benchmarkStep</code>), <code>stepsPerFrame</code>, <code>fmtMs</code>, <code>drawBudgetBar</code>. Plain import inside the panel directory; nothing registered.</li>
+</ul>
+<h2>Shared-module limitations hit</h2>
+<ul>
+<li><strong><code>player.cost</code> is unusable on this page</strong>: <code>window.crossOriginIsolated === false</code>, so <code>performance.now()</code> is quantized to 0.1 ms; two Euler steps take &lt; 1 µs, so <code>perFrame</code>/<code>perStep</code> read 0 ns with 0.1 ms spikes (seen: "0 ns per step", "21.6 µs per frame"). Bars are sized from the local benchmark; the player's raw number is shown alongside. A calibrated per-step cost in the player would remove <code>cost.js</code>.</li>
+<li><strong><code>player.growth()</code> for a stable method reads slightly above 1</strong> (RK4 essay at 1/30: 1.0002, "doubles every 114 s") because accumulating truncation error, not amplification, dominates the window ratio.</li>
+<li><code>runAdaptive</code> default <code>hMax</code> is 20, not the essay's 16; pass it explicitly. Peak <code>h</code> depends on <code>tEnd</code>.</li>
+<li><code>simulateModal</code>/<code>modalStep</code> throw for semi/Verlet; <code>project</code> returns NaN when critical. Guarded with notices.</li>
+<li><code>drawTrajectory</code> clears and uses the whole canvas: split stages need <code>ctx.translate</code> and a reduced size (done in 8-spine, 9-right, 13-spine, 13-right). Markers vanish past <code>maxMarkers = 600</code> unless raised.</li>
+<li><code>readout.set</code> flattens one array level only (a nested array printed <code>[object HTMLSpanElement]</code> until spread).</li>
+<li>8-spine and 8-left each own a player; only the on-screen loop runs, but <code>store.t</code> jumps when switching between them.</li>
+<li><code>sweep</code> caches on <code>key</code> + values; the essay/demo swap of 7 adaptive runs (demo Euler at tight tol ≈ 50 ms each) is a one-time cost per tuple change.</li>
+</ul>
+<h2>idea.md entries not honored as written</h2>
+<ul>
+<li>9-spine prose: "change h and see it cross one." With Euler on either preset <code>|1 + hλ| &amp;gt; 1</code> for every <code>h</code> in the slider range, and I dropped the method picker from that spine to fit the viewport, so the ratio never crosses 1 there (it does on 9-right and on panel 11). Prose left as is.</li>
+<li>9-right: "drag the state" is store sliders on <code>x0</code>/<code>v0</code>, not a canvas drag.</li>
+<li>3-spine: the touched instant is local; it cannot hand <code>t</code> to 3-left's scrub (the store's <code>t</code> belongs to the players, no aux key for it).</li>
+<li>13-spine "constant force only" is <code>k = c = 0</code> as idea.md specifies (a free particle; the homogeneous system carries no forcing term), so with the store's <code>v0 = 0</code> nothing moves; <code>h</code> still runs to the 16 s cap.</li>
+<li>8-spine's budget bar is log-scale rather than a linear bar against 16.7 ms (see above).</li>
+<li>3-spine at the demo defaults shows Euler blowing up rather than "hugging or leaving": it is the reader's state, as specified.</li>
+</ul>
+<p>Browser checks: every pane screenshot at 1280×800, <code>.pane-body</code> scrollHeight = clientHeight and the <code>.viz</code> bottom inside the pane on all twelve, no console errors (only the expected 404 for unbuilt neighbours), controls verified (dt/h sliders, touch-the-curve, pluck, fps toggle, highlight sliders, presets, constant-force toggle, Step/+10/z buttons), and a 20-route sequence leaving each panel by three and returning remounted every pane with canvases and no errors. Tab closed and the 8767 server stopped.</result>
+<usage><subagent_tokens>311682</subagent_tokens><tool_uses>128</tool_uses><duration_ms>1586901</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>3 bash · 1 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Two agents are running now:</p>
+<ul>
+<li><strong>Plane panes</strong> (panels 7 sides, 10, 11 left, 12): still finishing panel 12.</li>
+<li><strong>Stand-in swap</strong> (panels 8, 13, player): moves the per-step cost benchmark into the player, puts panel 13's target error in the aux store, and replaces the highlight sliders with sweep strips.</li>
+</ul>
+<p>The trajectory agent's findings are in idea.md (<code>dfeabd5</code>): panel 8's budget bar is log-scaled because a spring step costs under a microsecond, panel 9's spine cannot show the ratio crossing 1 with Euler so that beat lives on its right pane and panel 11, and the player's cost must come from a benchmark rather than frame timing. Once the plane agent reports, its stand-ins in panels 10 and 12 get the same swap.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-006.html#msg-2026-09-02T21-29-14-976Z"><div class="index-item-header"><span class="index-item-number">#15</span><time datetime="2026-09-02T21:29:14.976Z" data-timestamp="2026-09-02T21:29:14.976Z">2026-09-02T21:29:14.976Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ad915bb24c54bffbe</task-id>
+<tool-use-id>toolu_01KnGANqNDYxfa91Rkp397wP</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/ad915bb24c54bffbe.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build complex-plane panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>All twelve panes are built, verified, and committed (four commits: <code>1b3b0f6</code> panel 7, <code>b56e09f</code> panel 10, <code>6efb17a</code> panel 11, <code>5030ab6</code> panel 12). Server 8766 stopped, my tab closed, <code>node --test</code> passes 83/83.</p>
+<h2>What each pane shows</h2>
+<p><strong>Panel 7</strong> (<code>app/panels/07-finding-eigenvalues/</code>)
+- <code>spine.html</code>: placeholder prose replaced with Part I's "Finding Eigenvalues" section; all existing <code>data-var</code> slots kept (<code>c m k disc sign regime l1 l2 alpha verdict</code>).
+- <code>left.js</code>: a strip stage drawing the real line with <code>−c/2m</code> and the <code>±√disc/2m</code> bracket (green dots when real, a red dotted stub lifting off the line when negative, one dot when critical); a <code>half</code> plane with the λ drag and dashed drops for <code>a</code>, <code>b</code> and the <code>|λ|</code> radius; <code>c</code>/<code>k</code> sliders; <code>bindMath</code> for <code>disc lambda-re lambda-im lambda-abs</code>.
+- <code>right.js</code>: <code>c</code> slider 0–50 (both presets have critical <code>c = 20</code>), "Snap to critical" button (sets <code>c = 2√(mk)</code> exactly, which <code>regime()</code> accepts as critical), roots colliding/splitting on the plane, and the closed form (<code>exactSolution</code>) drawn through <code>drawTrajectory</code> as a blue solid line over six natural periods; readout of regime, discriminant, λ.</p>
+<p><strong>Panel 10</strong> (<code>app/panels/10-explicit-euler/</code>)
+- <code>spine.js</code>: <code>createComplexPlane</code> with <code>region: s =&amp;gt; ({ method: 'euler', h })</code>, Rhodes' reading drawn in the margins via <code>onDraw</code> (<code>← decay / growth →</code>, <code>oscillation ↑↓</code>), h/m/c/k sliders, readout with <code>|1 + hλ|</code> and doubling/halving time. Verified <code>abs-r = 1.0525</code> at defaults.
+- <code>left.js</code>: local <code>createStepper({method:'euler'})</code> walk with Step / Step ×10 / Reset, <code>drawTrajectory</code> with <code>markers</code>+<code>tangents</code> on a <code>plot</code> layer over a finely sampled exact curve on an <code>exact</code> layer beneath; resets when any tuple key changes; <code>bindMath</code> for <code>h lambda-re lambda-im abs-r</code>.
+- <code>right.js</code>: six Euler disks for 10–60 fps (<code>sweepRange(10, 60, 6).map(f =&amp;gt; 1/f)</code>) as region <code>layers</code> with <code>highlight</code>, plus <code>circles: HS</code>; a discrete slider that <strong>sets <code>store.h</code></strong>, highlight = <code>nearestIndex(HS, h)</code>; per-h readout table.</p>
+<p><strong>Panel 11</strong> (<code>app/panels/11-lets-break-it/</code>)
+- <code>spine.html</code>: Part II "Let's break it" prose (essay params, <code>λ = −0.005 ± 0.99999i</code>, 1/60 note, demo-preset sentence). There were no <code>data-var</code> slots to keep.
+- Overflow fix (spine.js only): the old three-line labelled readout wrapped to ~8 lines at 488 px. Now: <code>[half plane | h slider + transport + five-short-line readout]</code>, run strip, then picker + presets in a <code>.controls-row</code>. Measured <code>scrollHeight == clientHeight</code> at 1280×800 (23 px slack) and 1440×900.
+- <code>left.js</code>: plane with the λ drag and no region, <code>exactFromEigenvalue</code> drawn in time (window = six periods, or six time constants when λ is real), buttons for pure decay / spiral / pure oscillation via <code>paramsFromEigenvalue</code>.</p>
+<p><strong>Panel 12</strong> (<code>app/panels/12-higher-order-rk/</code>)
+- <code>spine.js</code>: <code>[plane with region: true | wide run stage + readout]</code>, three square small multiples in a <code>.controls-row</code> each drawn with <code>drawRegion</code> + own dots from <code>stabilityReport(method, s)</code>, then picker (euler/rk4/implicit) + presets + transport with 1×/4×/16×. Verified the contrast: implicit + essay preset at 16× reads <code>x −0.081 vs exact −0.223</code> at t = 67.
+- <code>left.js</code>: <code>expPartialSums</code> S₀…Sₙ as a <code>drawBundle</code> with <code>highlight = n</code> against eˣ, local term-count slider, readout with the polynomial text and <code>|Sₙ(hλ)|</code> via <code>taylorAmplification</code>; <code>bindMath</code> for <code>abs-exact abs-taylor-1 abs-taylor-4</code>.
+- <code>right.js</code>: layers <code>order: 1..4</code> (Taylor mode) with <code>highlight</code>, slider 0 (all) … 4, polynomial list with the highlighted one bold.
+- <code>right-2.js</code>: region <code>{method:'implicit'}</code>, bundle of <code>simulate</code> runs for <code>sweepRange(1/60, 1/2, 6, {log:true})</code> memoized with <code>sweep</code>/<code>sweepKey</code>, <code>drawBundle</code> with the store's h highlighted, slider sets <code>store.h</code>; <code>bindMath</code> for <code>abs-implicit abs-exact</code>.</p>
+<h2>Shared-module findings</h2>
+<ul>
+<li>Region <code>layers</code> + <code>highlight</code>, Taylor <code>order</code> mode, and the shared GL canvas blitting into four stages per frame (12 spine) all worked first time; destroy → remount (via panel 9/10/12 and back) was clean, no console errors or WebGL warnings on any pane.</li>
+<li><strong><code>createComplexPlane</code> colors its dots/labels from <code>store.method</code> with no override.</strong> Every pinned pane overlays its own dots in <code>onDraw</code> (7 ×3 physical verdict, 10 spine/right Euler, 11-left physical, 12-right highlighted order, 12-right-2 implicit); the 12-spine multiples bypass cplane. A <code>verdict</code>/<code>method</code> option would remove six copies of that overlay.</li>
+<li>cplane's view is always centered at 0 (no <code>cx</code>), so nested disks waste the right half-plane; its built-in <code>|R|</code> labels collide with the Im-axis tick labels at half-stage size (visible on 11's spine, left as-is).</li>
+<li><code>dom.js fmt()</code> replaces only the first hyphen, so exponent-form negatives print as <code>−6.41e-8</code>.</li>
+<li><code>layout.css</code>: when a pane's content is short, the article grid splits leftover height between the h2 row and the content row, leaving a gap under the heading (7-left, 12-left).</li>
+<li>The recurring console 404 is <code>/favicon.ico</code>.</li>
+</ul>
+<h2>Local stand-ins (swap targets)</h2>
+<ul>
+<li>12-left term count and 12-right order: local <code>&amp;lt;input type=range&amp;gt;</code> (needs the aux store).</li>
+<li>12-spine small multiples: hand-placed <code>.controls-row</code> of square stages (needs the small-multiple layout helper).</li>
+<li>Rhodes margin labels and the verdict-dot overlays: hand-drawn in <code>onDraw</code>.</li>
+<li><code>polynomialText</code> lives in 12's <code>left.js</code> and is imported by <code>right.js</code> (shared-helper candidate).</li>
+<li>10-right and 12-right-2 sliders are not stand-ins: they drive <code>store.h</code>.</li>
+</ul>
+<h2>idea.md items not fully honored</h2>
+<ul>
+<li>12-right: "hover" became a slider (prose edited to say "Slide").</li>
+<li>12-spine picker restricted to euler/rk4/implicit for height; <code>--region-none</code> is exercised only if the store already holds semi/verlet.</li>
+<li>11-left draws the time-domain curve only, no spiral in the plane.</li>
+<li>10-left: Euler's tangent segments coincide with its polyline by construction, so <code>tangents: true</code> adds nothing visible.</li>
+<li>12-spine has no <code>h</code> slider (height budget); <code>h</code> comes from 10, 11, or 12-right-2.</li>
+</ul>
+<p>Process notes: <code>resize_page</code> did not hold while other agents' tabs shared the window, so viewport checks used <code>emulate</code> (1280×800 and 1440×900); all commits used pathspec form to avoid picking up the other agents' staged files.</result>
+<usage><subagent_tokens>365181</subagent_tokens><tool_uses>169</tool_uses><duration_ms>1853313</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>1 bash · 1 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Both wave-two panel groups are complete and verified. Two cleanup agents are now running, each fenced to its own files:</p>
+<ul>
+<li><strong>Panels 8 and 13 plus the player:</strong> the per-step cost benchmark moves into the player, panel 13's target error moves to the aux store, and highlight sliders become sweep strips.</li>
+<li><strong>Panels 7, 10, 11, 12 plus the complex plane:</strong> a <code>verdict</code> option on the plane replaces six hand-drawn dot overlays, the polynomial text helper moves into <code>taylor.js</code>, a <code>fmt</code> bug with negative exponents gets fixed, the heading gap in short panes gets fixed, and a favicon silences the last console 404.</li>
+</ul>
+<p><strong>State of the piece.</strong> Panels 1, 3, 7, 8, 9, 10, 11 spine and left, 12 spine, left, right, right-2, and 13 are interactive. Still stubs: panels 2, 4, 5, 6 (Part I, now unblocked by the scene store, forces, matrix2, and plot helpers) and the two "no scalar R" panes, 11-right and 12-right-3 (unblocked by the heatmap and normalized stability). That is the next parallel wave if you want it: one agent on Part I, one on those two panes.</p>
+<p><strong>UI choices the plane agent made that differ from idea.md, for you to accept or revert:</strong> panel 12-right highlights the order with a slider rather than hover; panel 12's spine has no <code>h</code> slider and restricts the picker to Euler, RK4, and implicit for height; panel 11-left draws the exact solution in time only, without the spiral in the plane.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-006.html#msg-2026-09-02T21-32-18-495Z"><div class="index-item-header"><span class="index-item-number">#16</span><time datetime="2026-09-02T21:32:18.495Z" data-timestamp="2026-09-02T21:32:18.495Z">2026-09-02T21:32:18.495Z</time></div><div class="index-item-content"><p>yes, spawn a subagent to continue on next panes in parallel.</p></div></a><div class="index-item-stats"><span>2 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Four agents are running in parallel now, all on disjoint files and ports:</p>
+<ul>
+<li><strong>Part I panes</strong> (panels 2, 4, 5, 6): force arrows on the scene store, the ε-tube and phase portraits, scrubbable force equations assembling <code>M</code>, <code>C</code>, <code>K</code> into the tuple, and the matrix-on-a-grid with eigenvector sweep.</li>
+<li><strong>No-scalar-R panes</strong> (11-right, 12-right-3): the exploded λ grid with mini trajectories, and the Verlet and semi-implicit spectral-radius heatmap over <code>(hω, ζ)</code> with the <code>hω = 2</code> wall.</li>
+<li><strong>Cleanup, panels 8 and 13 plus the player</strong> (from earlier).</li>
+<li><strong>Cleanup, panels 7, 10, 11, 12 plus the complex plane</strong> (from earlier).</li>
+</ul>
+<p>When this wave lands every pane in the manifest will have an interactive. I'll verify, reconcile the reports against idea.md, and give you the full picture with anything left for your decision.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-006.html#msg-2026-09-02T21-39-33-956Z"><div class="index-item-header"><span class="index-item-number">#17</span><time datetime="2026-09-02T21:39:33.956Z" data-timestamp="2026-09-02T21:39:33.956Z">2026-09-02T21:39:33.956Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a0d70431c9e0195c0</task-id>
+<tool-use-id>toolu_01Qkn8RE9WFjSBXeMaJovGtp</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a0d70431c9e0195c0.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Swap stand-ins in panels 8, 13" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. All four commits are on <code>main</code>; the only working-tree changes are the other agent's (panels 7, 10, 11, 12 and <code>shared/gfx/cplane.js</code>), which I left alone.</p>
+<h2>Player cost API (<code>app/shared/player.js</code>)</h2>
+<ul>
+<li><code>benchmarkStep(state, { now, minMs = 4, warmup = 20000, batch = 5000, maxSteps = 4e6 }) → { perStep, steps, ms }</code>: builds a fresh stepper (not a clone of the live one, which may have blown up to NaN), warms it, then times batches until at least 4 ms have elapsed (40× the 0.1 ms resolution, exported as <code>TIMER_RESOLUTION_MS</code>) or <code>maxSteps</code>. <code>now</code> is injectable for tests.</li>
+<li><code>stepCost(state)</code>: the memoized benchmark, LRU keyed on <code>method/h</code> (cap 16), shared by every player on the page. <code>clearStepCosts()</code> for tests.</li>
+<li><code>createPlayer({ …, benchmark = stepCost })</code>: <code>restart()</code> marks the measurement stale when method or <code>h</code> changed; the next read of <code>player.cost</code> measures. Nothing runs in the frame loop.</li>
+<li><code>player.cost</code> now returns <code>{ perStep, perFrame: perStep × steps, steps, benchmark: { steps, ms }, timer: { perFrame, perStep, resolution } }</code>. The old keys <code>perFrame</code>, <code>perStep</code>, <code>steps</code> still exist; <code>timer</code> is the raw smoothed <code>performance.now()</code> frame timing, kept for honesty and never used for sizing.</li>
+<li>Per spec the memo is keyed on <code>h</code>, so an h-drag re-benchmarks per input event (~4 ms); note that per-step cost does not actually depend on <code>h</code>.</li>
+</ul>
+<h2><code>cost.js</code> (<code>app/panels/08-recap-real-time/cost.js</code>)</h2>
+<p>Kept, minus the benchmark: it now holds only <code>FRAME_MS</code>, <code>BAR_MIN_MS</code>, <code>stepsPerFrame</code>, <code>fmtMs</code>, <code>drawBudgetBar</code> (panel-local budgeting and drawing). Spine and left read <code>player.cost</code> (their readouts show <code>benchmark: N steps in X ms; frame timer: … (0.1 ms resolution)</code>). 8-right has no player, so it imports <code>stepCost</code> from <code>shared/player.js</code> rather than instantiating a player for one number. README updated.</p>
+<h2>aux and sweep strips</h2>
+<ul>
+<li>13 spine: <code>slider(aux, 'tol', { log: true, min: 1e-3, max: 10^-0.5 })</code>; the "constant force only" button is <code>toggleFn</code> with pane-local state; the run memo key and readout read <code>aux.get().tol</code>; subscribes to aux for redraws.</li>
+<li>13-right: targets are <code>sweepRange</code> centered on <code>aux.tol</code> (spread 10, shrunk symmetrically at the aux limits so the middle is always <code>tol</code> — a bug the advisor caught, fixed in the fourth commit); the strip is rebuilt when <code>tol</code> changes.</li>
+<li>8-right and 13-right: <code>sweepStrip</code> writes <code>aux.highlight</code>; on read the panes clamp to <code>COUNT − 1</code> and map <code>−1</code> to the center (spine's h / reader's tol). 8-right rebuilds its strip when the spine's <code>h</code> moves (strip values are fixed at construction and the spine stays mounted). Readouts are driven by the highlighted index.</li>
+</ul>
+<h2>Tests</h2>
+<p>83 → 87 with my four new tests (<code>benchmarkStep</code> with a deterministic fake clock and the <code>maxSteps</code> cap; real-clock sub-microsecond check for all five methods; <code>stepCost</code> memo keying; player cost = benchmark × steps, re-run only on method/h change, lazy, never per frame). The suite is at 88 because the other agent added one; all pass.</p>
+<h2>Verified in the browser (port 8767, own tab, 1280×800, both cleaned up)</h2>
+<ul>
+<li><code>#/8</code>, <code>#/8/left</code>: per-step cost 17 ns (Euler) → 15 ns at h = 0.002 → 67 ns for RK4; <code>perFrame</code> follows <code>stepsPerFrame</code>; benchmark line reads e.g. "230000 steps in 4.00 ms".</li>
+<li><code>#/8/right</code>: strip End key → index 8, readout followed; <code>aux.set({highlight: 4})</code> moved the strip; changing <code>h</code> to 0.1 rebuilt the strip ends (0.025–0.4 s).</li>
+<li><code>#/13</code>: slider drag set <code>aux.tol</code> = 0.05 and the readout; the toggle produced the 16 s cap; after <code>#/10</code> and back (pane destroyed, <code>gone: true</code>) <code>tol</code> was still 0.05 and the slider showed 0.0500.</li>
+<li><code>#/13/right</code>: sweep centered on 0.05 (0.005–0.5), highlight clamped from panel 8's shared index, Home key → index 0 with readout following, <code>aux.tol</code> → 0.01 rebuilt the strip with "(the spine's target)" in the middle.</li>
+<li><code>.pane-body</code> <code>scrollHeight === clientHeight</code> on every checked pane. Console: only a pre-existing <code>/favicon.ico</code> 404 (since fixed upstream by the other agent in 87a33ea) and one <code>setPointerCapture</code> error caused by my synthetic <code>pointerdown</code> with a fake pointer id, an artifact of the check, not the page.</li>
+</ul>
+<h2>Commits (current SHAs; the other agent rewrote history under mine, content intact)</h2>
+<ul>
+<li><code>7e210f7</code> player: cost is a calibrated per-step benchmark; panel 8 reads it</li>
+<li><code>3355d9c</code> panel 13: tol in aux, toggleFn switch, 13-right sweeps around the reader's target with the sweep strip</li>
+<li><code>5db2b41</code> panel 8 right: highlight slider → sweep strip on aux.highlight</li>
+<li><code>e13742e</code> panel 13 right: the sweep's middle target is always the reader's tol</result>
+<usage><subagent_tokens>135774</subagent_tokens><tool_uses>58</tool_uses><duration_ms>789612</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>2 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The panel 8 and 13 cleanup is in: the player now measures per-step cost with a calibrated benchmark instead of frame timing, panel 13's target error lives in the aux store and survives remounts, and the highlight sliders are sweep strips. Tests are at 88, all passing.</p>
+<p>One thing to know about the repository: <code>origin/main</code> on GitHub now carries a README edit made there, and one of the agents rebased local history onto it with a pull. All commits and content are intact and verified, and local main is 8 commits ahead of origin. I have not pushed and won't unless you ask.</p>
+<p>Three agents are still running: the complex-plane consolidation (its edits to panels 7, 10, 11, 12 and the plane module are uncommitted in the tree), the Part I panes, and the two no-scalar-R panes.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-007.html#msg-2026-09-02T21-46-20-381Z"><div class="index-item-header"><span class="index-item-number">#18</span><time datetime="2026-09-02T21:46:20.381Z" data-timestamp="2026-09-02T21:46:20.381Z">2026-09-02T21:46:20.381Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a40bcad5092ecd6ea</task-id>
+<tool-use-id>toolu_017gKMYmtLfpNgwCRYvxCAie</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a40bcad5092ecd6ea.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Consolidate plane-pane overlays" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Six commits on <code>main</code>, all with explicit <code>git add</code> paths; 88 tests pass; server 8766 stopped and my tab (18) closed. The uncommitted <code>panels/04-*</code> files are the other agent's, untouched.</p>
+<h2>1. <code>createComplexPlane</code> options (<code>app/shared/gfx/cplane.js</code>)</h2>
+<ul>
+<li><strong><code>verdict</code></strong> — what colors the roots and what the labels read. <code>null</code> (default): the store's method at the store's h, unchanged. <code>'physical'</code>: <code>Re λ ≤ 0</code>, no <code>|R|</code> label. <code>'&amp;lt;method id&amp;gt;'</code>: that method's <code>stabilityReport</code> at the store's h regardless of the store's method. <strong>Extension:</strong> also a region-layer-shaped object <code>{ method | order, h }</code> — needed because 12-right colors by Taylor <em>order</em> (orders 2–3 have no method id) and 10-right colors at the sweep's nearest h, not the store's exact h. Any of these may be a function of state. <code>plane.report</code> still always returns the store-method report, so 11/12 spines' readouts are unaffected.</li>
+<li><strong>Deviation to note:</strong> <code>'physical'</code> uses <code>≤ 0</code>, not <code>&amp;lt; 0</code>. 11-left's "Pure oscillation: λ = 10i" button lands exactly on the axis with a readout saying "forever, at the same amplitude"; red dots would contradict it, and the edge-as-stable convention matches the existing <code>|R| ≤ 1</code>. 7's panes only reach Re λ = 0 at c = 0 exactly.</li>
+<li><strong><code>cx</code>, <code>cy</code></strong> — view center (number or function of state), passed to <code>makeView</code>; the region shader and circles read the view's bounds so nothing else changed.</li>
+<li><strong><code>labels</code></strong> — additionally accepts a formatter <code>(factor, i, state) =&amp;gt; string</code>, so 10-spine keeps its <code>|1 + hλ| = …</code> 4-digit wording.</li>
+<li><strong>Label placement</strong> is now collision-based: it mirrors <code>drawGrid</code>'s tick-label and axis-name rects, then takes the first of right-near, right-far, left-near, left-far that stays in the frame and clears those rects and earlier root labels. This is a default change under every labelled caller — including <code>panels/09-finding-error/right.js</code>, <code>panels/11-lets-break-it/{spine,right}.js</code>, <code>panels/12-higher-order-rk/spine.js</code>, which other agents own; 11's spine was checked (see below), 9-right/11-right/12-spine were not.</li>
+</ul>
+<h2>Overlay code removed</h2>
+<ul>
+<li><strong>7 spine/left/right</strong>: the <code>drawPhysicalRoots</code> function and its <code>onDraw</code> call (spine's <code>onDraw</code> gone entirely); <code>drawPoint</code>/<code>cssVar</code> imports dropped where unused.</li>
+<li><strong>10 spine</strong>: the per-root <code>drawPoint</code> + <code>|1 + hλ|</code> <code>drawText</code> loop; Rhodes margin labels kept verbatim. <code>eulerVerdicts</code> remains for the readout/prose.</li>
+<li><strong>10 right</strong>: the dot loop; <code>cx = −0.9R</code>, <code>halfRange</code> recomputed so the frame is <code>[−2.1R, 0.3R]</code> (R = 60); caption drops to the bottom edge when the highlighted disk's center is below <code>yMin</code> (verified at h = 1/60).</li>
+<li><strong>11 left</strong>: the whole <code>onDraw</code>; one-line <code>createComplexPlane</code> call.</li>
+<li><strong>12 right</strong>: the dot loop and the local <code>highlight</code> variable (now read from <code>aux</code> at draw time inside <code>region</code>/<code>verdict</code>).</li>
+<li><strong>12 right-2</strong>: the dot loop.</li>
+</ul>
+<h2>Other items</h2>
+<ul>
+<li><strong><code>polynomialText</code></strong> now lives in <code>app/shared/math/taylor.js</code> (superscripts generated for any n, factorial computed) with a test; 12 left/right import it from there.</li>
+<li><strong><code>fmt</code></strong> replaces every hyphen (<code>/-/g</code>); no caller depended on a literal hyphen. 11-spine's readout now reads <code>−8.78e−6</code>.</li>
+<li><strong>Sweep strips</strong>: 12-left (terms 0…8) and 12-right (0 = all four, 1…4) use <code>sweepStrip</code> on <code>aux.highlight</code>, subscribing with <code>select(i, { notify: false })</code> and unsubscribing on destroy. Untouched <code>−1</code> maps to 12-left's old default (degree 4) and clamps to 0 ("all four") on 12-right; both only ever write 0…N back.</li>
+<li><strong><code>layout.css</code></strong>: <code>grid-template-rows: auto 1fr</code> on <code>.pane-body &amp;gt; article</code> (the two implicit auto rows had been splitting leftover height).</li>
+<li><strong>Favicon</strong>: inline SVG data URI <code>&amp;lt;link rel="icon"&amp;gt;</code> in <code>index.html</code>.</li>
+</ul>
+<h2>Verified (chrome-devtools, own tab, <code>emulate</code> 1280×800)</h2>
+<p>Routes 7/left, 7, 7/right, 10, 10/right (default h and h = 1/60 via <code>store.set</code>), 11 (with <code>c = 6</code> so Re λ = −3, the old collision case: labels now right-of-root, clear of ticks and Rhodes text), 11/left, 12/left, 12/right (highlight 1 → red Euler dots; highlight 4 → green), 12/right/2 (green implicit dots while the store's method is Euler), 1 (layout). Strip pointer selection writes <code>aux.highlight</code>; both panel-12 strips follow the shared key. Remount round-trip 12/right/2 → 9 (strips destroyed, 0 <code>.sweep</code>) → 1 → 12/right/2 remounted with the strips re-reading aux; console empty at every stop; no image/other network requests (no favicon fetch); <code>body.scrollWidth === innerWidth</code>. Not screenshotted: 12's spine (same label configuration as 11's spine, which rendered correctly).</result>
+<usage><subagent_tokens>171903</subagent_tokens><tool_uses>73</tool_uses><duration_ms>964419</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>1 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The complex-plane consolidation is committed and tests hold at 88. The plane module now takes a <code>verdict</code> option, so six panes dropped their hand-drawn root overlays, and its root labels dodge the grid labels. One default changed under panes the agent did not own: label placement in panel 9-right, 11-right, and 12's spine. I'll check those three once the last two agents finish, since the no-scalar-R agent is editing 11-right right now.</p>
+<p>Two agents remain in flight: Part I (panel 4 sides are already committed, panel 2 in progress) and the no-scalar-R pair.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-007.html#msg-2026-09-02T21-54-13-493Z"><div class="index-item-header"><span class="index-item-number">#19</span><time datetime="2026-09-02T21:54:13.493Z" data-timestamp="2026-09-02T21:54:13.493Z">2026-09-02T21:54:13.493Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>aa3400aab0c0cae94</task-id>
+<tool-use-id>toolu_01WyEWdaGVk53Ba1nSurVRQU</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/aa3400aab0c0cae94.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build no-scalar-R panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Both panes are built, verified in the browser, and committed (three commits: <code>4cebf55</code>, <code>beb921b</code>, <code>8ddd7fb</code>). Server on 8769 stopped, tab closed, <code>node --test</code> 88/88.</p>
+<h2>What each pane shows</h2>
+<p><strong>Panel 11 right</strong> (<code>app/panels/11-lets-break-it/right.{html,js}</code>): a half plane with the store's region and nine λ dots (green/red by verdict) beside the readout, and a wide 3×3 grid of small multiples below, one mini run per λ (red simulation over a densely sampled dashed exact curve, 4 periods, 24–400 steps, frame pinned to the exact curve's first-period amplitude so blow-ups leave the frame). Hover on the plane picks the nearest dot; hover on the grid picks the cell; both write <code>aux.highlight</code> (clamped to 0..8 on read), which highlights the dot, backs the cell, dims the rest, and fills the readout (λ, its <code>(c, k)</code> for the store's <code>m</code>, |R| or ρ, verdict, step count). Point sets per method: Euler rows at Im = 0.45/0.7/0.9 of 1/h with the disk center, its edge, and the imaginary axis; implicit the mirror (axis, edge of the unstable disk at +1/h, its center, so "on/out" sit at Re λ &gt; 0 with c &lt; 0 and the readout says so); RK4/semi/Verlet three rays from the origin (the Im axis and two into the left half plane) at 0.5/1/1.3 × the radius where ρ first crosses 1 (numeric scan + bisection). The verdict everywhere is <code>spectralRadius(updateMatrix(...))</code>, which equals |R| for the scalar methods and keeps the pane honest when the spine's picker is on semi/Verlet (region layer goes flat grey).</p>
+<p><strong>Panel 12 right-3</strong> (<code>app/panels/12-higher-order-rk/right-3.{html,js}</code>): a wide heatmap of <code>spectralRadiusNormalized(method, hω, ζ)</code> on a 0.025 lattice (hω −0.05…2.6, ζ −0.025…1.05; margins unpainted; hω = 2 lands exactly on a cell edge), <code>rhoColormap</code>, the dotted <code>hω = 2</code> wall plus the actual ρ = 1 contour <code>hω = 2(√(1+ζ²) − ζ)</code> dashed, the reader's <code>(h√(k/m), c/2√(mk))</code> marked (clamped with "(off the map)"), the hovered cell outlined. Below, a strip run of the hovered cell (or the reader's point) with <code>simulate</code> at m = k = 1, c = 2ζ, h = hω over 20 periods, and a 3-line readout: hω, ζ, ρ, verdict; numerical frequency ratio from the update's eigenvalue angle (phase drift per period); last-period amplitude red vs exact. A <code>toggleFn</code> switches the map and run to semi-implicit Euler; a button returns to the reader's point. Hover state is pane-local (a remount returns to the reader's point).</p>
+<h2>ρ observed</h2>
+<ul>
+<li>(hω, ζ) = (1.9, 0.005) → ρ = 0.9905; (2.0, 0.005) → 1.2102, for <strong>both</strong> Verlet and semi-implicit (verified by <code>store.set({ h: 0.19 })</code>/<code>0.20</code> on the demo preset). Demo default (0.333, 0.005) → 0.9983. Along ζ = 0, ρ = 1 exactly for hω &lt; 2, 1.22 at 2.01.</li>
+</ul>
+<h2>Findings / limitations</h2>
+<ul>
+<li><strong>Semi-implicit Euler and lagged-drag Verlet have identical trace (2 − hω² − 2ζhω) and determinant (1 − 2ζhω) at every (hω, ζ)</strong>, so the comparison toggle shows an identical map (kept per the brief; the file header says why). The wall sits at hω = 2 only at ζ = 0 and bends left with damping; "preserves amplitude" is only true undamped (ρ = √(1 − 2ζhω) otherwise). Both panes report this rather than the prose's simpler claim.</li>
+<li>Layout deviates from "half beside half" on purpose: <code>.viz</code> measures 488 × 620 px at 1280×800, so both panes stack; measured bottoms 656 (11) and 731 (12-3) vs the 752 fold. A fourth readout line in 12-3 overflowed by 7 px, hence the short lines.</li>
+<li>No local stand-ins. 11-right passes <code>cx</code> to <code>createComplexPlane</code>, which exists only in another agent's <strong>uncommitted</strong> <code>cplane.js</code>; if it doesn't land, the option is ignored and the plane centers on 0 (still correct, Euler's disk clipped on the left).</li>
+<li>Shared-module notes: <code>drawHeatmap</code> lays cells out in pixel space, so hover only aligns when <code>nx·cell</code> equals the view range exactly; <code>rhoColormap</code> paints ρ = 1 as <code>--surface</code>; <code>drawGrid</code> puts x-tick labels on the y = 0 axis (mid-plot on symmetric strips); cplane's "Im λ" label overlaps the top tick; the shared <code>sweep</code> LRU (16) is thrashed by heatmap hover (one recompute on return elsewhere). <code>k = 0</code> is handled with a message in 12-3.</li>
+<li>Prose edit: the imaginary-axis sentence in 11-right now says Euler is out everywhere on it, RK4/semi/Verlet push the crossing up, implicit never crosses.</result>
+<usage><subagent_tokens>243312</subagent_tokens><tool_uses>69</tool_uses><duration_ms>1234751</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>3 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The Verlet finding is recorded in idea.md (<code>9551ac8</code>) as an open question for you: with the lagged drag velocity, Störmer–Verlet is semi-implicit Euler written in positions, so the two share one update matrix and one heatmap. Either drop semi-implicit and let the Verlet pane own the symplectic story, or make Verlet a genuinely different update by solving the drag implicitly. The confirmation numbers now say they hold for both.</p>
+<p>Panels 11-right and 12-right-3 are built and committed. The only agent still running is Part I, currently on panel 6 with panels 2, 4, and 5 already committed. When it reports I'll run the full check across all 13 panels, including the three panes whose plane labels changed under them, and give you the final picture.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-007.html#msg-2026-09-02T21-59-05-332Z"><div class="index-item-header"><span class="index-item-number">#20</span><time datetime="2026-09-02T21:59:05.332Z" data-timestamp="2026-09-02T21:59:05.332Z">2026-09-02T21:59:05.332Z</time></div><div class="index-item-content"><p>I have some feedback for page 3. Start a subagent to make these changes: on the left panel, the titles of the graphs need to be more visible (the x and v). Also, a should be shown as a filled bar that grows and shrinks with the value. Also, x, v, and a in the "at this instant" box all need to be on separate lines because line breaks are making it hard to read.</p></div></a><div class="index-item-stats"><span>1 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>A Sonnet agent is on panel 3's left pane with your three changes: prominent <code>x</code> and <code>v</code> titles on the strips, <code>a</code> as a filled bar centered on zero that follows the scrub, and the readout with <code>x</code>, <code>v</code>, <code>a</code> on separate lines. It's fenced to that pane's two files and will verify with before/after screenshots at 1280×800.</p>
+<p>The Part I agent is still finishing panel 6. I'll report both when they land.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-007.html#msg-2026-09-02T22-07-44-133Z"><div class="index-item-header"><span class="index-item-number">#21</span><time datetime="2026-09-02T22:07:44.133Z" data-timestamp="2026-09-02T22:07:44.133Z">2026-09-02T22:07:44.133Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>af7b277f6acc29d16</task-id>
+<tool-use-id>toolu_01AuHwGVPrGNSHSHxtQvCk5N</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/af7b277f6acc29d16.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build Part I panes 2, 4, 5, 6" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Panels 2, 4, 5, and 6 are built, verified in the browser at 1280×800, and committed (five commits, explicit paths). All 12 panes measured <code>.pane-body</code> scrollHeight == clientHeight (684/684), console clean, <code>node --test</code> 88/88. My tab is closed and the port-8768 server is stopped.</p>
+<h2>Files</h2>
+<ul>
+<li><code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/02-newtonian-physics/{spine,left,right}.js</code>, plus a local helper <code>arrows.js</code> (force colors, adaptive arrow scale, the parameter patch a dragged tip produces) and <code>README.md</code></li>
+<li><code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/04-physical-stability/{spine,left,right}.js</code>, <code>README.md</code></li>
+<li><code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/05-linearize/{spine,left,right}.js</code>, <code>README.md</code></li>
+<li><code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/06-eigen-what-now/{spine,left,right}.js</code>, <code>README.md</code></li>
+</ul>
+<p>No prose fragments were edited; no shared/, styles/, index.html, or docs/ changes.</p>
+<h2>Pane by pane</h2>
+<p><strong>Panel 2, F = ma</strong>
+- Spine: the scene's point mass on a wide plane with arrows for every active force (real models), the sum, <code>a = ΣF/m</code>, and <code>v</code>. <code>toggleFn</code> per force, drag any arrow tip (wind sets <code>fx, fy</code>; gravity/drag/spring scale <code>G</code>/<code>c</code>/<code>k</code> by the projection onto the current direction, through <code>paramStore(i).set</code>), drag the body (<code>moveBody</code>), an <code>m</code> slider on <code>paramStore('body')</code>, and "Step once" = one explicit Euler step of the tuple's <code>h</code> in 2D via <code>netForce</code> + <code>moveBody</code>/<code>setVelocity</code>; local clock. Verified: toggle, tip drag (G 1 → 1.76), body drag, step.
+- Left: wind and gravity arrows from the scene tail-to-tail, sum, parallelogram, components dropped to the axes, magnitudes and <code>|a+b| ≤ |a|+|b|</code> in the readout; tip drags write back to the scene (verified <code>fx, fy</code>).
+- Right: the panel-1 rectangle with the same forces applied at a lever arm <code>d</code> (slider); <code>ΣT = r × ΣF</code>, <code>I = m(w²+h²)/12</code>, <code>θ″ = ΣT/I</code>, a torque arc, and Run/Step/Reset integrating <code>θ</code> locally at the tuple's <code>h</code>. Verified running.</p>
+<p><strong>Panel 4, physical stability</strong>
+- Spine: exact solution with a <code>drawBand</code> ε-tube and six closed-form neighbors started on the ε-circle in <code>(x₀, v₀/ω)</code>, drawn with <code>drawBundle</code>; <code>slider(aux, 'epsilon', { log: true })</code> and a <code>c</code> slider to 0. The readout says a linear spring with <code>c ≥ 0</code> is never unstable and points at the right pane.
+- Left: exactly two curves plus <code>d(t) = |ψ − φ|</code> on a second strip that flattens or stays flat; the neighbor's start is a drag handle (verified), <code>v₀</code> offset is a local slider.
+- Right: three phase portraits (<code>c = 0</code>, <code>c</code>, <code>−c</code>) in one wide stage via <code>layoutGrid</code>, <code>drawVectorField</code> from <code>systemMatrix</code>, three closed-form trajectories each; the unstable one negates <code>c</code> locally, never writing the store.</p>
+<p><strong>Panel 5, linearize</strong>
+- Spine: four force rows built as MathML via <code>fragment()</code>, every parameter a <code>data-scrub</code> slot (log scrubs on <code>k</code>, <code>m₂</code>, <code>r</code>), on/off switches, the real/linear switch on gravity showing <code>G m₁ m₂ / r²</code> or <code>m₁ g</code> with live <code>g</code>; a strip stage with the body (draggable), arrows, <code>a</code>, and a 2 s RK4 look-ahead; <code>M, C, K</code> from <code>assemble(scene)</code> in live MathML; a readout of the tuple with an in-sync/out-of-sync verdict. <code>scene.pushToTuple()</code> runs on <code>resume()</code> and on every scene change while on screen. Verified: scrubbing <code>k</code> moved <code>window.app.store.get().k</code> and the prose's <code>data-var="k"</code>.
+- Left: <code>f(a+b)</code> vs <code>f(a)+f(b)</code> for <code>f(x) = 2x</code> and <code>f(x) = x²</code>, two draggable inputs on the axis, the two outputs stacked against the output of the sum, the <code>2ab</code> gap called out.
+- Right: <code>inverseSquareExpansion</code> about the gravity force's <code>r₀</code>, seven partial sums as a bundle with a <code>sweepStrip</code> writing <code>aux.highlight</code>; then the nonlinear run (<code>simulate</code>, RK4, custom <code>accel</code> from <code>netForce</code> in real mode along the attractor axis) beside the linearized run and <code>stabilityReport</code> on the assembled <code>M, C, K</code>, with <code>r₀</code>, <code>k</code>, and <code>y₀</code> sliders. Verified the payoff: <code>r₀ = 1.5, y₀ = −0.5</code> reads "fell in at t = 0.17 s ← predicted stable" while <code>λ = −0.05 ± 10i</code>.</p>
+<p><strong>Panel 6, eigen-what-now</strong>
+- Spine: transformed grid, a draggable vector and its image, both real eigenvector lines (dashed), lit solid with the eigenvalue when the vector lands within 4°; <code>c</code> slider from 50 down to 0. Verified landing (<code>Âv = −0.382 v</code>, drawn ratio 0.380) and the complex readout at <code>c = 10</code>.
+- Left: an "F" shape under a matrix whose four entries are scrubs on a local <code>createStore</code> with <code>[−3, 3]</code> limits; presets identity/scale/skew/rotate/flip; no eigenvectors drawn.
+- Right: rotation sweep <code>M(θ) = R(θ)·S(3, 1)</code> (the case <code>matrix2.test.js</code> pins) over 12 angles 0–44°, one <code>drawBundle</code> per eigenvector, highlight from <code>aux.highlight</code>; the readout names <code>θ* = arccos(2√(ab)/(a+b)) = 30.0°</code>; a dull scale sweep <code>S(s, 0.5)</code> as the alternative. Verified hover → index 9 (36°, complex).</p>
+<h2>Deviations from idea.md / the brief</h2>
+<ol>
+<li><strong>Panel 6 draws Â, not the raw A.</strong> At <code>k/m = 100</code>, <code>systemMatrix</code> sends a unit vector to length ~100 and no view holds both. The grid shows the similar matrix <code>Â = [[0, 1], [−1, −2ζ]]</code> in units <code>(x, v/ω)</code> per <code>1/ω</code> s: same invariant directions, eigenvalues <code>λ/ω</code>. The readout prints both matrices and both eigenvalue scales, so nothing drawn is mislabeled.</li>
+<li><strong>The overdamped preset applies on <code>resume()</code>, not mount.</strong> The pane manager mounts panel 6's spine off-screen while the reader is on 5 or 7, and a mount-time <code>store.set({ c })</code> moved those panels (I observed <code>c = 30</code> on panel 4 before the fix). Consequence: lowering <code>c</code> on 6, leaving, and returning re-applies the preset; the readout says what it did.</li>
+<li><strong>Panel 5's bridge likewise runs on resume + live scene changes, not mount</strong>, so 5 and 6 don't fight; the tuple lags the scene while the reader sits on 5-left/5-right until they return to the spine. Walk <code>4 → 5 → 6 (c=5) → 7 → 6 → 5 → 6</code> read <code>c = 30, 0.1, 30, 5, 30, 0.1, 30</code>.</li>
+<li><strong>One real/linear switch (on gravity), not one per force</strong>: wind, drag, and spring have identical real and linear models in <code>forces.js</code>; a switch there would do nothing.</li>
+<li>Panel 4 spine's <code>c</code> slider stops at 0 (store clamp); the <code>c &amp;lt; 0</code> case lives on the right pane as the brief specified.</li>
+</ol>
+<h2>Local stand-ins for shared code</h2>
+<ul>
+<li>No 2D stepper (<code>createStepper</code> is 1D): panel 2's Euler step and panel 5's RK4 look-ahead are pane-local; 5-right reduces to 1D along the attractor axis to use <code>simulate</code>.</li>
+<li>No rigid-body store: 2-right holds <code>θ, θ′, I</code> and the rectangle locally. Panel 1's spine (placeholder) never touches the scene, so the body has never been moved before panel 2; panel 2 adds body drag.</li>
+<li><code>localSlider</code> for non-store values (4-left, 2-right, 5-right), same as panel 3-left does.</li>
+<li>Panel 5's scrub facade over <code>scene.paramStore</code>s (unique keys per parameter), because <code>bindScrub</code> binds every <code>[data-scrub]</code> under one root to one store.</li>
+</ul>
+<h2>Shared-module gaps and limitations hit</h2>
+<ul>
+<li><code>scene.paramStore(i).set()</code> forwards only finite numbers, so <code>toggle(paramStore, 'on')</code> silently does nothing; <code>toggleFn</code> everywhere.</li>
+<li><code>drawBundle</code> caps at 12 series; 6-right calls it once per eigenvector.</li>
+<li><code>.controls-row &amp;gt; * { flex: 1 1 8rem }</code> wraps three or more controls in the ~488 px viz column (overflowed panels 2 and 5 by 16–90 px). I used <code>fieldset.choice</code> for toggle rows and <code>.transport</code>/<code>.transport-group</code> for button rows; a compact-row class in <code>controls.css</code> would be cleaner.</li>
+<li><code>bindScrub</code> on wide linear ranges is far too sensitive (<code>k</code> 0–2000 ≈ 6.7 per pixel); <code>data-log</code> fixes <code>k</code>, <code>m₂</code>, <code>r</code>.</li>
+<li><code>createDragHandles</code> calls <code>view()</code> on the first hover; every pane returns a fallback view until its first draw.</li>
+<li><code>drawGrid</code>'s y-axis label collides with the top tick label on every plot.</li>
+<li>Forces span two orders of magnitude at the defaults (spring 100 vs gravity 1), so arrow scale is adaptive and frozen during a drag; labels are dropped on arrows shorter than 0.3 units.</li>
+<li>Dragging gravity's tip to zero removes its handle (no direction left to scale); recover via panel 5's <code>G</code> scrub.</li>
+</ul>
+<p>Not re-exercised by click after the last edits: panel 5's real/linear switch swapping the visible equation (the <code>hidden</code> toggle; the screenshot shows one equation at a time). <code>docs/idea.md</code> changed on disk mid-session from another agent's commit (<code>9551ac8</code>, panel 12 material); the 2/4/5/6 entries were unchanged.</result>
+<usage><subagent_tokens>382830</subagent_tokens><tool_uses>134</tool_uses><duration_ms>2069846</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>4 bash · 4 mcp__chrome-devtools__evaluate_script · 1 mcp__chrome-devtools__new_page · 1 toolsearch · 1 mcp__chrome-devtools__take_screenshot · 1 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Every pane in the manifest is now interactive, and a full walk of all 40 routes at 1280×800 came back clean: no console errors, no overflow, no missing panes. Tests are at 88.</p>
+<p>Two agents are in flight:
+- <strong>Panel 3 left</strong> with your three changes (titles, <code>a</code> as a bar, one quantity per line).
+- <strong>Panel 6 fix</strong> for the regression I found: its overdamped preset was writing <code>c = 30</code> into the tuple, which left every later panel overdamped and made Euler read stable on panels 11 and 12. The fix keeps panel 6's damping local. The docs now carry that rule and the other Part I deviations (<code>3dbf4b4</code>).</p>
+<p>Open decisions still yours, all recorded in idea.md: the Verlet-equals-semi-implicit question on panel 12's third right pane, and the three UI choices in panel 12 and 11-left.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-008.html#msg-2026-09-02T22-12-26-719Z"><div class="index-item-header"><span class="index-item-number">#22</span><time datetime="2026-09-02T22:12:26.719Z" data-timestamp="2026-09-02T22:12:26.719Z">2026-09-02T22:12:26.719Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a576209afa2f78f83</task-id>
+<tool-use-id>toolu_01Mm2mKMoSB4SG7u9XeELBv8</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a576209afa2f78f83.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Panel 3 left pane feedback" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Committed as <code>6ed2fcd</code>, touching only <code>app/panels/03-solving-for-x/left.js</code> (left.html needed no changes — everything is canvas/JS-driven).</p>
+<h2>Summary</h2>
+<p><strong>1. Strip titles more visible.</strong> In <code>strip()</code>, <code>drawTrajectory</code> is now called with <code>yLabel: null</code> (suppressing its small 11px <code>--tick</code>-colored label), and a new <code>drawText</code> call draws <code>x(t)</code> / <code>v(t)</code> at 15px in <code>--fg</code>, anchored to the strip's top-left (<code>view.xMin, view.yMax</code>) with <code>dx: 34, dy: 19</code> so it clears the column of y-tick numbers stacked at the very left edge. Verified visually at several parameter settings (including one where the y-axis range shrinks a lot) — no collisions.</p>
+<p><strong>2. <code>a</code> as a filled bar.</strong> No shared "thin bar" stage exists in <code>shared/gfx</code> (aspect classes are only square/wide/strip/half, all too tall for a gauge), so per your instruction this is a local, bare <code>&amp;lt;canvas&amp;gt;</code> built and drawn directly in the pane (not through <code>createStage</code>), sized to the readout box's own content width and appended right after the readout text via a <code>&amp;lt;br&amp;gt;</code>. It uses <code>makeView</code>/<code>cssVar</code> for the mapping/colors and direct <code>ctx</code> calls for the fill/zero-mark/labels. The domain is <code>±capA</code>, where <code>capA</code> is 1.1× the peak <code>|a|</code> over the whole visible curve (computed once per curve, cached alongside <code>x</code>/<code>v</code>/<code>t</code>), so the bar stays meaningfully scaled as the case changes rather than being either always-full or invisible. Confirmed via slider drags and <code>evaluate_script</code> that it grows/shrinks and flips sides correctly for negative, positive, near-zero, and extreme (k=2000, m=0.1, c=50) values.</p>
+<p><strong>3. One quantity per line.</strong> <code>out.set(...)</code> now emits <code>t = …</code>, <code>x = …</code>, <code>v = …</code>, <code>a = …</code> on separate lines; since every label is a single character, the <code>=</code> signs align automatically in the monospace <code>.readout</code>. Checked line width at the default case and at extreme parameter combinations (largest <code>a</code> seen was ~1802.66) — no line ever wraps at 1280×800.</p>
+<p><strong>Verification:</strong> served on port 8770, opened <code>#/3/left</code> at 1280×800 via chrome-devtools MCP, screenshotted before/after, dragged the local <code>t</code> slider and toggled store presets/extremes via <code>evaluate_script</code>, confirmed <code>pane-body</code> <code>scrollHeight === clientHeight</code> (no overflow) in every case tested, and the console stayed clean throughout. Server killed and tab closed afterward. <code>node --test "shared/**/*.test.js"</code> still passes (88/88).</p>
+<p>Note: <code>app/panels/03-solving-for-x/spine.js</code> shows as modified in git status — that's the other concurrent agent's edit, not mine; I left it untouched and committed only <code>left.js</code> with an explicit path.</result>
+<usage><subagent_tokens>149859</subagent_tokens><tool_uses>62</tool_uses><duration_ms>778502</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>1 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Panel 3 left is committed (<code>6ed2fcd</code>) with your three changes: <code>x(t)</code> and <code>v(t)</code> titles drawn large in the foreground color, <code>a</code> as a filled bar centered on zero and scaled to the curve's peak, and the readout with <code>t</code>, <code>x</code>, <code>v</code>, <code>a</code> on separate aligned lines.</p>
+<p>The uncommitted change to panel 3's spine is not from any agent: it shortens the shown trajectory from 6 s to 4 s and narrows the <code>dt</code> slider to 0.0005–0.033 s. That looks like your own edit, so I've left it alone. Tell me if you want it committed.</p>
+<p>The panel 6 fix is the last agent running.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-008.html#msg-2026-09-02T22-16-51-017Z"><div class="index-item-header"><span class="index-item-number">#23</span><time datetime="2026-09-02T22:16:51.017Z" data-timestamp="2026-09-02T22:16:51.017Z">2026-09-02T22:16:51.017Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a8fad360d3c53d931</task-id>
+<tool-use-id>toolu_01SQMHpzC8JrXwgs181bnr2s</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a8fad360d3c53d931.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix panel 6 tuple leak" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>## Summary</p>
+<p><strong>Files changed</strong> (both under <code>app/panels/06-eigen-what-now/</code>, committed at <code>a9a2e80</code>):
+- <code>spine.js</code> — removed the <code>applyPreset()</code> / <code>store.set({ c: ... })</code> call entirely. Added a pane-local <code>localC</code>, seeded from the tuple's <code>m</code>/<code>k</code> at mount as <code>1.5 · 2√(mk)</code>, recomputed only when <code>m</code> or <code>k</code> change (tracked via an <code>mkKey</code>), and otherwise left alone while the slider is dragged. <code>matrices(s)</code> now builds <code>Ahat</code>/<code>A</code>/<code>ζ</code>/<code>regime</code> from <code>(s.m, localC, s.k)</code> instead of <code>s.c</code>. The <code>c</code> slider is now a <code>localSlider</code> (same pattern as panels 3-left/4-left) bound to <code>localC</code>, not to the store. The readout line shows both <code>this pane's own c</code> and <code>the spring's actual c</code> (the tuple's, untouched) side by side.
+- <code>spine.html</code> — reworded the prose paragraph that used to say the matrix is "built from the current m, c, k" to make clear <code>c</code> here is this panel's own local value, without introducing "tuple" as reader-facing jargon (grepped <code>panels/*/*.html</code> — panel 6 was the only file using that word).
+- <code>right.js</code> was checked and needed no change — it never touches <code>store</code> at all (it drives its own sweep via <code>aux</code>).</p>
+<p><strong>Verification (chrome-devtools MCP, port 8771, tab closed afterward, server killed afterward):</strong>
+- <code>window.app.store.preset('demo')</code> then walking <code>#/5 → #/6 → #/6/right → #/7 → #/11</code> with pauses: <code>window.app.store.get()</code> stayed at <code>m=1, c=0.1, k=100</code> at every stop.
+- <code>#/11</code> readout: <code>"explicit Euler / outside the disk: unstable / |1 + hλ| = 1.0525: error doubles every 0.45 s"</code> — the blow-up still happens.
+- On <code>#/6</code>, at the default local <code>c = 30</code>: readout shows <code>overdamped: ζ = 1.500, this pane's own c = 30.00 vs 2√(mk) = 20.00 (the spring's actual c = 0.10, untouched)</code>, two real invariant directions drawn (λ̂ = −0.38, −2.62).
+- Dragging the local slider to <code>c = 5</code> (below critical 20): readout flips to <code>no real invariant direction ... has gone complex</code>, directions vanish from the grid; tuple's <code>c</code> still read <code>0.10</code>.
+- Console clean, no overflow, screenshot taken.
+- <code>node --test "shared/**/*.test.js"</code>: 88/88 passing.</p>
+<p><strong>Note:</strong> another agent's in-progress edit to <code>app/panels/03-solving-for-x/spine.js</code> was present in the working tree; I left it untouched and staged/committed only my two panel-6 files via explicit <code>git add</code> paths.</p>
+<p>One doc-drift flag for whoever owns <code>docs/</code>: <code>docs/idea.md</code> still describes panel 6 as starting from an "overdamped preset" that writes <code>c</code> into the shared state — that description is now stale and should be reconciled with the pane-local behavior implemented here.</result>
+<usage><subagent_tokens>91443</subagent_tokens><tool_uses>49</tool_uses><duration_ms>350827</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>3 bash · 1 mcp__chrome-devtools__close_page · 1 mcp__chrome-devtools__navigate_page · 1 mcp__chrome-devtools__evaluate_script</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The build is complete. Every pane in the manifest is interactive, the full route walk is clean at 1280×800, and a post-fix check confirms panels 12 and 13 now hold the demo parameters after passing panel 6. Tests pass at 88. Commits run from <code>24e00af</code> through <code>a9a2e80</code>. Local main is 22 commits ahead of origin and I have not pushed.</p>
+<p><strong>Your uncommitted edit.</strong> Panel 3's spine has a change I did not make: the shown trajectory drops from 6 s to 4 s and the <code>dt</code> slider narrows to 0.0005–0.033 s. I left it alone. Say if you want it committed.</p>
+<p><strong>Decisions that are yours, all recorded in idea.md:</strong>
+- Störmer–Verlet with the lagged drag velocity is semi-implicit Euler written in positions, so panel 12's third right pane shows the same heatmap under both names. Either drop semi-implicit from the piece or make Verlet a different update by solving the drag implicitly.
+- Panel 12-right highlights the order with a slider rather than hover. Panel 12's spine has no <code>h</code> slider and limits the picker to Euler, RK4, and implicit. Panel 11-left draws the exact solution in time only, without the spiral in the plane.
+- Two changes I made to the authoritative doc from agent findings are now also in code: panel 13's constant-force switch, since the 16-second step is unreachable on the spring, and panel 6 keeping its own damping instead of a preset.</p>
+<p><strong>Small follow-ups nobody fixed:</strong>
+- The y-axis label in <code>drawGrid</code> collides with the top tick label on every plot. Three agents flagged it.
+- A <code>.controls-row</code> with three or more controls wraps in the viz column. Panel agents worked around it with other classes.
+- Panel 1's spine still drags a local point rather than the scene store's body, so its drag has no effect on panels 2 and 5.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+
+        <dialog id="search-modal">
+            <div class="search-modal-header">
+                <input type="text" id="modal-search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="modal-search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+                <button id="modal-close-btn" type="button" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+            </div>
+            <div id="search-status"></div>
+            <div id="search-results"></div>
+        </dialog>
+        <script>
+(function() {
+    var totalPages = 8;
+    var searchBox = document.getElementById('search-box');
+    var searchInput = document.getElementById('search-input');
+    var searchBtn = document.getElementById('search-btn');
+    var modal = document.getElementById('search-modal');
+    var modalInput = document.getElementById('modal-search-input');
+    var modalSearchBtn = document.getElementById('modal-search-btn');
+    var modalCloseBtn = document.getElementById('modal-close-btn');
+    var searchStatus = document.getElementById('search-status');
+    var searchResults = document.getElementById('search-results');
+
+    if (!searchBox || !modal) return;
+
+    // Hide search on file:// protocol (doesn't work due to CORS restrictions)
+    if (window.location.protocol === 'file:') return;
+
+    // Show search box (progressive enhancement)
+    searchBox.style.display = 'flex';
+
+    // Gist preview support - detect if we're on gisthost.github.io or gistpreview.github.io
+    var hostname = window.location.hostname;
+    var isGistPreview = hostname === 'gisthost.github.io' || hostname === 'gistpreview.github.io';
+    var gistId = null;
+    var gistOwner = null;
+    var gistInfoLoaded = false;
+
+    if (isGistPreview) {
+        // Extract gist ID from URL query string like ?78a436a8a9e7a2e603738b8193b95410/index.html
+        var queryMatch = window.location.search.match(/^\?([a-f0-9]+)/i);
+        if (queryMatch) {
+            gistId = queryMatch[1];
+        }
+    }
+
+    async function loadGistInfo() {
+        if (!isGistPreview || !gistId || gistInfoLoaded) return;
+        try {
+            var response = await fetch('https://api.github.com/gists/' + gistId);
+            if (response.ok) {
+                var info = await response.json();
+                gistOwner = info.owner.login;
+                gistInfoLoaded = true;
+            }
+        } catch (e) {
+            console.error('Failed to load gist info:', e);
+        }
+    }
+
+    function getPageFetchUrl(pageFile) {
+        if (isGistPreview && gistOwner && gistId) {
+            // Use raw gist URL for fetching content
+            return 'https://gist.githubusercontent.com/' + gistOwner + '/' + gistId + '/raw/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function getPageLinkUrl(pageFile) {
+        if (isGistPreview && gistId) {
+            // Use gistpreview URL format for navigation links
+            return '?' + gistId + '/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function openModal(query) {
+        modalInput.value = query || '';
+        searchResults.innerHTML = '';
+        searchStatus.textContent = '';
+        modal.showModal();
+        modalInput.focus();
+        if (query) {
+            performSearch(query);
+        }
+    }
+
+    function closeModal() {
+        modal.close();
+        // Update URL to remove search fragment, preserving path and query string
+        if (window.location.hash.startsWith('#search=')) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    function updateUrlHash(query) {
+        if (query) {
+            // Preserve path and query string when adding hash
+            history.replaceState(null, '', window.location.pathname + window.location.search + '#search=' + encodeURIComponent(query));
+        }
+    }
+
+    function highlightTextNodes(element, searchTerm) {
+        var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        var nodesToReplace = [];
+
+        while (walker.nextNode()) {
+            var node = walker.currentNode;
+            if (node.nodeValue.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1) {
+                nodesToReplace.push(node);
+            }
+        }
+
+        nodesToReplace.forEach(function(node) {
+            var text = node.nodeValue;
+            var regex = new RegExp('(' + escapeRegex(searchTerm) + ')', 'gi');
+            var parts = text.split(regex);
+            if (parts.length > 1) {
+                var span = document.createElement('span');
+                parts.forEach(function(part) {
+                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                        var mark = document.createElement('mark');
+                        mark.textContent = part;
+                        span.appendChild(mark);
+                    } else {
+                        span.appendChild(document.createTextNode(part));
+                    }
+                });
+                node.parentNode.replaceChild(span, node);
+            }
+        });
+    }
+
+    function fixInternalLinks(element, pageFile) {
+        // Update all internal anchor links to include the page file
+        var links = element.querySelectorAll('a[href^="#"]');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href');
+            link.setAttribute('href', pageFile + href);
+        });
+    }
+
+    function processPage(pageFile, html, query) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var resultsFromPage = 0;
+
+        // Find all message blocks
+        var messages = doc.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            var text = msg.textContent || '';
+            if (text.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
+                resultsFromPage++;
+
+                // Get the message ID for linking
+                var msgId = msg.id || '';
+                var pageLinkUrl = getPageLinkUrl(pageFile);
+                var link = pageLinkUrl + (msgId ? '#' + msgId : '');
+
+                // Clone the message HTML and highlight matches
+                var clone = msg.cloneNode(true);
+                // Fix internal links to include the page file
+                fixInternalLinks(clone, pageLinkUrl);
+                highlightTextNodes(clone, query);
+
+                var resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result';
+                resultDiv.innerHTML = '<a href="' + link + '">' +
+                    '<div class="search-result-page">' + escapeHtml(pageFile) + '</div>' +
+                    '<div class="search-result-content">' + clone.innerHTML + '</div>' +
+                    '</a>';
+                searchResults.appendChild(resultDiv);
+            }
+        });
+
+        return resultsFromPage;
+    }
+
+    async function performSearch(query) {
+        if (!query.trim()) {
+            searchStatus.textContent = 'Enter a search term';
+            return;
+        }
+
+        updateUrlHash(query);
+        searchResults.innerHTML = '';
+        searchStatus.textContent = 'Searching...';
+
+        // Load gist info if on gistpreview (needed for constructing URLs)
+        if (isGistPreview && !gistInfoLoaded) {
+            searchStatus.textContent = 'Loading gist info...';
+            await loadGistInfo();
+            if (!gistOwner) {
+                searchStatus.textContent = 'Failed to load gist info. Search unavailable.';
+                return;
+            }
+        }
+
+        var resultsFound = 0;
+        var pagesSearched = 0;
+
+        // Build list of pages to fetch
+        var pagesToFetch = [];
+        for (var i = 1; i <= totalPages; i++) {
+            pagesToFetch.push('page-' + String(i).padStart(3, '0') + '.html');
+        }
+
+        searchStatus.textContent = 'Searching...';
+
+        // Process pages in batches of 3, but show results immediately as each completes
+        var batchSize = 3;
+        for (var i = 0; i < pagesToFetch.length; i += batchSize) {
+            var batch = pagesToFetch.slice(i, i + batchSize);
+
+            // Create promises that process results immediately when each fetch completes
+            var promises = batch.map(function(pageFile) {
+                return fetch(getPageFetchUrl(pageFile))
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Failed to fetch');
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        // Process and display results immediately
+                        var count = processPage(pageFile, html, query);
+                        resultsFound += count;
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    })
+                    .catch(function() {
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    });
+            });
+
+            // Wait for this batch to complete before starting the next
+            await Promise.all(promises);
+        }
+
+        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + totalPages + ' pages';
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', function() {
+        openModal(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            openModal(searchInput.value);
+        }
+    });
+
+    modalSearchBtn.addEventListener('click', function() {
+        performSearch(modalInput.value);
+    });
+
+    modalInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            performSearch(modalInput.value);
+        }
+    });
+
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Check for #search= in URL on page load
+    if (window.location.hash.startsWith('#search=')) {
+        var query = decodeURIComponent(window.location.hash.substring(8));
+        if (query) {
+            searchInput.value = query;
+            openModal(query);
+        }
+    }
+})();
+        </script>
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

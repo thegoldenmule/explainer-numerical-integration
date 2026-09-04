@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/4</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-02T15-42-53-668Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T15-42-53-668Z" class="timestamp-link"><time datetime="2026-09-02T15:42:53.668Z" data-timestamp="2026-09-02T15:42:53.668Z">2026-09-02T15:42:53.668Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-09-02T15-42-53-668Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T15-42-53-668Z" class="timestamp-link"><time datetime="2026-09-02T15:42:53.668Z" data-timestamp="2026-09-02T15:42:53.668Z">2026-09-02T15:42:53.668Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/model</command-name>
+            <command-message>model</command-message>
+            <command-args>fable</command-args></p></div></div></div>
+<div class="message user" id="msg-2026-09-02T15-42-53-668Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T15-42-53-668Z" class="timestamp-link"><time datetime="2026-09-02T15:42:53.668Z" data-timestamp="2026-09-02T15:42:53.668Z">2026-09-02T15:42:53.668Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Set model to <code>Fable 5.1</code> and saved as your default for new sessions</local-command-stdout></p></div></div></div>
+<div class="message user" id="msg-2026-09-02T15-45-16-749Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T15-45-16-749Z" class="timestamp-link"><time datetime="2026-09-02T15:45:16.749Z" data-timestamp="2026-09-02T15:45:16.749Z">2026-09-02T15:45:16.749Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I would like to understand the data model better. My understanding is that we have an event stream and some aggregates. So when a kid likes a song, we emit an event for that. My confusion is around how this is integrated with the kids actual apple music library. That is: if a kid has a song, album, or artist in the library -- do we show that too? Conversely, if a kid likes a song in the app, do we add it to their apple music library?</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-20-633Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-20-633Z" class="timestamp-link"><time datetime="2026-09-02T15:45:20.633Z" data-timestamp="2026-09-02T15:45:20.633Z">2026-09-02T15:45:20.633Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-21-379Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-21-379Z" class="timestamp-link"><time datetime="2026-09-02T15:45:21.379Z" data-timestamp="2026-09-02T15:45:21.379Z">2026-09-02T15:45:21.379Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll read the KidLibrary and FamilyStore READMEs and the provider seam to answer this from the code rather than from memory.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-22-613Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-22-613Z" class="timestamp-link"><time datetime="2026-09-02T15:45:22.613Z" data-timestamp="2026-09-02T15:45:22.613Z">2026-09-02T15:45:22.613Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012rk7N27QmQWKSoDB6jWUkz">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read KidLibrary README and list sources</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat Packages/KidLibrary/README.md &amp;&amp; echo ===== &amp;&amp; ls -R Packages/KidLibrary/Sources</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-22-901Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-22-901Z" class="timestamp-link"><time datetime="2026-09-02T15:45:22.901Z" data-timestamp="2026-09-02T15:45:22.901Z">2026-09-02T15:45:22.901Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+cat: Packages/KidLibrary/README.md: No such file or directory</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-26-637Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-26-637Z" class="timestamp-link"><time datetime="2026-09-02T15:45:26.637Z" data-timestamp="2026-09-02T15:45:26.637Z">2026-09-02T15:45:26.637Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01QKqYEArvXDn1ReegQ2AKbZ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List packages and KidLibrary sources</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">ls Packages/ Packages/*/ &amp;&amp; find Packages/KidLibrary -name &#39;*.swift&#39; -not -path &#39;*Tests*&#39; | head -50</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-26-711Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-26-711Z" class="timestamp-link"><time datetime="2026-09-02T15:45:26.711Z" data-timestamp="2026-09-02T15:45:26.711Z">2026-09-02T15:45:26.711Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Packages/:
+AdminGate
+CatalogKit
+FamilyStore
+FamilySync
+KidLibrary
+PolicyEngine
+
+Packages/AdminGate/:
+Package.swift
+Sources
+static-x.json
+Tests
+
+Packages/CatalogKit/:
+build
+Package.swift
+README.md
+Sources
+static-x.json
+Tests
+
+Packages/FamilyStore/:
+build
+Package.swift
+Sources
+static-x.json
+Tests
+
+Packages/FamilySync/:
+Package.swift
+Sources
+Tests
+
+Packages/KidLibrary/:
+Package.swift
+Sources
+static-x.json
+Tests
+
+Packages/PolicyEngine/:
+build
+Package.swift
+README.md
+Sources
+static-x.json
+Tests
+Packages/KidLibrary/Package.swift
+Packages/KidLibrary/Sources/KidLibrary/LibraryWalk.swift
+Packages/KidLibrary/Sources/KidLibrary/ReviewedLibrary.swift
+Packages/KidLibrary/Sources/KidLibrary/LibraryProvider.swift
+Packages/KidLibrary/Sources/KidLibrary/PlayQueue.swift
+Packages/KidLibrary/Sources/KidLibrary/LibraryBrowse.swift
+Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift
+Packages/KidLibrary/Sources/KidLibrary/CloudKitLibraryProvider.swift
+Packages/KidLibrary/Sources/KidLibrary/DeviceLibraryState.swift</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-30-073Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-30-073Z" class="timestamp-link"><time datetime="2026-09-02T15:45:30.073Z" data-timestamp="2026-09-02T15:45:30.073Z">2026-09-02T15:45:30.073Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01WRR7HKauECA8cBZ1AveQiS">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read the provider seam, merged library, and CloudKit provider</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd Packages/KidLibrary/Sources/KidLibrary &amp;&amp; wc -l *.swift &amp;&amp; echo ===== &amp;&amp; cat LibraryProvider.swift &amp;&amp; echo ===== &amp;&amp; cat MergedLibrary.swift &amp;&amp; echo ===== &amp;&amp; cat CloudKitLibraryProvider.swift &amp;&amp; echo ===== &amp;&amp; cat DeviceLibraryState.swift</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-30-114Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-30-114Z" class="timestamp-link"><time datetime="2026-09-02T15:45:30.114Z" data-timestamp="2026-09-02T15:45:30.114Z">2026-09-02T15:45:30.114Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+     178 CloudKitLibraryProvider.swift
+      81 DeviceLibraryState.swift
+     215 LibraryBrowse.swift
+     104 LibraryProvider.swift
+     132 LibraryWalk.swift
+     778 MergedLibrary.swift
+     118 PlayQueue.swift
+      84 ReviewedLibrary.swift
+    1690 total
+(eval):1: ==== not found</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-33-962Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-33-962Z" class="timestamp-link"><time datetime="2026-09-02T15:45:33.962Z" data-timestamp="2026-09-02T15:45:33.962Z">2026-09-02T15:45:33.962Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01VFyKKEhiuJm9WYTkAbJhQx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read provider seam, CloudKit provider, and device state</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/musicbox/Packages/KidLibrary/Sources/KidLibrary &amp;&amp; cat LibraryProvider.swift; echo &#39;-----&#39;; cat CloudKitLibraryProvider.swift; echo &#39;-----&#39;; cat DeviceLibraryState.swift</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-34-004Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-34-004Z" class="timestamp-link"><time datetime="2026-09-02T15:45:34.004Z" data-timestamp="2026-09-02T15:45:34.004Z">2026-09-02T15:45:34.004Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>import CatalogKit
+import FamilyStore
+import Foundation
+import PolicyEngine
+
+/// Which store something lives in; only `MergedLibrary` ever asks.
+public enum LibraryProviderID: String, Sendable, Hashable, CaseIterable {
+    /// Ours, always live — the feature works with Apple Music absent.
+    case cloudKit
+
+    /// The real library; live when `isSharedDevice` is false, the default.
+    case appleMusic
+}
+
+/// What a provider can do; absence isn&#x27;t failure, just sitting one out.
+public struct LibraryCapabilities: OptionSet, Sendable, Hashable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let favoriteSongs = LibraryCapabilities(rawValue: 1 &lt;&lt; 0)
+    public static let favoriteAlbums = LibraryCapabilities(rawValue: 1 &lt;&lt; 1)
+    public static let favoriteArtists = LibraryCapabilities(rawValue: 1 &lt;&lt; 2)
+    public static let createPlaylists = LibraryCapabilities(rawValue: 1 &lt;&lt; 3)
+    public static let editOwnPlaylists = LibraryCapabilities(rawValue: 1 &lt;&lt; 4)
+    public static let editForeignPlaylists = LibraryCapabilities(rawValue: 1 &lt;&lt; 5)
+
+    /// Everything our store can do — the bar the Apple provider must meet.
+    public static let all: LibraryCapabilities = [
+        .favoriteSongs, .favoriteAlbums, .favoriteArtists,
+        .createPlaylists, .editOwnPlaylists, .editForeignPlaylists,
+    ]
+
+    /// The flag for one favorite kind; nil for a playlist, which is owned.
+    public static func favoriting(_ kind: ItemKind) -&gt; LibraryCapabilities? {
+        switch kind {
+        case .song: .favoriteSongs
+        case .album: .favoriteAlbums
+        case .artist: .favoriteArtists
+        case .playlist: nil
+        }
+    }
+}
+
+/// The kid&#x27;s library; callers never ask which provider, only `MergedLibrary`.
+public protocol LibraryProvider: Sendable {
+    var id: LibraryProviderID { get }
+    var capabilities: LibraryCapabilities { get }
+
+    func favorites() async throws -&gt; [FavoriteRow]
+    func addFavorite(
+        _ id: CatalogID,
+        displayName: String,
+        artworkURL: URL?,
+        origin: LibraryOrigin,
+        ancestry: LibraryAncestry
+    ) async throws
+    func removeFavorite(_ id: CatalogID) async throws
+
+    /// Lineage for rows without it; a no-op if a provider has no field for it.
+    func recordAncestry(_ ancestry: [CatalogID: LibraryAncestry]) async throws
+
+    // MARK: - The library index
+        // Defaulted to nothing — our projection, not something Apple Music holds.
+
+    /// Everything the index holds for this kid.
+    func indexed() async throws -&gt; [LibraryIndexRow]
+
+    /// Adds to what one favorite has already brought in.
+    func appendIndex(from source: CatalogID, rows: [LibraryIndexRow]) async throws
+
+    /// Whether this favorite has been walked by the current version of the walk.
+    func isIndexed(_ source: CatalogID) async -&gt; Bool
+
+    /// Drops everything one favorite brought in.
+    func removeIndex(from source: CatalogID) async throws
+
+    func playlists() async throws -&gt; [PlaylistRow]
+    func createPlaylist(named name: String, songs: [LibrarySong]) async throws -&gt; PlaylistRow
+    func addToPlaylist(_ handle: PlaylistHandle, song: LibrarySong) async throws
+    func removeFromPlaylist(_ handle: PlaylistHandle, song: CatalogID) async throws
+
+    /// Reorders to this sequence; a drag as remove-then-add would lose `addedAt`.
+    func reorderPlaylist(_ handle: PlaylistHandle, to order: [CatalogID]) async throws
+    func renamePlaylist(_ handle: PlaylistHandle, to name: String) async throws
+    func deletePlaylist(_ handle: PlaylistHandle) async throws
+}
+
+extension LibraryProvider {
+    public func recordAncestry(_ ancestry: [CatalogID: LibraryAncestry]) async throws {}
+
+    public func indexed() async throws -&gt; [LibraryIndexRow] { [] }
+    public func appendIndex(from source: CatalogID, rows: [LibraryIndexRow]) async throws {}
+    public func isIndexed(_ source: CatalogID) async -&gt; Bool { false }
+    public func removeIndex(from source: CatalogID) async throws {}
+
+    /// Whether this provider can favorite this kind of thing at all.
+    public func canFavorite(_ kind: ItemKind) -&gt; Bool {
+        guard let flag = LibraryCapabilities.favoriting(kind) else { return false }
+        return capabilities.contains(flag)
+    }
+}
+-----
+import CatalogKit
+import FamilyStore
+import Foundation
+import PolicyEngine
+import SwiftData
+
+/// Always live: our own records, so every operation has a working provider.
+@MainActor
+public final class CloudKitLibraryProvider: LibraryProvider {
+    public nonisolated let id = LibraryProviderID.cloudKit
+
+    /// Everything — our own store has no primitive it lacks; the gaps are Apple&#x27;s.
+    public nonisolated let capabilities = LibraryCapabilities.all
+
+    public enum Failure: Error, Equatable {
+        /// No playlist with that local id belongs to this kid — deleted elsewhere.
+        case unknownPlaylist(UUID)
+    }
+
+    private let kid: Kid
+    private let context: ModelContext
+
+    /// One provider per kid; switching kids builds a new one, like the engine.
+    public init(kid: Kid, context: ModelContext) {
+        self.kid = kid
+        self.context = context
+    }
+
+    // MARK: - Favorites
+
+    /// Most recent first; unreadable rows drop — a favorite isn&#x27;t a permission.
+    public func favorites() async throws -&gt; [FavoriteRow] {
+        kid.favorites
+            .compactMap(\.row)
+            .sorted { $0.favoritedAt &gt; $1.favoritedAt }
+    }
+
+    public func addFavorite(
+        _ id: CatalogID,
+        displayName: String,
+        artworkURL: URL?,
+        origin: LibraryOrigin,
+        ancestry: LibraryAncestry
+    ) async throws {
+        kid.addFavorite(
+            id: id,
+            displayName: displayName,
+            artworkURL: artworkURL,
+            origin: origin,
+            ancestry: ancestry
+        )
+        try context.save()
+    }
+
+    /// Tops up lineage on favorites and entries, one save; failures just retry.
+    public func recordAncestry(_ ancestry: [CatalogID: LibraryAncestry]) async throws {
+        guard !ancestry.isEmpty else { return }
+
+        var touched = false
+        for record in kid.favorites {
+            guard let id = record.itemID, let found = ancestry[id] else { continue }
+            record.record(ancestry: found)
+            touched = true
+        }
+        for playlist in kid.playlists {
+            for entry in playlist.entries {
+                guard let found = ancestry[entry.itemID] else { continue }
+                entry.record(ancestry: found)
+                touched = true
+            }
+        }
+
+        guard touched else { return }
+        try context.save()
+    }
+
+    public func removeFavorite(_ id: CatalogID) async throws {
+        for record in kid.favorites.filter({ $0.itemID == id }) {
+            context.delete(record)
+        }
+        kid.removeFavorite(id)
+        try context.save()
+    }
+
+    // MARK: - The library index
+
+    /// Sorted explicitly — SwiftData&#x27;s relationship order isn&#x27;t stable.
+    public func indexed() async throws -&gt; [LibraryIndexRow] {
+        kid.libraryIndex
+            .compactMap(\.row)
+            .sorted { $0.catalogID.rawValue &lt; $1.catalogID.rawValue }
+    }
+
+    /// Written as the walk finds things, so a closed app keeps what it got.
+    public func appendIndex(from source: CatalogID, rows: [LibraryIndexRow]) async throws {
+        guard !rows.isEmpty else { return }
+        kid.appendIndex(from: source, with: rows)
+        try context.save()
+    }
+
+    public func isIndexed(_ source: CatalogID) async -&gt; Bool {
+        kid.isIndexed(source)
+    }
+
+    public func removeIndex(from source: CatalogID) async throws {
+        kid.removeIndex(from: source)
+        try context.save()
+    }
+
+    // MARK: - Playlists
+
+    /// Most recently touched first — the shelf shows what the kid is working on.
+    public func playlists() async throws -&gt; [PlaylistRow] {
+        kid.playlists
+            .map(\.row)
+            .sorted { $0.modifiedAt &gt; $1.modifiedAt }
+    }
+
+    public func createPlaylist(named name: String, songs: [LibrarySong]) async throws -&gt; PlaylistRow
+    {
+        let record = kid.addPlaylist(named: name)
+        for song in songs {
+            record.addSong(
+                id: song.item.id,
+                displayName: song.item.title,
+                artworkURL: song.item.artworkURL,
+                ancestry: song.ancestry
+            )
+        }
+        try context.save()
+        return record.row
+    }
+
+    public func addToPlaylist(_ handle: PlaylistHandle, song: LibrarySong) async throws {
+        let record = try playlist(handle)
+        record.addSong(
+            id: song.item.id,
+            displayName: song.item.title,
+            artworkURL: song.item.artworkURL,
+            ancestry: song.ancestry
+        )
+        try context.save()
+    }
+
+    public func removeFromPlaylist(_ handle: PlaylistHandle, song: CatalogID) async throws {
+        let record = try playlist(handle)
+        for entry in record.entries.filter({ $0.itemID == song }) {
+            context.delete(entry)
+        }
+        record.removeSong(song)
+        try context.save()
+    }
+
+    public func reorderPlaylist(_ handle: PlaylistHandle, to order: [CatalogID]) async throws {
+        try playlist(handle).reorder(to: order)
+        try context.save()
+    }
+
+    public func renamePlaylist(_ handle: PlaylistHandle, to name: String) async throws {
+        try playlist(handle).rename(to: name)
+        try context.save()
+    }
+
+    public func deletePlaylist(_ handle: PlaylistHandle) async throws {
+        let record = try playlist(handle)
+        kid.removePlaylist(record)
+        context.delete(record)
+        try context.save()
+    }
+
+    /// Looked up by our stable `local` id, never Apple&#x27;s, which may be absent.
+    private func playlist(_ handle: PlaylistHandle) throws -&gt; PlaylistRecord {
+        guard let record = kid.playlistRecord(for: handle.local) else {
+            throw Failure.unknownPlaylist(handle.local)
+        }
+        return record
+    }
+}
+-----
+import Foundation
+
+/// Whether the library here is the kid&#x27;s own; device-local, never synced.
+public struct DeviceLibraryState: Codable, Sendable, Hashable {
+    /// *&quot;Are you sharing this device with your child?&quot;*
+    public var sharesDeviceWithChild: Bool
+
+    /// &quot;Does your child have an Apple Music account of their own?&quot;
+    public var childHasOwnAccount: Bool
+
+    /// Whether anyone&#x27;s been asked — the Apple provider&#x27;s first read waits.
+    public var hasBeenAsked: Bool
+
+    /// The kid&#x27;s own only if both are true; otherwise nothing is read from it.
+    public var isSharedDevice: Bool {
+        sharesDeviceWithChild || !childHasOwnAccount
+    }
+
+    public init(
+        sharesDeviceWithChild: Bool = false,
+        childHasOwnAccount: Bool = true,
+        hasBeenAsked: Bool = false
+    ) {
+        self.sharesDeviceWithChild = sharesDeviceWithChild
+        self.childHasOwnAccount = childHasOwnAccount
+        self.hasBeenAsked = hasBeenAsked
+    }
+
+    public static let unasked = DeviceLibraryState()
+}
+
+/// Where the answer is kept — a seam, so it never reaches the CloudKit zone.
+public protocol DeviceLibraryStateStore: Sendable {
+    var state: DeviceLibraryState { get }
+    func save(_ state: DeviceLibraryState)
+}
+
+/// The real one; `UserDefaults`, because it&#x27;s per-device and never synced.
+public struct UserDefaultsDeviceLibraryState: DeviceLibraryStateStore {
+    /// Namespaced so it reads as ours in a defaults dump.
+    public static let key = &quot;com.thegoldenmule.auralsandbox.deviceLibraryState&quot;
+
+    /// `UserDefaults` is thread-safe; `Sendable` just predates the annotation.
+    nonisolated(unsafe) private let defaults: UserDefaults
+
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    /// An unreadable value reads as unasked — never a throw, just one re-ask.
+    public var state: DeviceLibraryState {
+        guard
+            let data = defaults.data(forKey: Self.key),
+            let decoded = try? JSONDecoder().decode(DeviceLibraryState.self, from: data)
+        else { return .unasked }
+        return decoded
+    }
+
+    public func save(_ state: DeviceLibraryState) {
+        guard let data = try? JSONEncoder().encode(state) else { return }
+        defaults.set(data, forKey: Self.key)
+    }
+}
+
+/// For tests, and for a preview that should not touch a real defaults domain.
+public final class InMemoryDeviceLibraryState: DeviceLibraryStateStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: DeviceLibraryState
+
+    public init(_ state: DeviceLibraryState = .unasked) {
+        stored = state
+    }
+
+    public var state: DeviceLibraryState {
+        lock.withLock { stored }
+    }
+
+    public func save(_ state: DeviceLibraryState) {
+        lock.withLock { stored = state }
+    }
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-38-197Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-38-197Z" class="timestamp-link"><time datetime="2026-09-02T15:45:38.197Z" data-timestamp="2026-09-02T15:45:38.197Z">2026-09-02T15:45:38.197Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-41-296Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-41-296Z" class="timestamp-link"><time datetime="2026-09-02T15:45:41.296Z" data-timestamp="2026-09-02T15:45:41.296Z">2026-09-02T15:45:41.296Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01SdAbxanqiULmSZU7DMaT3v">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find provider implementations and how favorites are stored</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/musicbox &amp;&amp; grep -rn &#34;LibraryProvider&#34; --include=&#39;*.swift&#39; -l . | grep -v Tests; echo &#39;---- appleMusic refs&#39;; grep -rn &#34;\.appleMusic\b&#34; --include=&#39;*.swift&#39; . | grep -v Tests; echo &#39;---- FavoriteRecord&#39;; grep -rln &#34;FavoriteRecord\|VisitEventRecord\|class .*Record&#34; Packages/FamilyStore/Sources | head; echo &#39;---- events grep&#39;; grep -rn &#34;favorit&#34; -i Packages/FamilyStore/Sources/FamilyStore/*.swift | grep -i &#34;event\|record\b\|class &#34; | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-41-368Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-41-368Z" class="timestamp-link"><time datetime="2026-09-02T15:45:41.368Z" data-timestamp="2026-09-02T15:45:41.368Z">2026-09-02T15:45:41.368Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Packages/KidLibrary/Sources/KidLibrary/ReviewedLibrary.swift
+Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift
+Packages/KidLibrary/Sources/KidLibrary/LibraryProvider.swift
+Packages/KidLibrary/Sources/KidLibrary/CloudKitLibraryProvider.swift
+Apps/AuralSandbox/AuralSandbox/Session.swift
+Apps/AuralSandbox/AuralSandbox/ReviewDetailViews.swift
+---- appleMusic refs
+---- FavoriteRecord
+Packages/FamilyStore/Sources/FamilyStore/Outbox.swift
+Packages/FamilyStore/Sources/FamilyStore/SchemaVersions.swift
+Packages/FamilyStore/Sources/FamilyStore/SegmentExport.swift
+Packages/FamilyStore/Sources/FamilyStore/HistoryClears.swift
+Packages/FamilyStore/Sources/FamilyStore/RecordMapper.swift
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift
+Packages/FamilyStore/Sources/FamilyStore/Models/DeviceRecord.swift
+Packages/FamilyStore/Sources/FamilyStore/Models/SyncRecords.swift
+Packages/FamilyStore/Sources/FamilyStore/Models/EventRecords.swift
+Packages/FamilyStore/Sources/FamilyStore/Models/LibraryIndexRecord.swift
+---- events grep
+Packages/FamilyStore/Sources/FamilyStore/Outbox.swift:90:        try collect(FavoriteRecord.self) { $0.modifiedAt }
+Packages/FamilyStore/Sources/FamilyStore/Outbox.swift:150:        try reap(FavoriteRecord.self) { $0.kid == nil }
+Packages/FamilyStore/Sources/FamilyStore/RecordMapper.swift:43:        &quot;FavoriteRecord&quot;,
+Packages/FamilyStore/Sources/FamilyStore/RecordMapper.swift:217:extension FavoriteRecord: SyncEncodable {
+Packages/FamilyStore/Sources/FamilyStore/RecordMapper.swift:218:    public static var syncRecordType: String { &quot;FavoriteRecord&quot; }
+Packages/FamilyStore/Sources/FamilyStore/SchemaVersions.swift:72:            FavoriteRecord.self,
+Packages/FamilyStore/Sources/FamilyStore/SchemaVersions.swift:116:            FavoriteRecord.self,
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:74:        &quot;SuggestionRecord&quot;, &quot;SuggestionEntryRecord&quot;, &quot;FavoriteRecord&quot;, &quot;PlaylistRecord&quot;,
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:90:        case FavoriteRecord.syncRecordType: applyFavorite(record, in: context)
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:413:    fileprivate static func applyFavorite(_ record: SyncedRecord, in context: Context) -&gt; Outcome {
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:431:        let favorite: FavoriteRecord
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:438:            favorite = FavoriteRecord(
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:444:                at: record.date(Field.favoritedAt) ?? touched
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:452:            favoritedAt: record.date(Field.favoritedAt),
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:747:        case FavoriteRecord.syncRecordType: find(FavoriteRecord.self)
+Packages/FamilyStore/Sources/FamilyStore/SyncApply.swift:771:        case FavoriteRecord.syncRecordType: drop(FavoriteRecord.self)
+Packages/FamilyStore/Sources/FamilyStore/SyncedRecord.swift:71:    public static let favoritedAt = &quot;favoritedAt&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-45-324Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-45-324Z" class="timestamp-link"><time datetime="2026-09-02T15:45:45.324Z" data-timestamp="2026-09-02T15:45:45.324Z">2026-09-02T15:45:45.324Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-48-105Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-48-105Z" class="timestamp-link"><time datetime="2026-09-02T15:45:48.105Z" data-timestamp="2026-09-02T15:45:48.105Z">2026-09-02T15:45:48.105Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DVEdwffUzD32qdgHBnwWh4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read model classes, Session wiring, and MergedLibrary header</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;class FavoriteRecord\|class PlaylistRecord\|class PlaylistEntryRecord\|class LibraryIndexRecord\|class VisitEventRecord\|class PlayEventRecord\|class .*EventRecord\|class .*Record\b&#34; Packages/FamilyStore/Sources/FamilyStore/Models/*.swift; echo &#39;---- Session provider wiring&#39;; grep -n &#34;Provider\|MergedLibrary\|DeviceLibraryState\|isSharedDevice&#34; Apps/AuralSandbox/AuralSandbox/Session.swift | head -40; echo &#39;---- MergedLibrary head&#39;; sed -n 1,140p Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-48-179Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-48-179Z" class="timestamp-link"><time datetime="2026-09-02T15:45:48.179Z" data-timestamp="2026-09-02T15:45:48.179Z">2026-09-02T15:45:48.179Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Packages/FamilyStore/Sources/FamilyStore/Models/DeviceRecord.swift:23:public final class DeviceRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/EventRecords.swift:13:public final class VisitEventRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/EventRecords.swift:76:public final class SearchEventRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/EventRecords.swift:120:public final class PlayEventRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/EventRecords.swift:215:public final class BlockEventRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/PolicyEntryRecord.swift:7:public final class PolicyEntryRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/LibraryRecords.swift:7:public final class FavoriteRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/LibraryRecords.swift:149:public final class PlaylistRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/LibraryRecords.swift:293:public final class PlaylistEntryRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SandboxSettingRecord.swift:16:public final class SandboxSettingRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/LibraryIndexRecord.swift:12:public final class LibraryIndexRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SyncRecords.swift:23:public final class PasscodeEpochRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SyncRecords.swift:61:public final class HistoryClearRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SyncRecords.swift:92:public final class ConsentRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SyncRecords.swift:148:public final class ActivitySegmentRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/WeeklySummaryRecord.swift:6:public final class WeeklySummaryRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SuggestionRecords.swift:7:public final class SuggestionRecord {
+Packages/FamilyStore/Sources/FamilyStore/Models/SuggestionRecords.swift:235:public final class SuggestionEntryRecord {
+---- Session provider wiring
+88:    private(set) var library: MergedLibrary
+134:    /// onboarding question redraw. ``MergedLibrary`` reads the store directly
+137:    private(set) var deviceLibrary: DeviceLibraryState = .unasked
+253:    @ObservationIgnored private let sides = HouseholdSideProvider()
+531:    /// ``MergedLibrary`` have always held a snapshot engine, and the line right
+544:    /// Deliberately not a `LibraryProvider` and deliberately not reachable from
+550:    private let deviceLibraryStore: any DeviceLibraryStateStore = UserDefaultsDeviceLibraryState()
+585:        library = MergedLibrary(
+588:            providers: [CloudKitLibraryProvider(kid: kid, context: context)],
+1022:    func reviewLibrary(for kid: Kid) -&gt; MergedLibrary {
+1023:        MergedLibrary(
+1024:            providers: [CloudKitLibraryProvider(kid: kid, context: context)],
+1948:    // Everything here goes through ``MergedLibrary``. Nothing on this side names
+1958:    /// is true — see ``DeviceLibraryState/hasBeenAsked``.
+1972:        deviceLibrary = DeviceLibraryState(
+2623:        library = MergedLibrary(
+2624:            providers: [CloudKitLibraryProvider(kid: kid, context: context)],
+---- MergedLibrary head
+import CatalogKit
+import FamilyStore
+import Foundation
+import PolicyEngine
+
+/// What a shelf draws; blocked items are kept, never dropped, for the report.
+public struct LibraryResults: Sendable, Hashable {
+    /// What the kid may see, in the order the shelf wants them.
+    public let items: [CatalogItem]
+
+    /// What the engine turned down, with its reason.
+    public let blocked: [BlockedItem]
+
+    /// False: a provisional verdict from stored copies; the recheck makes it safe.
+    public let isResolved: Bool
+
+    /// Rows not yet judged; zero means the read is complete, not merely paused.
+    public let pending: Int
+
+    public init(
+        items: [CatalogItem],
+        blocked: [BlockedItem],
+        isResolved: Bool,
+        pending: Int = 0
+    ) {
+        self.items = items
+        self.blocked = blocked
+        self.isResolved = isResolved
+        self.pending = pending
+    }
+
+    public static let empty = LibraryResults(items: [], blocked: [], isResolved: true)
+}
+
+/// A kid may only keep what they may play; caller logs it, tells the kid nothing.
+public struct LibraryRefused: Error, Hashable, Sendable {
+    public let item: CatalogItem
+    public let reason: Reason
+
+    public init(item: CatalogItem, reason: Reason) {
+        self.item = item
+        self.reason = reason
+    }
+}
+
+/// Reachable only if our own store fails to open — a device problem, not a crash.
+public struct LibraryUnavailable: Error, Hashable, Sendable {
+    public init() {}
+}
+
+/// The kid&#x27;s library across every provider; callers never name one.
+@MainActor
+public final class MergedLibrary {
+    private let providers: [any LibraryProvider]
+    private let catalog: any CatalogSource
+    private let engine: PolicyEngine
+    private let device: any DeviceLibraryStateStore
+
+    public init(
+        providers: [any LibraryProvider],
+        catalog: any CatalogSource,
+        engine: PolicyEngine,
+        device: any DeviceLibraryStateStore
+    ) {
+        self.providers = providers
+        self.catalog = catalog
+        self.engine = engine
+        self.device = device
+    }
+
+    // MARK: - Which providers are live
+
+    /// `isSharedDevice` alone: false is both providers, true is CloudKit only.
+    private var liveProviders: [any LibraryProvider] {
+        let isShared = device.state.isSharedDevice
+        return providers.filter { $0.id == .cloudKit || !isShared }
+    }
+
+    /// Read-live providers, narrower still: a read waits on onboarding&#x27;s ask.
+    private var readableProviders: [any LibraryProvider] {
+        let hasBeenAsked = device.state.hasBeenAsked
+        return liveProviders.filter { $0.id == .cloudKit || hasBeenAsked }
+    }
+
+    /// Providers written for this favorite; a missing capability skips it.
+    private func writers(favoriting kind: ItemKind) -&gt; [any LibraryProvider] {
+        liveProviders.filter { $0.canFavorite(kind) }
+    }
+
+    // MARK: - Reading
+
+    /// Every favorite the kid may see, filtered at render time, not pre-filtered.
+    public func favorites() async throws -&gt; LibraryResults {
+        let rows = await mergedFavoriteRows()
+        return await judge(
+            rows.map { Stored(id: $0.catalogID, name: $0.displayName, artworkURL: $0.artworkURL) }
+        )
+    }
+
+    /// Unfiltered favorite IDs; a blocked item never reaches a screen to ask.
+    public func favoriteIDs() async -&gt; Set&lt;CatalogID&gt; {
+        Set(await mergedFavoriteRows().map(\.catalogID))
+    }
+
+    /// Every playlist, unfiltered — the engine has no opinion on a playlist.
+    public func playlists() async -&gt; [PlaylistRow] {
+        var merged: [UUID: PlaylistRow] = [:]
+        for provider in readableProviders {
+            // A provider that throws contributes nothing; nothing to retry.
+            guard let rows = try? await provider.playlists() else { continue }
+            for row in rows where merged[row.handle.local] == nil {
+                merged[row.handle.local] = row
+            }
+        }
+        return merged.values.sorted { $0.modifiedAt &gt; $1.modifiedAt }
+    }
+
+    public func playlist(_ handle: PlaylistHandle) async -&gt; PlaylistRow? {
+        await playlists().first { $0.handle.local == handle.local }
+    }
+
+    /// Songs in order; a blocked track moves to `blocked`, for the player to skip.
+    public func songs(in handle: PlaylistHandle) async throws -&gt; LibraryResults {
+        var latest = LibraryResults.empty
+        for await snapshot in songsIncrementally(in: handle) { latest = snapshot }
+        return latest
+    }
+
+    /// The same playlist, top-first as pages resolve — see ``judged(_:)``.
+    public func songsIncrementally(
+        in handle: PlaylistHandle
+    ) -&gt; AsyncStream&lt;LibraryResults&gt; {
+        AsyncStream { continuation in
+            let task = Task { @MainActor in
+                guard let row = await playlist(handle) else {
+                    continuation.yield(.empty)
+                    continuation.finish()
+                    return
+                }
+                let stored = row.entries.map {</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-50-336Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-50-336Z" class="timestamp-link"><time datetime="2026-09-02T15:45:50.336Z" data-timestamp="2026-09-02T15:45:50.336Z">2026-09-02T15:45:50.336Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Still gathering: the favorite write path in MergedLibrary, the FavoriteRecord model, and the spec's stance on the Apple provider.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-45-55-197Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-45-55-197Z" class="timestamp-link"><time datetime="2026-09-02T15:45:55.197Z" data-timestamp="2026-09-02T15:45:55.197Z">2026-09-02T15:45:55.197Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016vKZ7KAxTSJnXgvY9EQHVx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read favorite write path, models, and Session provider comments</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">echo &#39;---- MergedLibrary writes&#39;; grep -n &#34;func \|writers\|for provider in\|MARK&#34; Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift | sed -n 1,80p; echo &#39;---- addFavorite body&#39;; awk &#39;/public func addFavorite/,/^    }$/&#39; Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift; echo &#39;---- FavoriteRecord&#39;; sed -n 1,60p Packages/FamilyStore/Sources/FamilyStore/Models/LibraryRecords.swift; echo &#39;---- LibraryIndexRecord&#39;; sed -n 1,40p Packages/FamilyStore/Sources/FamilyStore/Models/LibraryIndexRecord.swift; echo &#39;---- Session 540-600&#39;; sed -n 525,600p Apps/AuralSandbox/AuralSandbox/Session.swift; echo &#39;---- Session 1945-1990&#39;; sed -n 1945,1990p Apps/AuralSandbox/AuralSandbox/Session.swift</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-45-56-955Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-45-56-955Z" class="timestamp-link"><time datetime="2026-09-02T15:45:56.955Z" data-timestamp="2026-09-02T15:45:56.955Z">2026-09-02T15:45:56.955Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>---- MergedLibrary writes
+71:    // MARK: - Which providers are live
+86:    private func writers(favoriting kind: ItemKind) -&gt; [any LibraryProvider] {
+90:    // MARK: - Reading
+93:    public func favorites() async throws -&gt; LibraryResults {
+101:    public func favoriteIDs() async -&gt; Set&lt;CatalogID&gt; {
+106:    public func playlists() async -&gt; [PlaylistRow] {
+108:        for provider in readableProviders {
+118:    public func playlist(_ handle: PlaylistHandle) async -&gt; PlaylistRow? {
+123:    public func songs(in handle: PlaylistHandle) async throws -&gt; LibraryResults {
+130:    public func songsIncrementally(
+151:    public func searchLibrary(_ term: String) async throws -&gt; LibraryResults {
+164:    // MARK: - Reading, for the browser
+167:    public func contents() async -&gt; LibraryContents {
+174:    public func contentsIncrementally() -&gt; AsyncStream&lt;LibraryContents&gt; {
+206:    private func assemble(
+263:    private func indexedRows() async -&gt; [LibraryIndexRow] {
+264:        for provider in readableProviders {
+271:    // MARK: - Walking down
+274:    public func expand(_ item: CatalogItem) async {
+278:        let writers = liveProviders
+280:            for provider in writers {
+287:    public func isIndexed(_ id: CatalogID) async -&gt; Bool {
+288:        for provider in readableProviders where await provider.isIndexed(id) { return true }
+292:    // MARK: - Reading, for the admin
+295:    public func reviewed() async -&gt; ReviewedLibrary {
+299:        for provider in providers {
+311:        for provider in readableProviders {
+366:    private func annotate&lt;Row: Sendable&gt;(
+393:    // MARK: - Writing
+396:    public func addFavorite(_ item: CatalogItem, origin: LibraryOrigin = .kid) async throws {
+405:        for provider in writers(favoriting: item.id.kind) {
+419:    public func removeFavorite(_ id: CatalogID) async throws {
+420:        for provider in liveProviders where provider.canFavorite(id.kind) {
+427:    public func createPlaylist(named name: String, songs: [CatalogItem] = []) async throws
+436:        for provider in liveProviders where provider.capabilities.contains(.createPlaylists) {
+449:    public func addToPlaylist(_ handle: PlaylistHandle, song: CatalogItem) async throws {
+461:    public func removeFromPlaylist(_ handle: PlaylistHandle, song: CatalogID) async throws {
+465:    public func reorderPlaylist(_ handle: PlaylistHandle, to order: [CatalogID]) async throws {
+469:    public func renamePlaylist(_ handle: PlaylistHandle, to name: String) async throws {
+473:    public func deletePlaylist(_ handle: PlaylistHandle) async throws {
+477:    // MARK: - Applying a write
+480:    private func edit(
+485:        for provider in liveProviders {
+491:    private func mayEdit(_ row: PlaylistRow?, with provider: any LibraryProvider) -&gt; Bool {
+501:    private func write(
+512:    // MARK: - Merging and judging
+515:    private func mergedFavoriteRows() async -&gt; [FavoriteRow] {
+517:        for provider in readableProviders {
+542:    private func mergedRows() async -&gt; [Stored] {
+571:    private func judge(_ stored: [Stored]) async -&gt; LibraryResults {
+579:    private func judged(_ stored: [Stored]) -&gt; AsyncStream&lt;LibraryResults&gt; {
+597:                    func start() {
+642:    private func resolvePage(_ page: [Stored]) async -&gt; [CatalogItem]? {
+652:    private static func verdicts(
+677:    private func allowedSongs(_ songs: [CatalogItem]) async throws -&gt; [LibrarySong] {
+697:    private func withAncestry(_ item: CatalogItem) async throws -&gt; CatalogItem {
+705:    // MARK: - Naming lineage
+708:    private func ancestry(for item: CatalogItem) async -&gt; LibraryAncestry {
+715:    private func toppedUpAncestry(
+744:        for provider in liveProviders {
+751:    private func named(_ ids: [CatalogID]) async -&gt; [CatalogID: CatalogItem] {
+757:    private static func ancestry(
+---- addFavorite body
+    public func addFavorite(_ item: CatalogItem, origin: LibraryOrigin = .kid) async throws {
+        let resolved = try await withAncestry(item)
+        if case .blocked(let reason) = engine.evaluate(resolved.policyItem) {
+            throw LibraryRefused(item: resolved, reason: reason)
+        }
+
+        // Named now, while the kid already waits on a call — no later open pays.
+        let lineage = await ancestry(for: resolved)
+
+        for provider in writers(favoriting: item.id.kind) {
+            try await write(to: provider) {
+                try await $0.addFavorite(
+                    item.id,
+                    displayName: item.title,
+                    artworkURL: item.artworkURL,
+                    origin: origin,
+                    ancestry: lineage
+                )
+            }
+        }
+    }
+---- FavoriteRecord
+import Foundation
+import PolicyEngine
+import SwiftData
+
+/// A kid&#x27;s marked item; exempt from retention like `PlaylistRecord`.
+@Model
+public final class FavoriteRecord {
+    public private(set) var id: UUID = UUID()
+    public private(set) var modifiedAt: Date = Date.distantPast
+
+    /// Always an Apple Music catalog ID; library picks resolve to it first.
+    public private(set) var catalogID: String = &quot;&quot;
+
+    /// `ItemKind.rawValue`; part of identity since catalog IDs collide across kinds.
+    public private(set) var itemKind: String = ItemKind.song.rawValue
+
+    /// Copied at write time so a delisted item still renders offline as a name.
+    public private(set) var displayName: String = &quot;&quot;
+
+    /// A reference only. Artwork bytes are never copied into our storage.
+    public private(set) var artworkURL: URL?
+
+    public private(set) var favoritedAt: Date = Date.distantPast
+
+    /// `LibraryOrigin.rawValue`.
+    public private(set) var origin: String = LibraryOrigin.kid.rawValue
+
+    // MARK: - Ancestry
+    // Five flat columns, not one struct: SwiftData blobs can&#x27;t be predicated on.
+
+    public private(set) var albumID: String?
+    public private(set) var albumName: String?
+    public private(set) var artistID: String?
+    public private(set) var artistName: String?
+    public private(set) var artistArtworkURL: URL?
+
+    public var kid: Kid?
+
+    public init(
+        id: UUID = UUID(),
+        catalogID: CatalogID,
+        displayName: String,
+        artworkURL: URL? = nil,
+        origin: LibraryOrigin = .kid,
+        ancestry: LibraryAncestry = .none,
+        at: Date = .now
+    ) {
+        self.id = id
+        self.catalogID = catalogID.rawValue
+        self.itemKind = catalogID.kind.rawValue
+        self.displayName = displayName
+        self.artworkURL = artworkURL
+        self.origin = origin.rawValue
+        self.favoritedAt = at
+        self.modifiedAt = at
+        apply(ancestry)
+    }
+
+    /// Raw-string init: the only way to make a row this version cannot read.
+    init(
+---- LibraryIndexRecord
+import Foundation
+import PolicyEngine
+import SwiftData
+
+/// **Not a favorite** — never fills a heart, never chosen; the artist was.
+/// **Not a permission** — judged before it draws, player re-checks live.
+/// **Rating stored, not resolved live**: this table is unbounded, so a stored
+/// rating and ancestry keep the verdict local and network-free.
+/// **Exempt from retention like favorites** — survives `deleteHistory`,
+/// unlike ``RecentTrailRecord``, which follows events instead.
+@Model
+public final class LibraryIndexRecord {
+    public private(set) var id: UUID = UUID()
+    public private(set) var modifiedAt: Date = Date.distantPast
+
+    /// Always an Apple Music catalog identifier.
+    public private(set) var catalogID: String = &quot;&quot;
+
+    /// `&quot;album&quot;` or `&quot;song&quot;` — never artist, which a walk starts from, not produces.
+    public private(set) var itemKind: String = ItemKind.song.rawValue
+
+    /// Copied at index time and never refreshed, like everywhere else.
+    public private(set) var displayName: String = &quot;&quot;
+    public private(set) var artworkURL: URL?
+
+    /// Where a song sits on its album, so a record reads in its own order.
+    public private(set) var trackNumber: Int?
+
+    /// `StoredRating.stored`. See the note above on why this is here.
+    public private(set) var rating: String = StoredRating.unknown.stored
+
+    // Lineage, the same five columns as `FavoriteRecord`.
+    public private(set) var albumID: String?
+    public private(set) var albumName: String?
+    public private(set) var artistID: String?
+    public private(set) var artistName: String?
+    public private(set) var artistArtworkURL: URL?
+
+    /// Source and kind together — catalog IDs are only unique within a type.
+    public private(set) var sourceID: String = &quot;&quot;
+---- Session 540-600
+    /// Building one walks `kid.entries` *and* `kid.suggestions` and every
+    /// snapshot entry under them, and a to-many relationship that has not been
+    /// touched yet faults in with a synchronous read on the main actor. That is
+    /// exactly what ``queuedVerdict(for:)`` promises it does not do.
+    ///
+    /// It also stops being the odd one out: ``FilteredCatalog`` and
+    /// ``MergedLibrary`` have always held a snapshot engine, and the line right
+    /// after `queuedVerdict` in the player goes through one of them. Caching
+    /// here removes an inconsistency rather than adding a stale surface — the
+    /// invalidation set is the same one those two already have, plus dismissal.
+    private var engine: PolicyEngine
+
+    private let family: Family
+    private let context: ModelContext
+    private let musicAccess = MusicKitAccess()
+    private let source: any CatalogSource
+
+    /// The parent&#x27;s own Apple Music library, for seeding suggestions.
+    ///
+    /// Deliberately not a `LibraryProvider` and deliberately not reachable from
+    /// anything the kid touches: this is the seeding seam, and what it hands
+    /// back is resolved to catalog items before a row is written.
+    private let librarySource: any LibrarySource = MusicKitLibrarySource()
+
+    /// Where the shared-device answer is kept. Device-local, never synced.
+    private let deviceLibraryStore: any DeviceLibraryStateStore = UserDefaultsDeviceLibraryState()
+
+    /// Which grown-up is acting on *this* device. Device-local for the reason
+    /// ``deviceLibraryStore`` is — see ``ActingGrownUpStore``.
+    private let actingGrownUpStore: any ActingGrownUpStore = UserDefaultsActingGrownUp()
+
+    /// How far each kid&#x27;s history has been cleared on *this* device.
+    ///
+    /// Device-local for the same reason: it describes what this device has already
+    /// acted on, not anything about the family. See
+    /// ``FamilyStore/HistoryClearWatermarkStore``.
+    let clearWatermarks: any HistoryClearWatermarkStore = UserDefaultsHistoryClearWatermark()
+
+    init(passcodes: any PasscodeStore = KeychainPasscodeStore()) throws {
+        container = try FamilyStore.container()
+        context = ModelContext(container)
+        eventLog = EventLog(modelContainer: container)
+        review = ReviewReader(modelContainer: container)
+        recents = RecentsProjector(modelContainer: container)
+        player = MusicKitPlayer()
+        self.passcodes = passcodes
+
+        let (family, kid, merged) = try Self.load(from: context)
+        self.family = family
+        self.kid = kid
+        householdsMerged = merged
+
+        let source = CachingCatalogSource(
+            wrapping: MusicKitCatalogSource(),
+            cache: InMemoryItemCache()
+        )
+        self.source = source
+        let engine = kid.makeEngine()
+        self.engine = engine
+        catalog = FilteredCatalog(source: source, engine: engine)
+        library = MergedLibrary(
+            // One provider, and it is always live. The Apple Music provider is
+            // the next stage; nothing above this line changes when it arrives.
+            providers: [CloudKitLibraryProvider(kid: kid, context: context)],
+            catalog: source,
+            engine: engine,
+            device: deviceLibraryStore
+        )
+        kids = family.orderedKids
+        grownUps = family.orderedGrownUps
+        deviceLibrary = deviceLibraryStore.state
+        actingGrownUp = family.grownUps.first { $0.id == actingGrownUpStore.actingGrownUpID }
+    }
+
+    /// The family, and one kid to start in.
+    ///
+---- Session 1945-1990
+
+    // MARK: - The kid&#x27;s library
+    //
+    // Everything here goes through ``MergedLibrary``. Nothing on this side names
+    // a provider, learns that one failed, or discovers that one cannot do
+    // something — those are admin-facing and this is the kid&#x27;s app.
+
+    func isFavorite(_ id: CatalogID) -&gt; Bool { favoriteIDs.contains(id) }
+
+    // MARK: - The shared-device question
+
+    /// Whether anyone has answered it yet. Onboarding puts the question while
+    /// this is false, and nothing is read from the Apple Music library until it
+    /// is true — see ``DeviceLibraryState/hasBeenAsked``.
+    var hasAnsweredSharedDevice: Bool { deviceLibrary.hasBeenAsked }
+
+    /// Records both answers, from onboarding or from the admin.
+    ///
+    /// **Both call sites mark it answered**, which is the point. A parent who
+    /// reaches the switches in the admin has been asked as surely as one who
+    /// answered at first launch, and treating the two differently would leave a
+    /// device where the question was settled and the gate still shut.
+    ///
+    /// Changing them later loses nothing. Becoming the kid&#x27;s own library adopts
+    /// what is in it from that point rather than backfilling anything; ceasing
+    /// to be one stops reading and writing there and leaves every row we hold.
+    func setDeviceAnswers(sharesDevice: Bool, childHasOwnAccount: Bool) {
+        deviceLibrary = DeviceLibraryState(
+            sharesDeviceWithChild: sharesDevice,
+            childHasOwnAccount: childHasOwnAccount,
+            hasBeenAsked: true
+        )
+        deviceLibraryStore.save(deviceLibrary)
+        // Which providers are live may have just changed, so what the shelves
+        // draw from has too.
+        Task { await refreshLibrary() }
+    }
+
+    /// Fills or empties the heart. Returns a message on failure, `nil` on
+    /// success — the same contract a parent&#x27;s list edit keeps, and for the same
+    /// reason: a heart that fills over a write that did not land is a lie.
+    ///
+    /// A refusal is **not** a failure to report. The engine turned it down, the
+    /// block goes to the parent&#x27;s report, and the kid is told nothing: the item
+    /// was on their screen because a policy edit landed between the draw and the
+    /// tap, and there is nothing they did wrong to explain.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-04-194Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-04-194Z" class="timestamp-link"><time datetime="2026-09-02T15:46:04.194Z" data-timestamp="2026-09-02T15:46:04.194Z">2026-09-02T15:46:04.194Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-07-866Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-07-866Z" class="timestamp-link"><time datetime="2026-09-02T15:46:07.866Z" data-timestamp="2026-09-02T15:46:07.866Z">2026-09-02T15:46:07.866Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01HEDJE9Uzv6dosL5hag8ttx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check whether favoriting logs an event and how provider writes merge</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/musicbox; echo &#39;---- Session favorite path&#39;; awk &#39;/func toggleFavorite|func addFavorite|func favorite\(/,/^    }$/&#39; Apps/AuralSandbox/AuralSandbox/Session.swift | head -80; echo &#39;---- eventLog calls near favorite&#39;; grep -n &#34;eventLog\.\(log\|record\)&#34; Apps/AuralSandbox/AuralSandbox/Session.swift | head -30; echo &#39;---- write helper + merge&#39;; sed -n 477,570p Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-09-326Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-09-326Z" class="timestamp-link"><time datetime="2026-09-02T15:46:09.326Z" data-timestamp="2026-09-02T15:46:09.326Z">2026-09-02T15:46:09.326Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>---- Session favorite path
+    func toggleFavorite(_ item: CatalogItem, origin: PlaybackOrigin) async -&gt; String? {
+        do {
+            if isFavorite(item.id) {
+                try await library.removeFavorite(item.id)
+            } else {
+                try await library.addFavorite(item)
+                // Started here and **not awaited**: keeping an artist means
+                // keeping their work, and finding all of it is fifty round trips.
+                // The heart is already safe by this line; the rest fills in while
+                // the kid carries on using the app.
+                expand(item)
+            }
+        } catch let refusal as LibraryRefused {
+            // They tapped the heart.
+            log(
+                refusal.item,
+                blockedFor: BlockReason(refusal.reason),
+                reach: .reached,
+                origin: origin
+            )
+            await refreshLibrary()
+            return nil
+        } catch {
+            return Self.kidMessage(for: error)
+        }
+        await refreshLibrary()
+        return nil
+    }
+---- eventLog calls near favorite
+1351:        eventLog.log(
+2243:        eventLog.log(
+2286:        eventLog.log(
+---- write helper + merge
+    // MARK: - Applying a write
+
+    /// Never edits a playlist we did not create — `appleIsOurs` decides.
+    private func edit(
+        _ handle: PlaylistHandle,
+        _ body: (any LibraryProvider) async throws -&gt; Void
+    ) async throws {
+        let row = await playlist(handle)
+        for provider in liveProviders {
+            guard mayEdit(row, with: provider) else { continue }
+            try await write(to: provider) { try await body($0) }
+        }
+    }
+
+    private func mayEdit(_ row: PlaylistRow?, with provider: any LibraryProvider) -&gt; Bool {
+        guard provider.id != .cloudKit else { return true }
+        guard let row, row.handle.appleLibraryID != nil else { return false }
+        if row.appleIsOurs {
+            return provider.capabilities.contains(.editOwnPlaylists)
+        }
+        return provider.capabilities.contains(.editForeignPlaylists)
+    }
+
+    /// Our store is awaited; other providers are dropped, the union hides the gap.
+    private func write(
+        to provider: any LibraryProvider,
+        _ body: (any LibraryProvider) async throws -&gt; Void
+    ) async throws {
+        if provider.id == .cloudKit {
+            try await body(provider)
+        } else {
+            try? await body(provider)
+        }
+    }
+
+    // MARK: - Merging and judging
+
+    /// Favorites unioned by id — a failed Apple write costs nothing visible.
+    private func mergedFavoriteRows() async -&gt; [FavoriteRow] {
+        var merged: [CatalogID: FavoriteRow] = [:]
+        for provider in readableProviders {
+            guard let rows = try? await provider.favorites() else { continue }
+            for row in rows where merged[row.catalogID] == nil {
+                merged[row.catalogID] = row
+            }
+        }
+        return merged.values.sorted { $0.favoritedAt &gt; $1.favoritedAt }
+    }
+
+    /// What a row knows about itself without the catalog&#x27;s help.
+    private struct Stored {
+        let id: CatalogID
+        let name: String
+        let artworkURL: URL?
+
+        /// Copied at write time so artist and album columns fold with no request.
+        var ancestry: LibraryAncestry = .none
+
+        /// Write-time copy; what a shelf draws when the catalog can&#x27;t answer.
+        var fallback: CatalogItem {
+            CatalogItem(id: id, title: name, artworkURL: artworkURL)
+        }
+    }
+
+    /// Every library row deduped; favorites first, so their artwork wins.
+    private func mergedRows() async -&gt; [Stored] {
+        var stored: [Stored] = []
+        var seen: Set&lt;CatalogID&gt; = []
+        for row in await mergedFavoriteRows() where seen.insert(row.catalogID).inserted {
+            stored.append(
+                Stored(
+                    id: row.catalogID,
+                    name: row.displayName,
+                    artworkURL: row.artworkURL,
+                    ancestry: row.ancestry
+                )
+            )
+        }
+        for playlist in await playlists() {
+            for entry in playlist.entries where seen.insert(entry.catalogID).inserted {
+                stored.append(
+                    Stored(
+                        id: entry.catalogID,
+                        name: entry.displayName,
+                        artworkURL: entry.artworkURL,
+                        ancestry: entry.ancestry
+                    )
+                )
+            }
+        }
+        return stored
+    }
+
+    /// Resolves and judges rows; an unreachable catalog judges bare identifiers.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-12-224Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-12-224Z" class="timestamp-link"><time datetime="2026-09-02T15:46:12.224Z" data-timestamp="2026-09-02T15:46:12.224Z">2026-09-02T15:46:12.224Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-12-460Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-12-460Z" class="timestamp-link"><time datetime="2026-09-02T15:46:12.460Z" data-timestamp="2026-09-02T15:46:12.460Z">2026-09-02T15:46:12.460Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01FzWTDoPDC3Xhzm6Xbo4w8L"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;select:mcp__wiki__search,mcp__wiki__getPage&#34;,
+  &#34;max_results&#34;: 2
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-12-473Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-12-473Z" class="timestamp-link"><time datetime="2026-09-02T15:46:12.473Z" data-timestamp="2026-09-02T15:46:12.473Z">2026-09-02T15:46:12.473Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__wiki__search&quot;
+}</pre><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__wiki__getPage&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-15-217Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-15-217Z" class="timestamp-link"><time datetime="2026-09-02T15:46:15.217Z" data-timestamp="2026-09-02T15:46:15.217Z">2026-09-02T15:46:15.217Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-16-216Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-16-216Z" class="timestamp-link"><time datetime="2026-09-02T15:46:16.216Z" data-timestamp="2026-09-02T15:46:16.216Z">2026-09-02T15:46:16.216Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01STa9i4HV83WAA7YapXt9oo"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__wiki__search</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;Apple Music provider\&#34; OR \&#34;LibraryProvider\&#34; OR \&#34;MusicLibraryRequest\&#34;&#34;,
+  &#34;workspaceId&#34;: &#34;ws:ms3de17i-0024-ik1oty&#34;,
+  &#34;limit&#34;: 8
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-17-763Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-17-763Z" class="timestamp-link"><time datetime="2026-09-02T15:46:17.763Z" data-timestamp="2026-09-02T15:46:17.763Z">2026-09-02T15:46:17.763Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>- The Kid&#x27;s Library (spec-restatement) spec-restatement:ms4lu92o-01op-x3xmw
+    seam in first.
+
+**Stage 2 — the **Apple** **Music** **provider**, writing.**
+
+- Ships: `isSharedDevice` as a real toggle…design**. Each changes only what the **Apple** **Music** **provider** turns out to be capable of, and a capability
+- What We Know About MusicKit (document) document:ms3de6rj-0028-3cfe24
+    against a real account.
+
+- `**MusicLibraryRequest** ` and `**MusicLibraryRequest** ` both exist and take `.limit`, alongside the ` ` and ` ` requests already…codes, not because the other requests were missing.
+- `**MusicLibraryRequest** ` accepts `filter(matching: \.id, equalTo: MusicItemID(...))`, which
+- Parent Review (spec-restatement) spec-restatement:ms4rf5kn-0247-o5nosn
+    **provider** is always live and synchronous. The **Apple** **Music** **provider** needs authorization, a subscription and `isSharedDevice == false`; when
+- Build and Release Setup (spec-restatement) spec-restatement:ms3e99as-00jv-ox5kbe
+    weeks. The packages declared iOS 15 while using `**MusicLibraryRequest**` (iOS 16) and committing to SwiftData (iOS 17). Nothing</pre><pre>[
+  {
+    &quot;workspaceId&quot;: &quot;ws:ms3de17i-0024-ik1oty&quot;,
+    &quot;pageId&quot;: &quot;spec-restatement:ms4lu92o-01op-x3xmw&quot;,
+    &quot;title&quot;: &quot;The Kid&#x27;s Library&quot;,
+    &quot;type&quot;: &quot;spec-restatement&quot;,
+    &quot;status&quot;: &quot;restated&quot;,
+    &quot;snippet&quot;: &quot;seam in first.\n\n**Stage 2 — the **Apple** **Music** **provider**, writing.**\n\n- Ships: `isSharedDevice` as a real toggle…design**. Each changes only what the **Apple** **Music** **provider** turns out to be capable of, and a capability&quot;,
+    &quot;rank&quot;: 0.08798605
+  },
+  {
+    &quot;workspaceId&quot;: &quot;ws:ms3de17i-0024-ik1oty&quot;,
+    &quot;pageId&quot;: &quot;document:ms3de6rj-0028-3cfe24&quot;,
+    &quot;title&quot;: &quot;What We Know About MusicKit&quot;,
+    &quot;type&quot;: &quot;document&quot;,
+    &quot;status&quot;: &quot;active&quot;,
+    &quot;snippet&quot;: &quot;against a real account.\n\n- `**MusicLibraryRequest** ` and `**MusicLibraryRequest** ` both exist and take `.limit`, alongside the ` ` and ` ` requests already…codes, not because the other requests were missing.\n- `**MusicLibraryRequest** ` accepts `filter(matching: \\.id, equalTo: MusicItemID(...))`, which&quot;,
+    &quot;rank&quot;: 0.06785907
+  },
+  {
+    &quot;workspaceId&quot;: &quot;ws:ms3de17i-0024-ik1oty&quot;,
+    &quot;pageId&quot;: &quot;spec-restatement:ms4rf5kn-0247-o5nosn&quot;,
+    &quot;title&quot;: &quot;Parent Review&quot;,
+    &quot;type&quot;: &quot;spec-restatement&quot;,
+    &quot;status&quot;: &quot;restating&quot;,
+    &quot;snippet&quot;: &quot;**provider** is always live and synchronous. The **Apple** **Music** **provider** needs authorization, a subscription and `isSharedDevice == false`; when&quot;,
+    &quot;rank&quot;: 0.054849166
+  },
+  {
+    &quot;workspaceId&quot;: &quot;ws:ms3de17i-0024-ik1oty&quot;,
+    &quot;pageId&quot;: &quot;spec-restatement:ms3e99as-00jv-ox5kbe&quot;,
+    &quot;title&quot;: &quot;Build and Release Setup&quot;,
+    &quot;type&quot;: &quot;spec-restatement&quot;,
+    &quot;status&quot;: &quot;restating&quot;,
+    &quot;snippet&quot;: &quot;weeks. The packages declared iOS 15 while using `**MusicLibraryRequest**` (iOS 16) and committing to SwiftData (iOS 17). Nothing&quot;,
+    &quot;rank&quot;: 0.04607805
+  }
+]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-19-776Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-19-776Z" class="timestamp-link"><time datetime="2026-09-02T15:46:19.776Z" data-timestamp="2026-09-02T15:46:19.776Z">2026-09-02T15:46:19.776Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01LwhVGtFuwWwAC7upYg2We5"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;select:mcp__wiki__renderPage&#34;,
+  &#34;max_results&#34;: 1
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-19-784Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-19-784Z" class="timestamp-link"><time datetime="2026-09-02T15:46:19.784Z" data-timestamp="2026-09-02T15:46:19.784Z">2026-09-02T15:46:19.784Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;mcp__wiki__renderPage&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-22-716Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-22-716Z" class="timestamp-link"><time datetime="2026-09-02T15:46:22.716Z" data-timestamp="2026-09-02T15:46:22.716Z">2026-09-02T15:46:22.716Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-22-726Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-22-726Z" class="timestamp-link"><time datetime="2026-09-02T15:46:22.726Z" data-timestamp="2026-09-02T15:46:22.726Z">2026-09-02T15:46:22.726Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01L8stpoJcCuQN49AXaZ2yyV"><div class="tool-header"><span class="tool-icon">⚙</span> mcp__wiki__renderPage</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;workspaceId&#34;: &#34;ws:ms3de17i-0024-ik1oty&#34;,
+  &#34;pageId&#34;: &#34;spec-restatement:ms4lu92o-01op-x3xmw&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-24-508Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-24-508Z" class="timestamp-link"><time datetime="2026-09-02T15:46:24.508Z" data-timestamp="2026-09-02T15:46:24.508Z">2026-09-02T15:46:24.508Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Error: result (73,943 characters) exceeds maximum allowed tokens. Output has been saved to /Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-musicbox/852cb9c2-f834-4345-b48d-95745e453e1f/tool-results/mcp-wiki-renderPage-1788363984506.txt.
+Format: JSON array with schema: [{type: string, text: string}]
+Use offset and limit parameters to read specific portions of the file, search within it for specific content, and jq to make structured queries.
+REQUIREMENTS FOR SUMMARIZATION/ANALYSIS/REVIEW:
+- You MUST read the content from the file at /Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-musicbox/852cb9c2-f834-4345-b48d-95745e453e1f/tool-results/mcp-wiki-renderPage-1788363984506.txt in sequential chunks until 100% of the content has been read.
+- If you receive truncation warnings when reading the file, reduce the chunk size until you have read 100% of the content without truncation.
+- Before producing ANY summary or analysis, you MUST explicitly describe what portion of the content you have read. ***If you did not read the entire content, you MUST explicitly state this.***
+- If after a few attempts you cannot read the file (file not found, lines too long for Read&#x27;s offset/limit, no shell access), STOP retrying. Summarize what you were able to read, explicitly state which portion you could not read and why, and proceed.
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-26-541Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-26-541Z" class="timestamp-link"><time datetime="2026-09-02T15:46:26.541Z" data-timestamp="2026-09-02T15:46:26.541Z">2026-09-02T15:46:26.541Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Reading the Kid's Library spec for the parts about the Apple Music provider and the two-stores relationship.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-31-000Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-31-000Z" class="timestamp-link"><time datetime="2026-09-02T15:46:31.000Z" data-timestamp="2026-09-02T15:46:31.000Z">2026-09-02T15:46:31.000Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01HZUDjZTQ8eYCYdncKfkiPK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Extract spec outline and Apple provider passages</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">f=/Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-musicbox/852cb9c2-f834-4345-b48d-95745e453e1f/tool-results/mcp-wiki-renderPage-1788363984506.txt; jq -r &#39;.[0].text&#39; &#34;$f&#34; &gt; /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-musicbox/852cb9c2-f834-4345-b48d-95745e453e1f/scratchpad/kidlib.md; cd /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-musicbox/852cb9c2-f834-4345-b48d-95745e453e1f/scratchpad; wc -l kidlib.md; grep -n &#34;^#&#34; kidlib.md; echo &#39;---- two stores / apple provider passages&#39;; grep -n -i &#34;two stores\|apple music provider\|real library\|write-through\|written to apple\|both stores\|Stage [0-9]\|already in the library\|event&#34; kidlib.md | head -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-32-735Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-32-735Z" class="timestamp-link"><time datetime="2026-09-02T15:46:32.735Z" data-timestamp="2026-09-02T15:46:32.735Z">2026-09-02T15:46:32.735Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     444 kidlib.md
+1:# The Kid&#x27;s Library
+5:## Sections
+6:### Motivation
+9:### Overview
+12:### Disambiguation
+16:### The store interface
+32:### Data model &amp; types
+160:### Algorithm
+247:### Invariants &amp; limits
+271:### Failure &amp; concurrency semantics
+294:### Data dependencies
+305:### The dependency this feature is least sure of
+311:### A dependency that may not exist
+315:### Migration &amp; existing data
+336:### Staged plan
+363:### What this changes about rules already written
+366:### &quot;The user&#x27;s own library as a browsing source&quot; is no longer never
+384:### &quot;Yours&quot; stops meaning the allow list
+388:### A rule that does not move
+392:### The shared-device toggle
+409:### Where favorites and playlists appear
+426:### Open questions this opens
+435:### Not a question, but worth stating
+439:## Review
+442:## Open notes
+---- two stores / apple provider passages
+21:- **Apple Music** — the account&#x27;s real library, through MusicKit.
+266:- **Favorites and playlists are exempt from event retention.** Plays and searches are events and may roll into summaries; these are durable user data, deleted only by the kid or with the kid.
+322:**Existing plays are not backfilled into favorites.** The data is right there in `PlayEventRecord` and seeding from most-played would look generous. It would be wrong. A favorite is something a kid _said_, and manufacturing a hundred from a play log would put items on their shelf they never chose and then invite them to unfavorite things they never favorited. The library starts empty, and that emptiness is honest.
+334:**Retention must learn about these tables before retention ships.** Open question 6 weighs a 90-day rolling window on child event data. Whatever is chosen, these are **not** events and must be exempt (see Invariants &amp; limits). A sweep written against &quot;child data older than 90 days&quot; would delete a kid&#x27;s playlists silently, months later, and they are the records in the whole store with the most work in them.
+337:**Stage 1 — the seam, with one provider.**
+343:**Stage 2 — the Apple Music provider, writing.**
+349:**Stage 3 — reading back.**
+355:**Stage 4 — the report.**
+390:**The policy engine is still the single authority**, and nothing in this feature is a permission (see Invariants &amp; limits). Worth saying out loud because a library is exactly the kind of thing that grows into one by accident — &quot;it is in their library, so surely they can play it&quot; is a sentence someone will write eventually, and it is wrong. What is in the library and what a kid may play are two questions, and only one of them is the engine&#x27;s.
+427:Three, and **none of them gates the design**. Each changes only what the Apple Music provider turns out to be capable of, and a capability that provider lacks is one CloudKit still has (see Invariants &amp; limits). They are measurements that tune behaviour at the margins, not decisions the architecture waits on. All should reach _Open Questions and Research Tasks_ alongside the existing numbered list.
+Shell cwd was reset to /Users/benjaminjordan/projects/thegoldenmule/musicbox</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-35-582Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-35-582Z" class="timestamp-link"><time datetime="2026-09-02T15:46:35.582Z" data-timestamp="2026-09-02T15:46:35.582Z">2026-09-02T15:46:35.582Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-36-611Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-36-611Z" class="timestamp-link"><time datetime="2026-09-02T15:46:36.611Z" data-timestamp="2026-09-02T15:46:36.611Z">2026-09-02T15:46:36.611Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01QN3GNGUpn952FkiXjKBJJw">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read overview, staged plan, and library-source sections of the spec</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-musicbox/852cb9c2-f834-4345-b48d-95745e453e1f/scratchpad; sed -n &#39;9,31p;336,362p;366,408p&#39; kidlib.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T15-46-36-648Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T15-46-36-648Z" class="timestamp-link"><time datetime="2026-09-02T15:46:36.648Z" data-timestamp="2026-09-02T15:46:36.648Z">2026-09-02T15:46:36.648Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>### Overview
+A kid can **favorite** a song, an album or an artist, and can **build playlists** out of songs they are allowed to play.
+
+### Disambiguation
+
+The admin already reads a library: `LibrarySource`, the ISRC/UPC shortcut a parent uses to seed allow and deny lists from their own music. **That path is untouched and unrelated.** Nothing in this spec is called from the admin, and nothing in the admin is called from here.
+
+### The store interface
+
+We provide a simple store interface with multiple implementations for various scenarios.
+
+- **CloudKit** — our own records in the existing named zone.
+- **Apple Music** — the account&#x27;s real library, through MusicKit.
+
+`isSharedDevice`, in the admin, determines which if these is used.
+
+- **On** — Read from and write to CloudKit only. This is so that the kid does not alter the adult&#x27;s music library.
+- **Off** — Read from both (resulting in union), write to both.
+
+When both are live, a read is the union. CloudKit includes things Apple Music has no primitive for, and things that would not resolve.
+
+**Drift between the two is not reconciled.** If an Apple Music write fails, the item still appears on the kid&#x27;s shelf from CloudKit. Healing divergence is later work, to be done only if it turns out to matter.
+
+### Staged plan
+**Stage 1 — the seam, with one provider.**
+
+- Ships: `LibraryProvider`, `LibraryCapabilities`, the merged store, and `CloudKitLibraryProvider` — favorites on songs, albums and artists, plus playlist create, rename, reorder, add, remove and delete. The heart and the playlist UI. Local search over both. The allow-list rename. `liveProviders()` returns `[cloudKit]`.
+- Does not: touch MusicKit. No `MusicLibrary` call, no subscription needed, no toggle yet.
+- Exit test: a kid favorites an album and builds a playlist, force-quits, relaunches, and both are intact; a parent denies the artist and both vanish from the kid&#x27;s screens while the rows survive in the store. All provable against stubs with no network and no device — which is the point of putting the seam in first.
+
+**Stage 2 — the Apple Music provider, writing.**
+
+- Ships: `isSharedDevice` as a real toggle in the admin, and `AppleMusicLibraryProvider` with writes — favorites, playlist creation, editing of playlists we created, `appleIsOurs` recorded at creation. Its `capabilities` are set from what the framework actually offers, which is where questions 1 and 3 get answered: by building it rather than by a separate probe.
+- Does not: read the Apple library back. The kid&#x27;s shelf is still exactly the CloudKit provider, so the browsing-source rule is not yet amended.
+- Exit test: with the toggle off, a favorite and a playlist made in the app appear in the Music app on the same account; with it on, neither does. And **every capability the provider declines is invisible to the kid** — the shelf is identical whichever flags came back, which is the test that the seam is doing its job.
+
+**Stage 3 — reading back.**
+
+- Ships: the Apple provider&#x27;s reads, ISRC/UPC resolution, adoption of `origin: &quot;appleLibrary&quot;` rows, the merged shelf. This is the stage that amends &quot;the user&#x27;s own library is never a browsing source&quot;, and it ships with that amendment written into the Catalog and Search Layer spec rather than after it. Question 2&#x27;s number falls out of running it.
+- Does not: use `MusicLibrarySearchRequest`; search stays a local predicate over merged rows. Does not reconcile drift.
+- Exit test: a song added in the Music app appears on the kid&#x27;s shelf and survives a relaunch as a stored row — and an **explicit** song added in the Music app is filtered off the shelf by the engine and appears in the parent&#x27;s report as a block. The second half is the one that matters: it is the proof that opening this door did not open the other one.
+
+**Stage 4 — the report.**
+
+- Ships: favorites and playlists in the parent&#x27;s activity report, with one-tap widening to the allow list — the affordance the report already offers for blocks.
+- Does not: notify. There is no push story and a favorite is not urgent.
+- Exit test: a week of a kid&#x27;s favorites and playlist names reads as something a parent recognises.
+
+**Not staged: reconciling drift.** Deliberately absent from this plan. The union means the kid&#x27;s shelf is correct without it, and whether the Apple-side copy&#x27;s incompleteness matters is not knowable until the thing is in use. It is a later pass over the same seam and needs no schema change to add.
+
+### &quot;The user&#x27;s own library as a browsing source&quot; is no longer never
+
+The Catalog and Search Layer spec lists four MusicKit affordances deliberately never used, and this is one: _&quot;It is a seeding input only; nothing the kid sees is read from it.&quot;_ The reason was that the account&#x27;s library is unvetted — it is the parent&#x27;s music, and surfacing it hands a kid whatever is in it.
+
+That reason is exactly right for the case it describes and says nothing about a device whose library is the kid&#x27;s own. The rule becomes conditional rather than absolute:
+
+&gt; The user&#x27;s own library is not a browsing source **unless the library is the kid&#x27;s own**, which is what `isSharedDevice == false` asserts.
+
+And since that is the default, **the amendment is in force from first launch**. Three things carry the original protection into the new arrangement:
+
+1. Onboarding asks before the Apple provider&#x27;s first read, so a parent has said which case this device is in before anything is read at all.
+2. The policy engine still judges every item read back. Even a kid&#x27;s own library is filtered — an explicit song added in the Music app is blocked on the shelf and reported to the parent.
+3. The read happens only through the provider seam, so there is exactly one place where the door opens rather than a call site per screen.
+
+**The clause this does not touch** is the one about the admin. The library as a _seeding input_ for a parent building lists is unchanged, still `LibrarySource`, still ISRC/UPC matching, and no part of it runs through anything in this spec.
+
+The other three never-used affordances are untouched: no personalized recommendations, no autoplay past the end of a queue, no radio or stations.
+
+### &quot;Yours&quot; stops meaning the allow list
+
+A visible-string change with no data behind it, noted because it is not cosmetic. On a level 1 home screen &quot;Yours&quot; currently labels the list a parent built. Once a kid has favorites and playlists of their own, that word describes those, and leaving it on the allow list would be the app telling a kid that someone else&#x27;s choices are their own.
+
+### A rule that does not move
+
+**The policy engine is still the single authority**, and nothing in this feature is a permission (see Invariants &amp; limits). Worth saying out loud because a library is exactly the kind of thing that grows into one by accident — &quot;it is in their library, so surely they can play it&quot; is a sentence someone will write eventually, and it is wrong. What is in the library and what a kid may play are two questions, and only one of them is the engine&#x27;s.
+
+### The shared-device toggle
+One switch in the admin, behind the passcode, worded for the question it actually asks.
+
+**What it means.** Not &quot;do several people use this iPad&quot; but _&quot;is the Apple Music library on this device this kid&#x27;s own?&quot;_ Those come apart in the case the narrower wording misses: a hand-me-down phone only the kid uses, still signed in to a parent&#x27;s Apple Account. One user, one device, someone else&#x27;s library.
+
+**Off (the default) — both providers.** Read from both and write to both, with CloudKit expanding whatever Apple Music returns. This is the case the feature exists for and the one most families are in.
+
+**On — CloudKit only.** Read nothing from Apple Music, write nothing to it. The kid still gets favorites, playlists, a shelf and search over all of it, because CloudKit is always live.
+
+**The default is safe because of when the question is asked, not because of which way it points.** Onboarding puts it before the Apple provider&#x27;s first read, so a parent decides while there is still nothing adopted (see Migration &amp; existing data). A default that had to survive being wrong for weeks would have to be the other one; a default that only covers &quot;the question was somehow never answered&quot; can be the useful one.
+
+**Why it is a question and not a detection.** The app could fingerprint the signed-in iCloud account, but that identifies _which_ account, never _whose_ — and the iCloud account is not necessarily the account library writes reach. A parent knows the answer with certainty and can be asked once. Anything inferred would be a guess wearing the costume of a fact, which is the failure mode this codebase avoids everywhere else.
+
+**What it says in onboarding.** Plain words, consequence stated both ways: leave it off and the kid&#x27;s favorites and playlists become real Apple Music library objects that follow them to their account, and whatever is already in that library becomes theirs here; turn it on and everything lives in this app instead. Changeable whenever — turning it off later adopts the library at that point rather than losing anything.
+
+**It never appears on the kid&#x27;s side**, in any form. No indicator, no reduced-functionality message, no difference a kid could notice beyond what is on their shelf.
+Shell cwd was reset to /Users/benjaminjordan/projects/thegoldenmule/musicbox</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-40-659Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-40-659Z" class="timestamp-link"><time datetime="2026-09-02T15:46:40.659Z" data-timestamp="2026-09-02T15:46:40.659Z">2026-09-02T15:46:40.659Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-46-40-662Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-46-40-662Z" class="timestamp-link"><time datetime="2026-09-02T15:46:40.662Z" data-timestamp="2026-09-02T15:46:40.662Z">2026-09-02T15:46:40.662Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;server_tool_use&quot;,
+  &quot;id&quot;: &quot;srvtoolu_01WzUspYMGaLx2ZoQCo9gK9r&quot;,
+  &quot;name&quot;: &quot;advisor&quot;,
+  &quot;input&quot;: {}
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-47-47-232Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-47-47-232Z" class="timestamp-link"><time datetime="2026-09-02T15:47:47.232Z" data-timestamp="2026-09-02T15:47:47.232Z">2026-09-02T15:47:47.232Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;advisor_tool_result&quot;,
+  &quot;tool_use_id&quot;: &quot;srvtoolu_01WzUspYMGaLx2ZoQCo9gK9r&quot;,
+  &quot;content&quot;: {
+    &quot;type&quot;: &quot;advisor_redacted_result&quot;,
+    &quot;encrypted_content&quot;: &quot;Et8YCioIExgCIiQ4NDA4Njc4Zi00YTAwLTQ3YjAtYWRiYy04NmNmYTFlMmY3MDASDISfh2V/tc1KZ9v6DBoMIkCpIsNPw7icL9BqIjAZQOKWSUcbvQXwmcgs9/IdlEzpx1EMFXcJ4cf+becn4gPzzKa6uOCkBYBQJeYEvc8q4hfBiU5LqiWBeZBLp7CeC3tLQGbSrX1x+ixFFk8Ud6/Lb/jlvx2sGRoWcDhE4Q2WO3XRYvghk+MTFuJj2kDor+ifOqFpa9Te11Sg7h82zHR6rzsPXjkGr3MyxwWaHGRt7eAYea8tLKo1ysAAM8bntYfw/SWn3vuQt92PuW+HNWhieyOG6QtbYrkO9xoQFAs8lGauzDMPK2NBTyJQvVlCZ24NkLT0hTzvKeorbNW/aCeujGb+vuGO9bI15gxSE+ckzUBs1m8JjjBOx4b4T8IBFvCnmb08Y505Ss0NbXGv8ev/VRrQi2x1Qe1PkyU3fKuwHWiWVOCP3jKxjIi/mzycqbfPXRZPLDiZlXIDkIjr/MRO155Cm6iu7ytQAguU/d6tBVfMvZ+kG62tjkcDzOfXh5hjYI1Tf85N+LN01EQ5Y3cR8FJCamuk76XHGCH1u+5qpd7D07hzCYpOJPQTzvk0XG9b+dHEPQjxkqdep8MKGLRb4NzG0hiY5CtXlBjmsnQn9YGGsGJxa6NDLgOBoXHaY7qTDaR6Z05O+IFiA8avu+STCI+OcSbxcjqAr/SxqOKEohOCGuCkogRAx4ptR6rVGlZpVYs0dW1ldo6wgpGlZUUuZwdD4Gs9syY+7f4ut01pWcXqL7vS944xg1bTEt4ZtbyGt0FwlIDkoPosTbmcZY3kxOXMURmoVjx07wDORpF9RuRCYwL/1uQofOCm4zqtlBGwUjoBsy3EqwV5VpHBnVL8ankV1LpQW8At/8yqbbYHAij30r60f4zQ+jFL/0mzn5a52O6NSQtZhBag5BeaGbS48nzMUAgxuJEw8nhygxKuOXLvEGA+Ss8K82DfCtmEg8gNM4MdhbsXUEJvR615P1xuBEWriqjz+pSvChyecRY8AlP7KB9GQZQ/2pWhluV1+cyB7GG7qnDcSVxW2tboIYUH4Y5+2NoQR+M8qD3UO+asHt1Wgt5FujZxvHIvnUdvD/6CUcb5LeUM5FEJTIKPI0qtg3y2ab0C/IuKwcU5R7oJR5olPszd7nXpTI5cMKPF4hjS9+kWjAHuDIExJ31DLOliA9ngUHxezTkS6mT3TMR3W4jtlfGSO3jTVRMwGvrlmFpuNaEYSec8+S3juyCcf8P/XpoIFAuwP2wsVUPmwnMKyKmP/8RfiHbwjRnmdo5dXyShyl58sOCtm2dOpioLMzDIVT4IBokyRKEArYSMEVNkxSvP+dYiLI0sCdW1vsHey5jwhhwkGOJBty9k0fjza3wzjEMD/Y290maAcOteBk3R+nVoTIb/Asz/QVZ558L1Qd12u6ETVzE300tZwpc3bV1TQq3JG1NKuOuJIToQ9Pa25Q1TFgkcURt0INlZNINQWeQhdfiI0sDbzX97uFSF2H5n1pM4TkX/M87eq5x4LI82vVSzDoxHsrBRLe7Im58Cfmd3MCJZINIa4EEuzR1cK4K3L7NWz1Rz0F547Rk8WGtpGMCRw4PEMFi+vV4UmdHfyZlgllfpagyuxaf02SpiYU8P6JaatAv+ybNn0VAsW5O4xZNpVgVx92K6j5Umw62OrJ3+tMKOmcdge/3GRjnNu06B8WQA2AAxRy1/5KHIO5SWnOAjAGwcyfaDeG5f4MwSleX0mA81TtbyYrWy7F0DuOdN48iCYcz/yB5dFDRzKVlVv3l7qKYkYnsZ6LlxsnnLXDVc7P7h8pNF0ZpSnQvh9M2kaTWp6SqOd25tAr2CTY8NyoNNiDOYVz9P77T6P67qg8/BBS0ZFmzYb3zIcMWTB6KMkoyGaU/3lPFlgLkrQv3WWotcR0VGGFJFbelKTA6Qd24y35qtNx6+rsq8z2itpzVMHq/4ioLnCvBQL8RrG1Zuo5sEYqwb/s8PqQNCBDMC49Q1j6uL+lc7P9nY+n6UH0abpLMOHKSXupr3j3HrjX11fL6V6xQyS+3oFgYR+UX/4IXuHU0DsCWNtDrelFK8UIVplw2QMetC8VNNYfrbAQSdMEXK3Em6R75EWWqpCuL2ZGfbrBZwbS9BqvDl/qcDFuyT/Ur9dXe9xQ2OHAsrpMNjn5O2fqREDZO5wxZ7MuZ5nvSkHUDnOpGUe0A882HJZe+RTBD+xIQE/5HF43WMGCdB8rov3FwIvy42t7lUgh2hCSZPxZJKaF25CJRFXrp8XxJeu41L7FW1z44LO5fDd+JGi0/hPB6WF2I++l1DeoHydaeITiUKCxXiBRvTmudVUmrichROlvdiu6pE+E7wW6P4ZS8MBI+aCWFTxxvxjvhlAUpv4cIUPwdYrMl4TreFu61F6fFdBLe06rjJZQZHY2UDKPqhUQZM1Cx3f7vQJIDGS7nNPre/zryDcPXiw4jWWoIAaWU5/V+0YK2Amo9YPMpmuSNE9JMreB9AIxgVCMq9sl0o+qwyjH1EzSPmy+qgYSyV+cdahc9Vsqw3yRwumJ7VtECKzOjUr+1RxPlY1eBgZhivLtm3jF7dbZuBkHIGnyHbrZ9fKb7j6EUOKaxcqsjdNWqxbW8Rf35D23O3NJAdbPquTypKqq29BcYjsrBgg4kGLBuF8/x4ujWxOHXzDLYM/eyaIQ5DcR4+7zh1ZgWoZ2I5XYNrIgwXkQbMrI6tF6bniyfl5Yv5dMVq9tnx/V6iF1XsHLKzAIFMHuzKdv63ZYiWRys6qn+RldtA4klcIOE5AUruKtaFuVe1h9dGb9wQYJN0m+8Dyb6yF1wPriG9tDrOSrafaX7bSz3D0P0NfsLPtb9+YVBnd/iprL9339NOGAOxpspah8lqKsQrJz2+F1hh70rOQPDKXslRvZxvta5dR/WVG/KjrVo3EwKXLH1GOXRlv5/ukTPKIz7u2V256DxK8YAYqG8AsZshXmI+3RHb5BDzneY3twB+MqJGLjXlGibD1JTMqyK3qYHypGwPR0IXGChaFJIl+i9mN7mGqW5uruwuTj9LH4v7idWiOfbkNw7yrRrrnNJn0N7uMv/rljIbjyWY/kW8JYO9TmjtwLKZtTqd3BNpXhdPVC+9zjXKV3ZjpCmmlCEQfP8hS1RwBWOWiWO7CP15XBhPeJj2QiWIUMm512y6y9URFgUi6pRTlmYXrjnoMbZtTtcyU0VMMDVuSHUaWkxD4VqxART4Gac8dzLpx/HDbTQ9Zpcr420vBef2X9qqyTvA1OjIhn/biqXd99WpDWdbtpG9heVtYx0cQcNnedK2YO2ak3yactY+kISUw2ngyuBnDRvQxd1Yol8qUkZ3gykBsy3YRWp8qOG2qr1hmgPuYYDP/Z1e013/JmRxYW9PuHy6CjssoSaDmP/Kj6FlLhIjTqh5HHKiGtzqir3cIPeGMGtzCgJ/2MSb5VsumGyi+HvwddbcO76WvWn9DskUrZVAi2G9Tcmnd7lvbdfir95Xrlv081ZO/d9FQHHWJpymMqumbnfQPtQr0gjgLCFmVGgktEmuT7awfMknuaP/XojwOqlV4vK/ap5/eF9yiXUKjD/3VuS7RXEPWeE3KDC6ZtufoMV5tdjQMFjR1GhlY2qB/Z3VCXpwzdtFG0Xq7wD4CbStRSgQAfPfqDk4e8eCKWiPy7apMcdPEmyYaaVZHeUvF6rq7ORrOiOV5Im2kdI7FP44R54oHV08H9bx6sYGsikUy0zLUXpqr/n5czZuV3UWKrJpCC+mAWM0c6JpI5fLcczbi2h/crQbxA8BrL+l+Z0Cv+9oXnyDwwEuvhypyiDRPrT8gmPYK3D8XzXZsOTEtt0FXSbbpcd6pMTJFBnD+HDpsRduRvKjVpuVMXW6uYlqfyJOyg2fqEqFEGgswEkAM4KYkNxHSwuaJQokSWydURylIJQnCGayauZWljXLt/XRUA6UfyTy6qfxAH9LXyBHJ/0jyUqADMrDoFCowNFdmf8XHh4kwmXi+qNzLC6qwEzoPk9uQly1Ix92fWR02kGpoIC/z9zyYCMNQ4eXyBbvB224K0glmTQigQOA8Fk+ZMhJJmdqzX3by13SQCGcZ/TqqZVDsoIJyFjN5iJ1IAG35WxgpPubdtowqBanHJs76qQHV5YWYBRv38p/FoO+9vwpslxYkFV3qzJhklFvWYUYCQ==&quot;
+  }
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-47-51-039Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-47-51-039Z" class="timestamp-link"><time datetime="2026-09-02T15:47:51.039Z" data-timestamp="2026-09-02T15:47:51.039Z">2026-09-02T15:47:51.039Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Your mental model is close but has one wrong piece, and the two Apple Music questions both answer "not yet, by design."</p>
+<p><strong>Favoriting is not an event.</strong> A heart tap writes a durable <code>FavoriteRecord</code> row, defined at <code>Packages/FamilyStore/Sources/FamilyStore/Models/LibraryRecords.swift:7</code>. Playlists and their entries are rows of the same kind. The store really has three categories, not two:</p>
+<ul>
+<li><strong>Events</strong>: plays, searches, visits, blocks. These are the write model, and they are what retention will sweep.</li>
+<li><strong>Projections over events</strong>: the Recent trail and the weekly summary. Rebuildable.</li>
+<li><strong>Durable user data</strong>: favorites, playlists, playlist entries, and the library index. The spec says these are explicitly not events and must be exempt from any retention window.</li>
+</ul>
+<p>The only event near a heart tap is a <code>BlockEventRecord</code>, written when the engine refuses the favorite. A favorite is also never a permission. Every row is judged at render time, so a parent denying an artist empties the shelf while the rows stay on disk.</p>
+<p><strong>Does the kid's real Apple Music library show up in the app? Not today.</strong> The seam exists: <code>LibraryProvider</code> has two IDs, CloudKit and Apple Music, and <code>MergedLibrary</code> unions whatever providers are live. But Session wires exactly one provider, <code>CloudKitLibraryProvider</code>, at <code>Apps/AuralSandbox/AuralSandbox/Session.swift:585</code>. There is no Apple Music provider implementation anywhere in the repo. Note that "CloudKit" here means our own rows in the family's iCloud zone, not the Apple Music library. Reading the real library is Stage 3 of the spec's plan, gated on the parent answering that the library is the kid's own, with every item read back judged by the engine and reported if blocked.</p>
+<p><strong>Does favoriting in the app add to the Apple Music library? Also not today.</strong> The fan-out is written, at <code>Packages/KidLibrary/Sources/KidLibrary/MergedLibrary.swift:396</code>. It writes to every live provider that declares the capability for that item kind. Only CloudKit is registered, so only our row is written. That write-through is Stage 2, which lands before the read-back stage.</p>
+<p>When both stages ship, the design is: CloudKit write awaited and surfaced on failure, Apple write attempted and silently dropped on failure, reads unioned so the shelf hides any drift, and drift deliberately never reconciled. Which item kinds the Apple provider can favorite is left to the <code>LibraryCapabilities</code> option set, set from what MusicKit actually offers when it is built. The spec hedges on purpose there.</p>
+<p>One related thing that looks like library data but is not: favoriting an artist kicks off <code>expand</code>, which walks that artist's catalog into <code>LibraryIndexRecord</code> rows so the browser has albums and songs to draw. That comes from the catalog, not from any library, and it fills no hearts.</p>
+<p>The parent's seeding path, <code>LibrarySource</code>, is a separate seam that does read the adult's library for ISRC and UPC matching. It is deliberately not a <code>LibraryProvider</code> and nothing the kid sees comes from it.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T15-47-51-203Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T15-47-51-203Z" class="timestamp-link"><time datetime="2026-09-02T15:47:51.203Z" data-timestamp="2026-09-02T15:47:51.203Z">2026-09-02T15:47:51.203Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T15-47-54-618Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T15-47-54-618Z" class="timestamp-link"><time datetime="2026-09-02T15:47:54.618Z" data-timestamp="2026-09-02T15:47:54.618Z">2026-09-02T15:47:54.618Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Favoriting writes a durable row, not an event. The Apple Music library is not read from or written to today. Both directions are planned stages behind a provider seam that currently has one implementation, our own CloudKit store.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

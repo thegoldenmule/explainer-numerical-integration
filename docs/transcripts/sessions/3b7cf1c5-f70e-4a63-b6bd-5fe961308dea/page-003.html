@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 3</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 3/8</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-004.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-02T20-26-47-901Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-26-47-901Z" class="timestamp-link"><time datetime="2026-09-02T20:26:47.901Z" data-timestamp="2026-09-02T20:26:47.901Z">2026-09-02T20:26:47.901Z</time></a></div><div class="message-content">
+<div class="user-content"><p>is there any content or pages that can be built in parallel to the shared code?</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-27-05-174Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-27-05-174Z" class="timestamp-link"><time datetime="2026-09-02T20:27:05.174Z" data-timestamp="2026-09-02T20:27:05.174Z">2026-09-02T20:27:05.174Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-27-12-349Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-27-12-349Z" class="timestamp-link"><time datetime="2026-09-02T20:27:12.349Z" data-timestamp="2026-09-02T20:27:12.349Z">2026-09-02T20:27:12.349Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes, two tracks are independent of the shared code and of the files the subagent is editing.</p>
+<p><strong>Prose.</strong> Every pane's <code>.html</code> fragment is plain HTML with MathML and depends on nothing in <code>shared/</code>. That is the bulk of the piece: 13 spine fragments plus about 25 side-pane fragments, all specified in idea.md's panel-by-panel entries and sourced from the two essays in <code>docs/reference/</code>. A writer could draft all of them now. The only fragments to skip until the subagent finishes are panels 1, 7, and 11, where it is writing placeholder prose.</p>
+<p><strong>Pure math modules.</strong> The third build group has new files that import only the existing math and do not touch what the subagent is changing: <code>forces.js</code> (force models and the M, C, K assembly), <code>modes.js</code> (modal decomposition), <code>adaptive.js</code> (the step controller), <code>sweep.js</code> (memoized parameter sweeps), and the <code>1/r²</code> expansion for <code>taylor.js</code>. Each ships with <code>node --test</code> coverage and needs no browser. <code>drag.js</code> and <code>bundle.js</code> are also safe as new files under <code>gfx/</code>.</p>
+<p><strong>What must wait.</strong> Anything editing <code>stability.js</code>, <code>plot2d.js</code>, <code>region-gl.js</code>, <code>index.html</code>, or <code>controls.css</code> will collide with the subagent, so <code>matrix2.js</code> (which moves helpers out of stability.js), the log-y and band-fill additions, and the store generalization should follow it. Interactive panes that need <code>trajectory</code>, <code>cplane</code>, <code>player</code>, or <code>livemath</code> also wait.</p>
+<p>If you want, I can launch two more agents now: one drafting the prose fragments and one building the pure math modules with tests.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-27-12-430Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-27-12-430Z" class="timestamp-link"><time datetime="2026-09-02T20:27:12.430Z" data-timestamp="2026-09-02T20:27:12.430Z">2026-09-02T20:27:12.430Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-27-16-381Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-27-16-381Z" class="timestamp-link"><time datetime="2026-09-02T20:27:16.381Z" data-timestamp="2026-09-02T20:27:16.381Z">2026-09-02T20:27:16.381Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes: all pane prose fragments (HTML with MathML, no code dependency, skip panels 1, 7, 11 for now) and the pure math modules <code>forces</code>, <code>modes</code>, <code>adaptive</code>, <code>sweep</code>, plus <code>drag.js</code> and <code>bundle.js</code> as new files with tests. Avoid <code>stability.js</code>, <code>plot2d.js</code>, <code>region-gl.js</code>, <code>index.html</code>, and <code>controls.css</code> until the current subagent finishes. I can launch a prose agent and a math agent now if you want.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-27-42-391Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-27-42-391Z" class="timestamp-link"><time datetime="2026-09-02T20:27:42.391Z" data-timestamp="2026-09-02T20:27:42.391Z">2026-09-02T20:27:42.391Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Launch both agents, prose and math. The prose agent should do its best to use wording straight from the articles.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-28-22-167Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-28-22-167Z" class="timestamp-link"><time datetime="2026-09-02T20:28:22.167Z" data-timestamp="2026-09-02T20:28:22.167Z">2026-09-02T20:28:22.167Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-28-22-903Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-28-22-903Z" class="timestamp-link"><time datetime="2026-09-02T20:28:22.903Z" data-timestamp="2026-09-02T20:28:22.903Z">2026-09-02T20:28:22.903Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Launching both now, scoped so neither touches the files the shared-code agent is working on.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-28-45-471Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-28-45-471Z" class="timestamp-link"><time datetime="2026-09-02T20:28:45.471Z" data-timestamp="2026-09-02T20:28:45.471Z">2026-09-02T20:28:45.471Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_011V8wNd1sejDKNyyKU5NH9s"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Draft pane prose from essays</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;You are working in /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration (git, branch main). Read CLAUDE.md, docs/idea.md in full (authoritative: the \&#34;Outline\&#34; and \&#34;Panel by panel\&#34; sections define every panel and pane), docs/plan.md (the pane contract), the two essays in docs/reference/ in full, app/shared/manifest.js (pane names and file names), app/panels/01-point-masses/spine.html and right.html (the fragment shape), and app/styles/base.css (typography and MathML sizing).\n\nGoal: write the prose fragment for every pane the manifest lists, except the ones another agent is building concurrently. Skip all of `panels/01-point-masses/`, `panels/07-finding-eigenvalues/spine.html`, and `panels/11-lets-break-it/spine.html`. Write everything else: spine.html for panels 2–6, 8–10, 12, 13; left.html and right.html (and `right-2.html`, `right-3.html` for panel 12) wherever the manifest lists that pane, including panel 7&#39;s and panel 11&#39;s side panes.\n\nWording: use the essays&#39; own words wherever the essay covers the point. Quote or closely paraphrase sentences from docs/reference/ rather than writing new explanations; the piece is an interactive edition of those essays, and the reader should recognize the text. Where a pane covers something the essays do not (most refreshers and drill-downs, per idea.md), write in the same plain, direct register, short paragraphs, no filler. Keep each spine fragment to what fits beside its visualization in one viewport (roughly 120–250 words); side panes similar. Each pane&#39;s prose should say what the reader can do in its visualization, using the beat idea.md describes (drag this, scrub that), in one sentence, since the interactive is what carries the concept. Panel 9&#39;s spine must point the reader to its right pane (the modal equation), which idea.md marks required.\n\nFormat: each file is an `&lt;article&gt;` fragment, no `&lt;html&gt;`/`&lt;body&gt;`, shaped like panel 1&#39;s: `&lt;h2&gt;` with the manifest title, a `&lt;div class=\&#34;prose\&#34;&gt;` with the paragraphs, then `&lt;div class=\&#34;viz\&#34;&gt;&lt;/div&gt;`. Math is native MathML only (`&lt;math&gt;` inline, `&lt;math display=\&#34;block\&#34;&gt;` for the displayed equations from the essays: the force sum, `M x&#39;&#39; + C x&#39; + K x = 0`, `x&#39; = λx`, the Euler update, `|1 + hλ| ≤ 1`, the RK4 polynomial, the implicit region, the Verlet update). Use `&lt;mi&gt;`, `&lt;mn&gt;`, `&lt;mo&gt;`, `&lt;msup&gt;`, `&lt;msub&gt;`, `&lt;mfrac&gt;`, `&lt;mrow&gt;`, `&lt;msqrt&gt;`; unicode minus and Greek letters. Every fragment must be well-formed XML so it can be checked mechanically: run `python3 -c \&#34;import xml.etree.ElementTree as E,sys; [E.parse(p) for p in sys.argv[1:]]\&#34; app/panels/*/*.html` and fix anything it rejects (use `&amp;amp;`, close every tag, no bare `&lt;`). Where a spine&#39;s formula will later show live numbers, mark the number with `&lt;mn data-var=\&#34;m\&#34;&gt;1&lt;/mn&gt;` style attributes for m, c, k, h, and derived quantities; a later binding module fills them.\n\nSo the page is readable end to end, add a stub `&lt;pane&gt;.js` next to each fragment you write, only where no `.js` exists yet: `export function mount(root) { root.append(Object.assign(document.createElement(&#39;p&#39;), { className: &#39;muted&#39;, textContent: &#39;Interactive not built yet.&#39; })); return { destroy() {} }; }` with a one-line comment that it is a stub. Never overwrite an existing `.js`.\n\nVerify in the browser: serve with `cd app &amp;&amp; python3 -m http.server 8765 --bind 127.0.0.1` in the background, then through the chrome-devtools MCP (navigate_page, take_screenshot, list_console_messages) open a sample of routes (`#/2`, `#/5`, `#/9/right`, `#/12/right/3`, `#/13/left`), confirm the prose renders with MathML typeset and nothing overflows the viewport, and that the console has no errors beyond 404s for panes you were told to skip. If the MCP says its browser profile is in use, run `pkill -f \&#34;user-data-dir=/Users/benjaminjordan/.cache/chrome-devtools-mcp/chrome-profile\&#34;` and retry. Kill the server when done.\n\nCommit as you go with explicit paths (`git add app/panels/...`), never `git add -A`, since two other agents are committing to the same tree. Do not edit anything under app/shared/, app/styles/, app/index.html, or docs/. Commit message trailer:\nCo-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;\nClaude-Session: https://claude.ai/code/session_0142r8oCc11zC6eYW1x7Fisa\n\nReport back: the list of fragments written, which sentences are quoted verbatim from the essays versus new, any pane where idea.md and the essays disagree or where you lacked source material, and what you saw in the browser.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-28-47-043Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-28-47-043Z" class="timestamp-link"><time datetime="2026-09-02T20:28:47.043Z" data-timestamp="2026-09-02T20:28:47.043Z">2026-09-02T20:28:47.043Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: a3af8eff3274ea0b6 (internal ID - do not mention to user. Use SendMessage with to: &#x27;a3af8eff3274ea0b6&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives — do not report, assume, or predict them; continue other work or respond to the user in the meantime.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a3af8eff3274ea0b6.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-29-16-785Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-29-16-785Z" class="timestamp-link"><time datetime="2026-09-02T20:29:16.785Z" data-timestamp="2026-09-02T20:29:16.785Z">2026-09-02T20:29:16.785Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_014grnu7yG3qsDZe4oZ6z2wX"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Build pure math modules</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;You are working in /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration (git, branch main). Read CLAUDE.md, docs/idea.md in full (the \&#34;Shared code\&#34; section is your spec; the \&#34;Panel by panel\&#34; entries for 2, 4, 5, 6, 8, 9, 10, 11, 12, 13 are the consumers), docs/plan.md, and every file under app/shared/math/ and app/shared/gfx/plot2d.js.\n\nGoal: build the shared modules from idea.md&#39;s third build group that are pure and touch no file another agent is editing. Another agent is concurrently changing `shared/math/stability.js`, `shared/math/system.js`, `shared/gfx/plot2d.js`, `shared/gfx/region-gl.js`, `shared/ui/controls.js`, `shared/state.js`, `app/index.html`, and `app/styles/controls.css`, and building `shared/player.js`, `shared/gfx/stage.js`, `shared/gfx/trajectory.js`, `shared/gfx/cplane.js`, `shared/ui/livemath.js`, `shared/ui/transport.js`. Do not edit or create any of those. Do not edit docs/. Only `shared/math/integrators.js` may be edited, narrowly (below).\n\nBuild, each as a new file with a `*.test.js` beside it where Node can test it, committing after each with explicit `git add` paths (never `-A`):\n\n1. **`shared/math/forces.js`** (panels 2, 5, 2-right, 5-right). The force models from Part I of the essay and idea.md panel 5: constant wind, gravitation `G m₁ m₂ / r²` and its linear stand-in `m g`, drag `c v`, spring `k x`. Each model exposes its parameters with defaults, a `real(state)` and a `linear(state)` force, and an on/off flag; a scene is a plain object (a point mass with 2D position and velocity, plus a list of force instances) that a later scene store will hold. `netForce(scene, { linear })` sums the active forces, `assemble(scene) → { M, C, K }` sums the linearized coefficients so panel 5 can write them into the tuple&#39;s `m`, `c`, `k`. Test: a scene with drag `c` and spring `k` assembles to exactly those coefficients, and the linear gravity model equals the real one at the operating point.\n\n2. **`shared/math/modes.js`** (9-right, 10). For the first-order system `x&#39; = A x` with `A = systemMatrix(m, c, k)`: the complex eigenvectors (for eigenvalue λ the eigenvector is `(1, λ)`), projection of a state `(x, v)` onto the modes as complex coefficients, reconstruction back to `(x, v)`, and the scalar modal step `x_{i+1} = R(hλ) x_i` in complex arithmetic using `amplification` from stability.js (import it; do not edit stability.js). Test: project then reconstruct round-trips; for the underdamped demo parameters, iterating the modal step for Euler at h = 1/30 and reconstructing matches `createStepper`&#39;s x to a tight tolerance for the first few steps.\n\n3. **`shared/math/taylor.js`** (5-right, 12-left, 13-left). Real-valued series tools: coefficients and partial sums of `e^x` to degree n, the Taylor expansion of `1/r²` about an operating point `r₀` to n terms with an evaluator, and the local truncation error estimate of one step as the next Taylor term (for Euler, `h²/2 · |a|`; for order p, the general `h^{p+1}/(p+1)!` form times the derivative estimate you can get from the exact solution). The other agent is adding a complex `taylorAmplification(z, n)` to stability.js; do not duplicate it, and note the overlap in your report so the two can be consolidated later. Test: partial sums converge to `Math.exp`; the `1/r²` expansion matches to second order near `r₀`.\n\n4. **`shared/math/adaptive.js`** (13, 13-right). The variable-step controller idea.md panel 13 describes: a local error estimate per step (step doubling: one step of h against two of h/2, error ≈ their difference divided by `2^p − 1` for a method of order p), a controller that grows or shrinks h toward a target error with a safety factor and clamped growth (accept when error ≤ tol, otherwise reject and retry with the smaller h), and `runAdaptive({ method, tol, m, c, k, x0, v0, hInit, hMax, hMin }, tEnd) → { t, x, v, h, exact, rejected }` where `h[i]` is the step taken from `t[i]`. It needs to advance a stepper with a step size that changes every step; `createStepper` fixes `h` at creation. Add, narrowly, a way to do that in `integrators.js` (for example a `setH(h)` on the stepper that re-seeds Verlet&#39;s `xPrev` from its current backward difference) without changing any existing behavior or signature; keep its existing tests passing. Tests: with RK4, the essay parameters `m=10, c=0.1, k=10`, and tol = 0.01, h grows well past 1 s (record the maximum h reached in the test&#39;s assertion message and in your report; idea.md says the essay&#39;s controller reached 16 s, so report how close you get and why); with explicit Euler and the demo parameters the adaptive run stays bounded where the fixed h = 1/30 run explodes.\n\n5. **`shared/math/sweep.js`** (6-right, 8-right, 10-right, 11-right, 12-right-2, 13-right). `sweep(values, value =&gt; result, { key })` returning `[{ value, result }]`, memoized on a key derived from the current parameters so exploding h or the target error across a small range does not rerun every frame; `sweepRange(lo, hi, n, { log })` for building the value list. Test: the callback runs once per value per key and not again on a repeat call with the same key.\n\n6. **`shared/gfx/bundle.js`** and **`shared/gfx/drag.js`** (new files; Node cannot test them, so keep them small and obviously correct). `drawBundle(ctx, view, series, { highlight, color, dimAlpha, width })` draws `[{ xs, ys }]` through plot2d&#39;s `drawPolyline` with one index highlighted and the rest dimmed, with a cap (warn above 12 series, per idea.md&#39;s Victor caution). `createDragHandles(canvas, { handles, view, onMove, onEnd, signal, hitRadius })` does pointer capture and hit testing against `handles()` → `[{ id, x, y }]` in plot coordinates using `view().fromEvent`, calls `onMove(id, point, event)`, sets `data-grab` on the canvas&#39;s parent `.stage` (`&#39;active&#39;` while dragging), attaches every listener with `signal`, and never touches wheel events.\n\nRun `cd app &amp;&amp; node --test \&#34;shared/**/*.test.js\&#34;` after each module; all tests, including the pre-existing ones, must pass. Do not add the new modules to index.html&#39;s modulepreload list (another agent owns that file); list them in your report instead. Commit message trailer:\nCo-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;\nClaude-Session: https://claude.ai/code/session_0142r8oCc11zC6eYW1x7Fisa\n\nReport back: each module&#39;s exported API in one line, the narrow integrators.js change, the test count, the maximum adaptive h reached with the essay parameters and any numbers worth adding to idea.md&#39;s confirmations, the modules to add to modulepreload, and the taylor overlap to consolidate.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-29-18-241Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-29-18-241Z" class="timestamp-link"><time datetime="2026-09-02T20:29:18.241Z" data-timestamp="2026-09-02T20:29:18.241Z">2026-09-02T20:29:18.241Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: a8ef436434f63de46 (internal ID - do not mention to user. Use SendMessage with to: &#x27;a8ef436434f63de46&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives — do not report, assume, or predict them; continue other work or respond to the user in the meantime.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a8ef436434f63de46.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-29-24-088Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-29-24-088Z" class="timestamp-link"><time datetime="2026-09-02T20:29:24.088Z" data-timestamp="2026-09-02T20:29:24.088Z">2026-09-02T20:29:24.088Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Three agents are now running in parallel, each fenced to its own files:</p>
+<ul>
+<li><strong>Shared code</strong> (started earlier): stage, trajectory, player, region layers, cplane, livemath, plus spines for panels 7 and 11 as proof.</li>
+<li><strong>Prose</strong>: every pane fragment except panel 1 and the two spines above, quoting the essays wherever they cover the point, with stub scripts so the page reads end to end.</li>
+<li><strong>Math</strong>: forces, modes, taylor, adaptive, sweep, bundle, and drag handles, each with Node tests, and a narrow step-size setter in the integrators.</li>
+</ul>
+<p>All three commit with explicit paths to avoid clobbering each other. When each reports back I'll fold their findings into idea.md, the preload list, and CLAUDE.md, and consolidate the one known overlap (two Taylor helpers) once both sides exist.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-29-24-185Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-29-24-185Z" class="timestamp-link"><time datetime="2026-09-02T20:29:24.185Z" data-timestamp="2026-09-02T20:29:24.185Z">2026-09-02T20:29:24.185Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-29-27-843Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-29-27-843Z" class="timestamp-link"><time datetime="2026-09-02T20:29:27.843Z" data-timestamp="2026-09-02T20:29:27.843Z">2026-09-02T20:29:27.843Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Three agents running in parallel: shared code (stage, trajectory, player, region layers, cplane, livemath, plus panel 7 and 11 spines), prose (all pane fragments from the essays, with stub scripts), and math (forces, modes, taylor, adaptive, sweep, bundle, drag, with tests). Each is fenced to its own files and commits with explicit paths. I'll update the docs and preload list from their reports when they finish.</p></div></div></div>
+<div class="message user" id="msg-2026-09-02T20-44-12-273Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-02T20-44-12-273Z" class="timestamp-link"><time datetime="2026-09-02T20:44:12.273Z" data-timestamp="2026-09-02T20:44:12.273Z">2026-09-02T20:44:12.273Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>a8ef436434f63de46</task-id>
+<tool-use-id>toolu_014grnu7yG3qsDZe4oZ6z2wX</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/tasks/a8ef436434f63de46.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Build pure math modules" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>All seven modules are built, tested, and committed (8 commits, each by explicit pathspec, containing only my files). Suite: <strong>60 tests, 60 pass</strong> (25 pre-existing, 31 new from me, 4 from the other agent). Working tree clean.</p>
+<h2>Exported APIs</h2>
+<ul>
+<li><strong><code>app/shared/math/forces.js</code></strong> — <code>MODELS</code> (wind, gravity, drag, spring: <code>{ label, defaults, real(f, body), linear(f, body), coefficients(f) → { C, K } }</code>), <code>FORCE_TYPES</code>, <code>createForce(type, overrides)</code> → plain <code>{ type, on, ...params }</code>, <code>createScene({ m, x, v, forces })</code>, <code>forceOf(force, body, { linear })</code>, <code>netForce(scene, { linear })</code>, <code>acceleration(scene, opts)</code>, <code>assemble(scene) → { M, C, K }</code>, <code>gravityG(f)</code>. Gravity's linear model is the essay's <code>m g</code> with <code>g = G m₂/r²</code>, equal to the real force at the operating point (body at origin, attractor <code>r</code> below); constant forces contribute 0 to <code>C</code>, <code>K</code>. Drag and spring are already linear (real === linear).</li>
+<li><strong><code>app/shared/math/modes.js</code></strong> — <code>decompose(m, c, k) → { lambdas, vectors: [[1, λ]…], defective }</code>, <code>project(modes, x, v) → [a₁, a₂]</code> (complex; NaN when critical/defective), <code>reconstruct(modes, [a₁, a₂]) → { x, v }</code>, <code>modalFactors(method, h, modes)</code>, <code>modalStep(method, h, modes, coeffs)</code>, <code>simulateModal(params, tEnd) → { t, x, v, coefficients, magnitudes, modes }</code>. Test pins the modal iteration to <code>createStepper</code> at 1e-9 over 300 steps for Euler, RK4, implicit, in three regimes.</li>
+<li><strong><code>app/shared/math/taylor.js</code></strong> — <code>expCoefficients(n)</code>, <code>expPartialSum(x, n)</code>, <code>expTerms(x, n)</code>, <code>expPartialSums(x, n)</code>, <code>inverseSquareExpansion(r0, n) → { coefficients, terms(r), evaluate(r) }</code>, <code>derivatives(m, c, k, x, v, n)</code> (from the ODE recursion, exact in every regime), <code>truncationTerm(order, h, d)</code>, <code>localTruncationError({ m, c, k, x, v, h, order }) → { x, v, max }</code>.</li>
+<li><strong><code>app/shared/math/adaptive.js</code></strong> — <code>estimateByDoubling(stepper, h, order, norm)</code>, <code>estimateByTaylor(stepper, h, order, { m, c, k }, norm)</code>, <code>createController({ order, tol, safety, growMax, shrinkMin, hMin, hMax })</code>, <code>CONTROLLER_DEFAULTS</code>, <code>runAdaptive({ method, tol, m, c, k, x0, v0, hInit, hMax, hMin, estimate: 'doubling'|'taylor', norm: 'state'|'x', … }, tEnd) → { t, x, v, h, exact, error, n, rejected, forced, hPeak, attempts, complete, blewUp }</code>. <code>h[i]</code> is the step from <code>t[i]</code>; <code>h[n−1]</code> is the proposed next step. Rejected steps always retry at ≤ 0.9 h so the loop cannot stall.</li>
+<li><strong><code>app/shared/math/sweep.js</code></strong> — <code>sweep(values, fn, { key }) → [{ value, result }]</code> (same array reference on a hit; hit requires same key and same values; bounded LRU cache), <code>sweepRange(lo, hi, n, { log })</code>, <code>sweepKey(params)</code>, <code>createSweeper({ capacity })</code>, <code>nearestIndex(values, target)</code>, <code>clearSweeps()</code>.</li>
+<li><strong><code>app/shared/gfx/bundle.js</code></strong> — <code>drawBundle(ctx, view, series, { highlight, color, dimAlpha, width, dimWidth, dash })</code>, <code>MAX_SERIES = 12</code> (warns once, draws only the first 12).</li>
+<li><strong><code>app/shared/gfx/drag.js</code></strong> — <code>createDragHandles(canvas, { handles, view, onStart, onMove, onEnd, signal, hitRadius }) → { active() }</code>. Hit test in device pixels via <code>view().X/Y</code> against <code>(clientX − rect.left)·dpr</code>; sets <code>data-grab="active"</code> while dragging and <code>"hover"</code> over a handle (removed otherwise); null-safe when no <code>.stage</code> ancestor; leaves <code>touch-action</code> to the stylesheet owner; never touches wheel.</li>
+</ul>
+<h2>The integrators.js change (<code>app/shared/math/integrators.js</code>)</h2>
+<p><code>createStepper</code> is now a thin wrapper over a private <code>makeStepper(params, init)</code>; signature and behaviour unchanged, all 7 existing tests untouched. Additive: <code>get h()</code>, <code>setH(next)</code>, <code>clone()</code> (carries <code>x, v, t, xPrev</code>, <code>h</code>). For Verlet, <code>setH</code> rebuilds <code>x_{n−1}</code> as <code>x − h'·v(t) + h'²a/2</code> with <code>v(t) = (x − x_{n−1})/h + a·h/2</code> — the backward difference is the velocity at <code>t − h/2</code>, and a naive <code>x − v·h'</code> re-seed was off by <code>a·h/4</code> in velocity (2e-3 in x on the demo params). The consistent form is the old <code>x_{n−1}</code> exactly when <code>h' = h</code>, and makes one step of h agree with two of h/2 to fourth order (gap 6.5e-5 at h = 0.01, 4.4e-6 at 0.005).</p>
+<h2>Adaptive numbers (for idea.md's confirmations)</h2>
+<ul>
+<li><strong>RK4, essay <code>m=10, c=0.1, k=10</code>, tol 0.01, step doubling: h peaks at 2.10 s</strong>, median 1.81 s, 70 steps for 120 s, no rejections from hInit = 1/30, max global error 0.29 (the test asserts <code>&amp;gt; 1.5</code> and records the value in its message). <code>hMax</code> (default 20) is not binding.</li>
+<li>With the essay's own recipe (next Taylor term, x only) the peak is 1.55 s under the default clamps and <strong>1.86 s fully unclamped</strong>. On this spring the 16 s is not reachable: <code>h⁵/120·|x⁽⁵⁾| ≤ 0.01</code> at h = 16 needs <code>|x⁽⁵⁾| ≈ 1e-6</code>, and with ω ≈ 1 the fifth derivative is O(1). The <em>mechanism</em> that does produce it is demonstrated in a test: with <code>k = c = 0</code> every derivative past <code>a</code> vanishes, both estimators read zero error, and h runs straight to <code>hMax</code> (16 in the test). A plausible but unestablished inference is that the college engine was integrating a projectile under constant gravity, where RK4's next term is exactly zero while Euler's <code>h²/2·|a|</code> is not — which matches "Euler worked well but RK4 tried 16 s".</li>
+<li><strong>Explicit Euler, demo params, tol 0.01: adaptive peak |x| ≈ 3.2 by t = 12</strong> (11.8 by t = 60) versus 9.8e7 for fixed h = 1/30, with h held at 0.005–0.018 and 112 rejections. Slowed, not stabilized: the Euler disk needs h ≤ 0.001 there, and a local-error tolerance never enforces stability. Worth adding as a confirmation.</li>
+<li>A controller with <code>safety = 1</code> can propose the same h after a rejection (error ≈ tol to rounding); that is why the reject branch forces a shrink.</li>
+</ul>
+<h2>For the other agent</h2>
+<ul>
+<li><strong>modulepreload</strong>: <code>shared/math/forces.js</code>, <code>shared/math/modes.js</code>, <code>shared/math/taylor.js</code>, <code>shared/math/adaptive.js</code>, <code>shared/math/sweep.js</code>, <code>shared/gfx/bundle.js</code>, <code>shared/gfx/drag.js</code>.</li>
+<li><strong>Taylor overlap to consolidate</strong>: <code>stability.js</code> now has complex <code>taylorAmplification(z, n)</code>; <code>taylor.js</code> has real <code>expPartialSum(x, n)</code> / <code>expCoefficients(n)</code>. They are the same series (my test checks the real sums equal <code>amplification('euler'/'rk4', [x, 0])</code> on the real axis). Consolidation option: <code>taylorAmplification</code> could import <code>expCoefficients</code> from <code>taylor.js</code>, or <code>taylor.js</code> could grow a complex <code>expPartialSumC</code> and <code>stability.js</code> delegate to it.</li>
+<li>Panels consuming <code>drag.js</code> need a <code>.stage[data-grab]</code> cursor rule in <code>controls.css</code> (<code>'hover'</code> and <code>'active'</code>).</result>
+<usage><subagent_tokens>147917</subagent_tokens><tool_uses>30</tool_uses><duration_ms>892425</duration_ms></usage>
+</task-notification></li>
+</ul></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-17-905Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-17-905Z" class="timestamp-link"><time datetime="2026-09-02T20:44:17.905Z" data-timestamp="2026-09-02T20:44:17.905Z">2026-09-02T20:44:17.905Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-18-579Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-18-579Z" class="timestamp-link"><time datetime="2026-09-02T20:44:18.579Z" data-timestamp="2026-09-02T20:44:18.579Z">2026-09-02T20:44:18.579Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The math agent finished. Let me verify its commits and tests before folding its numbers into idea.md.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-19-889Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-19-889Z" class="timestamp-link"><time datetime="2026-09-02T20:44:19.889Z" data-timestamp="2026-09-02T20:44:19.889Z">2026-09-02T20:44:19.889Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Wn4WS7NsrF41erTaiV4VhD">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check commits, tree, and test suite</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git log --oneline -14 &amp;&amp; git status --short | head &amp;&amp; cd app &amp;&amp; node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | grep -E &#34;^ℹ (tests|pass|fail)&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-44-21-632Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-44-21-632Z" class="timestamp-link"><time datetime="2026-09-02T20:44:21.632Z" data-timestamp="2026-09-02T20:44:21.632Z">2026-09-02T20:44:21.632Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ca640a5 integrators: header comment matches what setH does for Verlet
+684133e panels 3, 10, 13: trim spines to fit a 768-tall viewport
+b4b380b gfx: drawBundle with highlight and cap, createDragHandles with pointer capture
+37ca33d adaptive: step-doubling error estimate, step controller, and runAdaptive
+51a8909 controls.css: viz-row gives the stage a definite column
+3674f10 panels 12–13: prose fragments and stub panes
+6ac99fa panels 7, 11: fit the pane; .viz-row for a stage beside its controls
+735474b panels 10, 11 (sides): prose fragments and stub panes
+e81008c panels 7 (sides), 8, 9: prose fragments and stub panes
+d01f35e panels 7 and 11: spine proofs of the shared modules
+89ad5fb ui: live MathML numbers
+ddcc382 gfx: the complex plane
+c773976 sweep: memoized parameter sweeps and value ranges for the explode panes
+2ae7698 taylor: e^x partial sums, 1/r² expansion, and the next-term truncation error
+ℹ tests 60
+ℹ pass 60
+ℹ fail 0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-34-668Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-34-668Z" class="timestamp-link"><time datetime="2026-09-02T20:44:34.668Z" data-timestamp="2026-09-02T20:44:34.668Z">2026-09-02T20:44:34.668Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-37-335Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-37-335Z" class="timestamp-link"><time datetime="2026-09-02T20:44:37.335Z" data-timestamp="2026-09-02T20:44:37.335Z">2026-09-02T20:44:37.335Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Tests are passing and the other agents are still committing, so I'll now integrate the math agent's numbers into idea.md, noting that the essay's 16-second step isn't actually reachable on this spring.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-37-343Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-37-343Z" class="timestamp-link"><time datetime="2026-09-02T20:44:37.343Z" data-timestamp="2026-09-02T20:44:37.343Z">2026-09-02T20:44:37.343Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014idEw35a6MdrVaxCQaQYE2">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find every 16-second mention in idea.md</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; grep -n &#34;16-second\|16 s\|16-s&#34; docs/idea.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-44-37-367Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-44-37-367Z" class="timestamp-link"><time datetime="2026-09-02T20:44:37.367Z" data-timestamp="2026-09-02T20:44:37.367Z">2026-09-02T20:44:37.367Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>19:  variable-step-size / local truncation error idea (the &quot;16-second step&quot; college anecdote).
+97:    tried a 16-second step. *Beat:* a target-error slider with `h(t)` plotted as its own
+98:    trajectory; the reviewer can reproduce the 16-second step themselves.
+358:  16-second step from the college paper.
+511:  16-second step is the number to reproduce.
+619:0.01 bound grows `h` past one second; the 16-second figure is recorded once it is</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-44-40-442Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-44-40-442Z" class="timestamp-link"><time datetime="2026-09-02T20:44:40.442Z" data-timestamp="2026-09-02T20:44:40.442Z">2026-09-02T20:44:40.442Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_018XX4C9ejZ4ikijE4xZn4DF">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read the passages to edit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n 94,99p docs/idea.md &amp;&amp; echo ---- &amp;&amp; sed -n 355,366p docs/idea.md &amp;&amp; echo ---- &amp;&amp; sed -n 507,512p docs/idea.md &amp;&amp; echo ---- &amp;&amp; sed -n 614,622p docs/idea.md &amp;&amp; echo ---- &amp;&amp; sed -n 632,652p docs/idea.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-44-40-486Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-44-40-486Z" class="timestamp-link"><time datetime="2026-09-02T20:44:40.486Z" data-timestamp="2026-09-02T20:44:40.486Z">2026-09-02T20:44:40.486Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>13. **Variable step sizes.** Euler and RK4 are truncations of one Taylor series, so the next
+    term is a local truncation error estimate, computable in real time. Set a target error
+    and grow `h` until you hit it, or add terms. The college paper: RK4 at a 0.01 error bound
+    tried a 16-second step. *Beat:* a target-error slider with `h(t)` plotted as its own
+    trajectory; the reviewer can reproduce the 16-second step themselves.
+
+----
+**13. Variable step sizes.** `h` becomes a function of `t`.
+- *Spine viz:* a target-error slider with `h(t)` plotted as its own trajectory under the
+  simulation. Set the bound to 0.01 with RK4 and watch the controller push `h` toward the
+  16-second step from the college paper.
+- *Left, step down (one step&#x27;s error):* local truncation error on a single step, the next
+  Taylor term, versus the global error accumulated over many steps.
+- *Right, step up (explode target error):* the adaptive control loop in detail, then a sweep
+  of target errors producing a small bundle of `h(t)` profiles. Drag the target error along
+  the range to highlight one profile and dim the rest. Where the cost-versus-accuracy
+  tradeoff from panels 3 and 8 finally becomes a dial.
+
+### Navigation rules
+----
+  series.
+- **Adaptive stepping, `math/adaptive.js`** (13, 13-right). A local error estimate per step
+  (step doubling or the embedded next Taylor term), a controller that grows or shrinks `h`
+  toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The essay&#x27;s
+  16-second step is the number to reproduce.
+- **Inversion, in `system.js`** (11, 11-left). `paramsFromEigenvalue(m, λ)` giving
+----
+`node --test` covers the math and nothing that touches the DOM. New modules with tests:
+`matrix2` (eigenvectors reconstruct the matrix; the rotation sweep goes complex at the
+predicted angle), `forces` (assembling the linearized drag and spring reproduces the
+tuple&#x27;s `c` and `k`), `taylor` (the degree-4 sum equals `amplification(&#x27;rk4&#x27;)`), `modes`
+(projection and reconstruction round-trip), `adaptive` (RK4 with the essay parameters at a
+0.01 bound grows `h` past one second; the 16-second figure is recorded once it is
+reproduced), and the measured error ratio in `simulate` matching `|1 + hλ|` for Euler in
+the unstable regime. Any number those tests pin is added to the confirmations below.
+
+----
+
+Scripts: `poc/numerics.mjs`, `poc/numerics2.mjs`.
+
+- Eigenvalues for `m=10, c=0.1, k=10`: `λ = −0.005 ± 0.99999i`. Matches the essay.
+- At `h = 1/30`: `|1 + hλ| = 1.0004`. Explicit Euler is unstable as claimed, but barely:
+  amplitude doubles every ~59 s. At `t = 60` it reads `−1.93` vs exact `−0.71`; at
+  `t = 600`, `−1.08e3` vs `−0.05`. Exponential and unbounded, but the &quot;outside the visible
+  Universe&quot; magnitude in the essay&#x27;s screenshot is **not reproducible** from this linear
+  system at this step. Whatever solver produced it had something else going on.
+- **Demo defaults:** use `m=1, c=0.1, k=100` (`λ = −0.05 ± 10i`). `|1 + hλ| = 1.0525`,
+  doubling every 0.5 s, `|x| ≈ 1e8` by `t = 12`. Visible in seconds.
+- RK4 at `h = 1/30` tracks the exact solution to three significant figures through 600 s in
+  both parameter sets.
+- Implicit Euler is stable everywhere but artificially damps: `0.26` vs exact `0.71` at
+  `t = 60` with the essay&#x27;s parameters. That contrast is the teaching payload.
+- Semi-implicit Euler and Störmer–Verlet preserve amplitude and slowly drift phase.
+
+## Prior art (and the gap)
+
+- PhysSandbox RK stability regions (canvas; Euler/RK2/RK4; `hλ` marker; no sim):
+  https://physandbox.com/math/runge-kutta-stability</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-45-01-247Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-45-01-247Z" class="timestamp-link"><time datetime="2026-09-02T20:45:01.247Z" data-timestamp="2026-09-02T20:45:01.247Z">2026-09-02T20:45:01.247Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01LnZgrXko92cH6wTvqcDEC8">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Record adaptive findings in idea.md and commit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;docs/idea.md&#39;; s=open(p).read()
+edits=[
+(&#34;&#34;&#34;    tried a 16-second step. *Beat:* a target-error slider with `h(t)` plotted as its own
+    trajectory; the reviewer can reproduce the 16-second step themselves.&#34;&#34;&#34;,
+ &#34;&#34;&#34;    tried a 16-second step. *Beat:* a target-error slider with `h(t)` plotted as its own
+    trajectory. On the spring the controller tops out near 2 s (see the numeric notes); the
+    16-second step needs a system whose higher derivatives vanish, and the panel shows why.&#34;&#34;&#34;),
+(&#34;&#34;&#34;- *Spine viz:* a target-error slider with `h(t)` plotted as its own trajectory under the
+  simulation. Set the bound to 0.01 with RK4 and watch the controller push `h` toward the
+  16-second step from the college paper.&#34;&#34;&#34;,
+ &#34;&#34;&#34;- *Spine viz:* a target-error slider with `h(t)` plotted as its own trajectory under the
+  simulation. Set the bound to 0.01 with RK4 and watch the controller push `h` to about 2 s
+  on this spring. A &#34;constant force only&#34; switch (`k = c = 0`) shows the college paper&#39;s
+  mechanism: with no higher derivatives the next Taylor term is zero, the estimator reads no
+  error, and `h` runs to its cap, the 16-second step.&#34;&#34;&#34;),
+(&#34;&#34;&#34;  toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The essay&#39;s
+  16-second step is the number to reproduce.&#34;&#34;&#34;,
+ &#34;&#34;&#34;  toward a target error, and a run that returns `t`, `x`, and `h(t)` arrays. The stepper
+  gets a `setH` so `h` can change every step; Verlet re-seeds its `x_{−1}` consistently.&#34;&#34;&#34;),
+(&#34;&#34;&#34;(projection and reconstruction round-trip), `adaptive` (RK4 with the essay parameters at a
+0.01 bound grows `h` past one second; the 16-second figure is recorded once it is
+reproduced), and the measured error ratio in `simulate` matching `|1 + hλ|` for Euler in
+the unstable regime. Any number those tests pin is added to the confirmations below.&#34;&#34;&#34;,
+ &#34;&#34;&#34;(projection and reconstruction round-trip), `adaptive` (RK4 with the essay parameters at a
+0.01 bound peaks near `h = 2.1 s`; with `k = c = 0` it runs to the cap), and the measured
+error ratio in `simulate` matching `|1 + hλ|` for Euler in the unstable regime. Any number
+those tests pin is added to the confirmations below.&#34;&#34;&#34;),
+(&#34;&#34;&#34;- Semi-implicit Euler and Störmer–Verlet preserve amplitude and slowly drift phase.
+&#34;&#34;&#34;,
+ &#34;&#34;&#34;- Semi-implicit Euler and Störmer–Verlet preserve amplitude and slowly drift phase.
+- **Adaptive RK4 with the essay&#39;s parameters at a 0.01 bound** (`shared/math/adaptive.js`,
+  step doubling): `h` peaks at `2.10 s`, median `1.81 s`, 70 steps for 120 s, no
+  rejections, max global error `0.29`. With the essay&#39;s own recipe (next Taylor term, `x`
+  only) the peak is `1.55 s`, or `1.86 s` with no growth clamp. **The 16-second step is not
+  reachable on this spring:** `h⁵/120 · |x⁽⁵⁾| ≤ 0.01` at `h = 16` needs
+  `|x⁽⁵⁾| ≈ 1e−6`, and with `ω ≈ 1` the fifth derivative is order 1. The mechanism that does
+  produce it: with `k = c = 0` every derivative past `a` vanishes, both estimators read zero
+  error, and `h` runs straight to its cap. The likely story behind the anecdote is a
+  projectile under constant gravity, where RK4&#39;s next term is exactly zero while Euler&#39;s
+  `h²/2 · |a|` is not, which matches &#34;Euler worked well but RK4 tried 16 s&#34;.
+- **Adaptive explicit Euler with the demo parameters at a 0.01 bound** is slowed, not
+  stabilized: `|x| ≈ 3.2` by `t = 12` (`11.8` by `t = 60`) against `9.8e7` for fixed
+  `h = 1/30`, with `h` held at `0.005–0.018` and 112 rejected steps. The Euler disk needs
+  `h ≤ 0.001` there; a local-error tolerance never enforces stability.
+&#34;&#34;&#34;),
+]
+for o,n in edits:
+    assert s.count(o)==1, o[:50]
+    s=s.replace(o,n)
+open(p,&#39;w&#39;).write(s)
+EOF
+git add docs/idea.md &amp;&amp; git commit -q -m &#34;idea: adaptive-step confirmations; the 16-second step is not reachable on the spring
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_0142r8oCc11zC6eYW1x7Fisa&#34; &amp;&amp; git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-02T20-45-03-079Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-02T20-45-03-079Z" class="timestamp-link"><time datetime="2026-09-02T20:45:03.079Z" data-timestamp="2026-09-02T20:45:03.079Z">2026-09-02T20:45:03.079Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>24e00af idea: adaptive-step confirmations; the 16-second step is not reachable on the spring</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-45-10-650Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-45-10-650Z" class="timestamp-link"><time datetime="2026-09-02T20:45:10.650Z" data-timestamp="2026-09-02T20:45:10.650Z">2026-09-02T20:45:10.650Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-02T20-45-10-666Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-02T20-45-10-666Z" class="timestamp-link"><time datetime="2026-09-02T20:45:10.666Z" data-timestamp="2026-09-02T20:45:10.666Z">2026-09-02T20:45:10.666Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The math agent is done and its results are folded in. Two agents are still running.</p>
+<p><strong>Math modules</strong> (committed, 60 tests passing): <code>forces</code>, <code>modes</code>, <code>taylor</code>, <code>adaptive</code>, <code>sweep</code>, <code>bundle</code>, <code>drag</code>, plus a narrow <code>setH</code> on the stepper so the step size can change per step.</p>
+<p><strong>One finding changed idea.md</strong> (<code>24e00af</code>). The essay's 16-second RK4 step cannot happen on this spring: with a 0.01 error bound the controller peaks near 2 s, because the spring's higher derivatives are order 1. The step runs to the cap only when the higher derivatives vanish, which is the constant-gravity projectile case. Panel 13's beat now says so and gains a constant-force switch to show the mechanism. The numbers are recorded in the confirmations.</p>
+<p><strong>Pending on the shared-code agent:</strong> adding the seven new modules to the preload list, a cursor rule for drag handles in controls.css, and consolidating the two Taylor helpers, since it owns those files. I'll do those and update the "What exists" inventory when it reports.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-004.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

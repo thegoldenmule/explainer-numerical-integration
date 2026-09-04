@@ -1,0 +1,350 @@
+{
+  "version": 1,
+  "sessions": {
+    "01b62efc-a773-4267-ae0c-dde49a0018d7": {
+      "size": 2605,
+      "mtimeMs": 1788380575544.509,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.822Z"
+    },
+    "212d23f3-6ac6-4b21-8823-168df81c9181": {
+      "size": 142467,
+      "mtimeMs": 1788459444612.1257,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.827Z"
+    },
+    "2484a71b-4b81-4a09-b46d-90b2f0ba1009": {
+      "size": 862989,
+      "mtimeMs": 1788460079646.4128,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.832Z"
+    },
+    "3b7cf1c5-f70e-4a63-b6bd-5fe961308dea": {
+      "size": 2066332,
+      "mtimeMs": 1788395683664.4814,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.930Z"
+    },
+    "513b2a43-e8b0-4b84-aab5-d2110d5814fd": {
+      "size": 2730,
+      "mtimeMs": 1788469854385.2048,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.958Z"
+    },
+    "4be793d3-006e-4d1d-b30e-74238acc7c82": {
+      "size": 2991244,
+      "mtimeMs": 1788453526179.8276,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.967Z"
+    },
+    "4ec8d597-5977-453d-850a-07ff1bbc1b6b": {
+      "size": 455466,
+      "mtimeMs": 1788379076698.7563,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:56.972Z"
+    },
+    "6b54a8bd-dcb8-4a67-b88b-a2cb0059ded1": {
+      "size": 1737155,
+      "mtimeMs": 1788379304031.3237,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.083Z"
+    },
+    "973bed92-54c9-4064-adfd-1aa371940b4b": {
+      "size": 3951,
+      "mtimeMs": 1788379002347.2817,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.103Z"
+    },
+    "6ef56a64-7c22-4f46-ba46-bd574705c6af": {
+      "size": 1410190,
+      "mtimeMs": 1788460074559.8564,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.106Z"
+    },
+    "91c185cb-c18d-4786-a945-028b165dd276": {
+      "size": 797176,
+      "mtimeMs": 1788469808376.9043,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.117Z"
+    },
+    "ede6cf88-aca1-498e-a27f-c6a97aef47c5": {
+      "size": 3297,
+      "mtimeMs": 1788453531340.747,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.244Z"
+    },
+    "c882ea34-88c3-43d1-b839-23202678e492": {
+      "size": 4583217,
+      "mtimeMs": 1788466684007.0127,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.305Z"
+    },
+    "b5395260-dff7-46ac-9b21-75685d07e5c6": {
+      "size": 519303,
+      "mtimeMs": 1788386003247.0332,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.313Z"
+    },
+    "d0faf160-0368-454b-9791-7735985e3b75": {
+      "size": 2013676,
+      "mtimeMs": 1788463105902.4531,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.373Z"
+    },
+    "f2f21323-07b9-4c8e-b4dd-473aa13215bc": {
+      "size": 247766,
+      "mtimeMs": 1788470496555,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.376Z"
+    },
+    "fab884d5-a246-470b-86c1-13f8922e5601": {
+      "size": 3118851,
+      "mtimeMs": 1788467134268.8972,
+      "repo": "thegoldenmule/explainer-numerical-integration",
+      "exportedAt": "2026-09-03T21:29:57.467Z"
+    }
+  },
+  "repoPath": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+  "repo": "thegoldenmule/explainer-numerical-integration",
+  "generatedAt": "2026-09-03T21:29:57.467Z",
+  "index": [
+    {
+      "id": "01b62efc-a773-4267-ae0c-dde49a0018d7",
+      "href": "sessions/01b62efc-a773-4267-ae0c-dde49a0018d7/index.html",
+      "title": "/clear",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-02T20:22:48.740Z",
+      "lastTimestamp": "2026-09-02T20:22:48.744Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 1,
+      "assistantCount": 0,
+      "size": 2605,
+      "error": null
+    },
+    {
+      "id": "212d23f3-6ac6-4b21-8823-168df81c9181",
+      "href": "sessions/212d23f3-6ac6-4b21-8823-168df81c9181/index.html",
+      "title": "Navigation clarity and gestures",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-02T21:53:23.226Z",
+      "lastTimestamp": "2026-09-02T21:58:52.256Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 2,
+      "assistantCount": 13,
+      "size": 142467,
+      "error": null
+    },
+    {
+      "id": "2484a71b-4b81-4a09-b46d-90b2f0ba1009",
+      "href": "sessions/2484a71b-4b81-4a09-b46d-90b2f0ba1009/index.html",
+      "title": "Page two spine control strings",
+      "firstPrompt": "/model sonnet",
+      "firstTimestamp": "2026-09-03T18:17:28.111Z",
+      "lastTimestamp": "2026-09-03T18:26:14.724Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 2,
+      "assistantCount": 72,
+      "size": 862989,
+      "error": null
+    },
+    {
+      "id": "3b7cf1c5-f70e-4a63-b6bd-5fe961308dea",
+      "href": "sessions/3b7cf1c5-f70e-4a63-b6bd-5fe961308dea/index.html",
+      "title": "Idea.md shared code mapping",
+      "firstPrompt": "Read idea.md. Look through app pages and map out what shared code we will need. Then update the idea.md with a shared code section that outlines this code.",
+      "firstTimestamp": "2026-09-02T19:59:24.553Z",
+      "lastTimestamp": "2026-09-02T22:22:08.520Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 23,
+      "assistantCount": 229,
+      "size": 2066332,
+      "error": null
+    },
+    {
+      "id": "4be793d3-006e-4d1d-b30e-74238acc7c82",
+      "href": "sessions/4be793d3-006e-4d1d-b30e-74238acc7c82/index.html",
+      "title": "Page numbering in document titles",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-03T00:34:43.648Z",
+      "lastTimestamp": "2026-09-03T01:29:15.944Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 4,
+      "assistantCount": 62,
+      "size": 2991244,
+      "error": null
+    },
+    {
+      "id": "4ec8d597-5977-453d-850a-07ff1bbc1b6b",
+      "href": "sessions/4ec8d597-5977-453d-850a-07ff1bbc1b6b/index.html",
+      "title": "ideas.md flow layout updates",
+      "firstPrompt": "I want to make some updates to ideas.md. For the first page of the flow, the center should be pointmasses, the right should be rigid bodies. This is because point masses are what we're going to focus on for simplicity. This then also makes more sense with the right panel of page 2: adding rotation requires the rigid body, not a point mass.",
+      "firstTimestamp": "2026-09-02T19:24:09.841Z",
+      "lastTimestamp": "2026-09-02T19:57:17.783Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 11,
+      "assistantCount": 70,
+      "size": 455466,
+      "error": null
+    },
+    {
+      "id": "513b2a43-e8b0-4b84-aab5-d2110d5814fd",
+      "href": "sessions/513b2a43-e8b0-4b84-aab5-d2110d5814fd/index.html",
+      "title": "/clear",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-03T21:10:08.363Z",
+      "lastTimestamp": "2026-09-03T21:10:08.366Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 1,
+      "assistantCount": 0,
+      "size": 2730,
+      "error": null
+    },
+    {
+      "id": "6b54a8bd-dcb8-4a67-b88b-a2cb0059ded1",
+      "href": "sessions/6b54a8bd-dcb8-4a67-b88b-a2cb0059ded1/index.html",
+      "title": "Stability teaching app structure",
+      "firstPrompt": "/model fable",
+      "firstTimestamp": "2026-09-02T19:11:43.297Z",
+      "lastTimestamp": "2026-09-02T19:55:24.346Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 6,
+      "assistantCount": 161,
+      "size": 1737155,
+      "error": null
+    },
+    {
+      "id": "6ef56a64-7c22-4f46-ba46-bd574705c6af",
+      "href": "sessions/6ef56a64-7c22-4f46-ba46-bd574705c6af/index.html",
+      "title": "Title page with physics glitch gifs",
+      "firstPrompt": "/model fable",
+      "firstTimestamp": "2026-09-03T17:44:56.918Z",
+      "lastTimestamp": "2026-09-03T18:26:26.059Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 5,
+      "assistantCount": 110,
+      "size": 1410190,
+      "error": null
+    },
+    {
+      "id": "91c185cb-c18d-4786-a945-028b165dd276",
+      "href": "sessions/91c185cb-c18d-4786-a945-028b165dd276/index.html",
+      "title": "Depth vignette indicator",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-03T20:18:03.988Z",
+      "lastTimestamp": "2026-09-03T21:00:59.832Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 12,
+      "assistantCount": 133,
+      "size": 797176,
+      "error": null
+    },
+    {
+      "id": "973bed92-54c9-4064-adfd-1aa371940b4b",
+      "href": "sessions/973bed92-54c9-4064-adfd-1aa371940b4b/index.html",
+      "title": "/clear",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-02T19:54:52.302Z",
+      "lastTimestamp": "2026-09-02T19:54:52.308Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 1,
+      "assistantCount": 0,
+      "size": 3951,
+      "error": null
+    },
+    {
+      "id": "b5395260-dff7-46ac-9b21-75685d07e5c6",
+      "href": "sessions/b5395260-dff7-46ac-9b21-75685d07e5c6/index.html",
+      "title": "Anthropic API quiz integration",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-02T20:01:44.016Z",
+      "lastTimestamp": "2026-09-02T21:01:06.535Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 4,
+      "assistantCount": 45,
+      "size": 519303,
+      "error": null
+    },
+    {
+      "id": "c882ea34-88c3-43d1-b839-23202678e492",
+      "href": "sessions/c882ea34-88c3-43d1-b839-23202678e492/index.html",
+      "title": "Page 1 spine text grabbable in equation",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-03T18:27:54.542Z",
+      "lastTimestamp": "2026-09-03T19:52:40.462Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 21,
+      "assistantCount": 731,
+      "size": 4583217,
+      "error": null
+    },
+    {
+      "id": "d0faf160-0368-454b-9791-7735985e3b75",
+      "href": "sessions/d0faf160-0368-454b-9791-7735985e3b75/index.html",
+      "title": "Parallel subagents for page panel fixes",
+      "firstPrompt": "/model opus",
+      "firstTimestamp": "2026-09-03T16:39:12.596Z",
+      "lastTimestamp": "2026-09-03T18:26:53.974Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 16,
+      "assistantCount": 269,
+      "size": 2013676,
+      "error": null
+    },
+    {
+      "id": "ede6cf88-aca1-498e-a27f-c6a97aef47c5",
+      "href": "sessions/ede6cf88-aca1-498e-a27f-c6a97aef47c5/index.html",
+      "title": "/clear",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-03T16:38:46.163Z",
+      "lastTimestamp": "2026-09-03T16:38:46.166Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 1,
+      "assistantCount": 0,
+      "size": 3297,
+      "error": null
+    },
+    {
+      "id": "f2f21323-07b9-4c8e-b4dd-473aa13215bc",
+      "href": "sessions/f2f21323-07b9-4c8e-b4dd-473aa13215bc/index.html",
+      "title": "Project time tracking analysis",
+      "firstPrompt": "I need to determine how much time I've put into this project. Using a combination of git history claude history, I want you to put together a full timeline and let me know how much time I've put into this. Make sure you are not counting large gaps like commits with hours in between where I was not actually doing anything and claude wasn't active.",
+      "firstTimestamp": "2026-09-03T20:21:36.565Z",
+      "lastTimestamp": "2026-09-03T20:28:20.724Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 1,
+      "assistantCount": 32,
+      "size": 247766,
+      "error": null
+    },
+    {
+      "id": "fab884d5-a246-470b-86c1-13f8922e5601",
+      "href": "sessions/fab884d5-a246-470b-86c1-13f8922e5601/index.html",
+      "title": "Title page attribution",
+      "firstPrompt": "/clear",
+      "firstTimestamp": "2026-09-03T19:18:25.876Z",
+      "lastTimestamp": "2026-09-03T20:23:04.643Z",
+      "cwd": "/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration",
+      "gitBranch": "main",
+      "promptCount": 15,
+      "assistantCount": 376,
+      "size": 3118851,
+      "error": null
+    }
+  ]
+}

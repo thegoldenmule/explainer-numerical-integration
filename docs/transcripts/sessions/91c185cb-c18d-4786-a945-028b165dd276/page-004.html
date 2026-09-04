@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 4</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 4/4</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-003.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<span class="current">4</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-03T20-47-28-912Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-47-28-912Z" class="timestamp-link"><time datetime="2026-09-03T20:47:28.912Z" data-timestamp="2026-09-03T20:47:28.912Z">2026-09-03T20:47:28.912Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-47-33-172Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-47-33-172Z" class="timestamp-link"><time datetime="2026-09-03T20:47:33.172Z" data-timestamp="2026-09-03T20:47:33.172Z">2026-09-03T20:47:33.172Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>TL;DR:</strong> Panel 5 now starts at G=1, m₁=10, m₂=120, r=5 — gravity's real vs linear arrow goes 38.4 vs 48.0 (was 0.90 vs 1.00, indistinguishable), so the switch actually shows nonlinearity. Committed <code>f4675ff</code>, 88 tests pass.</p>
+<p><strong>Catch:</strong> m₁ is the body mass, so Part II now runs at m=10 — Euler blows up at t=28.9s instead of 3.2s. Alternative that keeps both: <code>G=10, m₁=1, m₂=120</code> (same gravity arrow, tuple stays m=1, but the dashed look-ahead gets 10× bigger). Your call.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-54-36-838Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-54-36-838Z" class="timestamp-link"><time datetime="2026-09-03T20:54:36.838Z" data-timestamp="2026-09-03T20:54:36.838Z">2026-09-03T20:54:36.838Z</time></a></div><div class="message-content">
+<div class="user-content"><p>this needs to be on github pages. thus, app/ needs to be renamed to docs/. This means the current docs should be renamed to design/</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-54-44-615Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-54-44-615Z" class="timestamp-link"><time datetime="2026-09-03T20:54:44.615Z" data-timestamp="2026-09-03T20:54:44.615Z">2026-09-03T20:54:44.615Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-54-46-283Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-54-46-283Z" class="timestamp-link"><time datetime="2026-09-03T20:54:46.283Z" data-timestamp="2026-09-03T20:54:46.283Z">2026-09-03T20:54:46.283Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_011Twf7u12MyYKhw8GA4AXJv">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Survey repo root and docs</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; ls -a &amp;&amp; echo &#34;===docs===&#34; &amp;&amp; ls docs &amp;&amp; echo &#34;===git status===&#34; &amp;&amp; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-54-47-926Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-54-47-926Z" class="timestamp-link"><time datetime="2026-09-03T20:54:47.926Z" data-timestamp="2026-09-03T20:54:47.926Z">2026-09-03T20:54:47.926Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>.
+..
+.git
+app
+CLAUDE.md
+docs
+README.md
+===docs===
+checkpoints.md
+idea.md
+plan.md
+poc
+reference
+===git status===</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-54-51-247Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-54-51-247Z" class="timestamp-link"><time datetime="2026-09-03T20:54:51.247Z" data-timestamp="2026-09-03T20:54:51.247Z">2026-09-03T20:54:51.247Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JgVyef9DwfQ2dw4fRWXC41">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find absolute paths and app/ references</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">echo &#34;=== absolute paths in app ===&#34; &amp;&amp; grep -rn &#39;href=&#34;/\|src=&#34;/\|from &#34;/\|fetch(&#34;/&#39; app/ | head; echo &#34;=== refs to app/ ===&#34; &amp;&amp; grep -rn &#34;app/&#34; --include=*.md --include=*.js --include=*.json --include=*.html . | grep -v &#34;^./.git&#34; | head -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-54-51-308Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-54-51-308Z" class="timestamp-link"><time datetime="2026-09-03T20:54:51.308Z" data-timestamp="2026-09-03T20:54:51.308Z">2026-09-03T20:54:51.308Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== absolute paths in app ===
+=== refs to app/ ===
+(eval):1: no matches found: --include=*.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-54-54-234Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-54-54-234Z" class="timestamp-link"><time datetime="2026-09-03T20:54:54.234Z" data-timestamp="2026-09-03T20:54:54.234Z">2026-09-03T20:54:54.234Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TWqSZNr9kEo7CvGyiyRCt8">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find app/ references</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;app/&#34; CLAUDE.md README.md docs/ app/ 2&gt;/dev/null | grep -v &#34;\.git/&#34; | head -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-54-54-267Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-54-54-267Z" class="timestamp-link"><time datetime="2026-09-03T20:54:54.267Z" data-timestamp="2026-09-03T20:54:54.267Z">2026-09-03T20:54:54.267Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>CLAUDE.md:11:section; `docs/plan.md` is the application architecture. Read `plan.md` before touching `app/`.
+CLAUDE.md:18:Everything runs from `app/`. There is no build, no bundler, no `npm install`.
+CLAUDE.md:28:`app/package.json` exists only to set `&quot;type&quot;: &quot;module&quot;` for Node; do not add dependencies.
+CLAUDE.md:41:out-of-range depth clamps down. `#/0` is the title page (`app/title/`, not a manifest
+CLAUDE.md:88:- Panels ship no CSS. Add shared classes to `app/styles/controls.css` instead.
+docs/plan.md:1:# Plan for `app/`
+docs/plan.md:26:app/
+docs/checkpoints.md:108:is a small Node process that lives outside `app/`:
+docs/checkpoints.md:124:This respects `app/`&#x27;s rule (no dependencies, no bundler) because `app/` does not change
+docs/checkpoints.md:127:independent; `app/package.json` stays a `&quot;type&quot;: &quot;module&quot;` marker.
+docs/checkpoints.md:135:`python3 -m http.server` from `app/` keeps working. The checkpoint module probes
+docs/checkpoints.md:143:- A static host for `app/` plus one serverless function (a Cloudflare Worker or a Vercel
+docs/checkpoints.md:212:   from `app/panels/&lt;slug&gt;/` at boot, keyed by the rubric&#x27;s `panel`.
+docs/checkpoints.md:352:2. `serve.mjs`: static `app/` plus `/api/check`, rate limit, verbatim check.
+docs/idea.md:485:What the 13 panels and their side panes need from `app/shared/`, beyond what is already
+app/README.md:1:# app/
+app/conclusion/conclusion.js:4:// here still finds app/title/gifs/). Keeping one collage engine, not two, is the point.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-54-57-397Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-54-57-397Z" class="timestamp-link"><time datetime="2026-09-03T20:54:57.397Z" data-timestamp="2026-09-03T20:54:57.397Z">2026-09-03T20:54:57.397Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DQLE9qAy5nY64zkQBeq633">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find docs/ references and jekyll-hostile names</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;docs/&#34; CLAUDE.md README.md docs/ app/ 2&gt;/dev/null | grep -v &#34;\.git/&#34; | head -40; echo &#34;=== underscore-prefixed files (jekyll) ===&#34;; find app -name &#34;_*&#34; | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-54-57-449Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-54-57-449Z" class="timestamp-link"><time datetime="2026-09-03T20:54:57.449Z" data-timestamp="2026-09-03T20:54:57.449Z">2026-09-03T20:54:57.449Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>CLAUDE.md:10:several integrators, one complex plane). `docs/idea.md` is the concept and outline, section by
+CLAUDE.md:11:section; `docs/plan.md` is the application architecture. Read `plan.md` before touching `app/`.
+CLAUDE.md:12:`docs/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+CLAUDE.md:13:`docs/checkpoints.md` is the plan for the &quot;say it in your own words&quot; checkpoints (a Claude
+CLAUDE.md:53:nothing is registered anywhere else. `docs/idea.md` is authoritative for what each panel and
+CLAUDE.md:76:recorded in `docs/idea.md`; keep them in sync if those numbers change.
+docs/checkpoints.md:203:2. The two essays (`docs/reference/*.md`) as two more `text` blocks, read from disk at
+app/README.md:38:The full plan is in `docs/plan.md`.
+app/panels/13-variable-step-sizes/README.md:3:Built. See `docs/idea.md` (section &quot;13. Variable step sizes&quot;) for the beat, and `docs/plan.md` for the
+app/panels/11-lets-break-it/README.md:3:Built. See `docs/idea.md` (section &quot;11. Let’s break it&quot;) for the beat, and `docs/plan.md`
+app/panels/12-higher-order-rk/README.md:3:Built. See `docs/idea.md` (section &quot;12. Higher-order Runge-Kutta&quot;) for the beat, and
+app/panels/12-higher-order-rk/README.md:4:`docs/plan.md` for the pane contract. Panel 12 is the one exception to &quot;side panes are one
+app/panels/05-linearize/README.md:3:Built. See `docs/idea.md` (section &quot;5. Stability analysis: linearize&quot;) for the beat, and
+app/panels/05-linearize/README.md:4:`docs/plan.md` for the pane contract.
+app/panels/05-linearize/README.md:25:  were cut, so `docs/idea.md`&#x27;s &quot;payoff beat&quot; for this pane no longer describes it.
+app/panels/02-newtonian-physics/README.md:3:Built. See `docs/idea.md` (section &quot;2. Newtonian physics: F = ma&quot;) for the beat, and
+app/panels/02-newtonian-physics/README.md:4:`docs/plan.md` for the pane contract. No pane here has a `.readout`: every number the reader
+app/panels/02-newtonian-physics/README.md:24:  screen. *Departure from `docs/idea.md`, which says these are &quot;the same arrows the reviewer
+app/panels/08-recap-real-time/README.md:3:Built. See `docs/idea.md` (section &quot;8. Recap: real time&quot;) for the beat, and `docs/plan.md` for the
+app/panels/10-explicit-euler/README.md:3:Built. See `docs/idea.md` (section &quot;10. Runge-Kutta family: explicit Euler&quot;) for the beat,
+app/panels/10-explicit-euler/README.md:4:and `docs/plan.md` for the pane contract.
+app/panels/06-eigen-what-now/README.md:3:Built. See `docs/idea.md` (section &quot;6. Eigen-what-now&quot;) for the beat, and `docs/plan.md`
+app/panels/03-solving-for-x/README.md:3:Built. See `docs/idea.md` (section &quot;3. Solving for x&quot;) for the beat, and `docs/plan.md` for the
+app/panels/07-finding-eigenvalues/README.md:3:Built. See `docs/idea.md` (section &quot;7. Finding eigenvalues&quot;) for the beat, and `docs/plan.md`
+app/panels/01-point-masses/README.md:3:Built. See `docs/idea.md` (section &quot;1. Point masses&quot;) for the beat, and `docs/plan.md` for the
+app/panels/04-physical-stability/README.md:3:Built. See `docs/idea.md` (section &quot;4. Physical stability&quot;) for the beat, and `docs/plan.md`
+app/panels/09-finding-error/README.md:3:Built. See `docs/idea.md` (section &quot;9. Finding error&quot;) for the beat, and `docs/plan.md` for the
+app/shared/manifest.js:5:// spine, per the ladder-of-abstraction reading in docs/idea.md.
+app/shared/loader.js:8:// The module contract (see docs/plan.md):
+app/shared/gfx/region-gl.js:2:// |R(hλ)| ≤ 1. Ported from docs/poc/stability-poc.html. `precision highp float` is required;
+=== underscore-prefixed files (jekyll) ===</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-09-126Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-09-126Z" class="timestamp-link"><time datetime="2026-09-03T20:55:09.126Z" data-timestamp="2026-09-03T20:55:09.126Z">2026-09-03T20:55:09.126Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-10-937Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-10-937Z" class="timestamp-link"><time datetime="2026-09-03T20:55:10.937Z" data-timestamp="2026-09-03T20:55:10.937Z">2026-09-03T20:55:10.937Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Atk55JUXFKqE5UtveihqxJ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read both READMEs</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">echo &#34;=== root README ===&#34; &amp;&amp; cat README.md &amp;&amp; echo &#34;=== app/README ===&#34; &amp;&amp; cat app/README.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-55-10-992Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-55-10-992Z" class="timestamp-link"><time datetime="2026-09-03T20:55:10.992Z" data-timestamp="2026-09-03T20:55:10.992Z">2026-09-03T20:55:10.992Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== root README ===
+# Why physics engines blow up
+
+An interactive, in-browser explainer of physical and numerical stability.
+
+## Quickstart
+
+```
+cd app
+python3 -m http.server 8765 --bind 127.0.0.1   # any static server; file:// will not work
+open http://127.0.0.1:8765/
+```
+=== app/README ===
+# app/
+
+The no-build explainer. Plain HTML, CSS, and ES modules; nothing to install.
+
+## Run
+
+```
+python3 -m http.server 8765 --bind 127.0.0.1     # from this directory
+open http://127.0.0.1:8765/
+```
+
+`file://` does not work: modules, import maps, and `fetch` all need an HTTP origin.
+
+## Test
+
+```
+node --test &quot;shared/**/*.test.js&quot;
+```
+
+## Where things are
+
+- `index.html` declares the import map (`shared/`, `panels/`) and preloads `shared/`.
+- `shared/` is loaded on first paint. Math in `shared/math/`, canvases and the region shader
+  in `shared/gfx/`, store-bound controls in `shared/ui/`. Modules inside `shared/` import
+  each other with relative paths so Node can run the tests; panels use the bare
+  `shared/...` prefix.
+- `panels/NN-slug/` holds one directory per spine panel. Each pane is `&lt;pane&gt;.html` (prose,
+  an `&lt;article&gt;` with a `.viz` slot) plus `&lt;pane&gt;.js` (exports `mount(root, ctx)`). Panes are
+  loaded on demand by `shared/loader.js`.
+- `shared/manifest.js` lists the 13 panels and which side panes each one has.
+
+## Add a pane
+
+1. Create `panels/NN-slug/&lt;pane&gt;.html` and `&lt;pane&gt;.js` (copy `panels/01-point-masses/`).
+2. Make sure the manifest entry lists the pane (`left` / `right` non-null).
+3. Reload. Nothing to register; the loader resolves the path from the manifest slug.
+
+The full plan is in `docs/plan.md`.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-15-456Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-15-456Z" class="timestamp-link"><time datetime="2026-09-03T20:55:15.456Z" data-timestamp="2026-09-03T20:55:15.456Z">2026-09-03T20:55:15.456Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-15-458Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-15-458Z" class="timestamp-link"><time datetime="2026-09-03T20:55:15.458Z" data-timestamp="2026-09-03T20:55:15.458Z">2026-09-03T20:55:15.458Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;server_tool_use&quot;,
+  &quot;id&quot;: &quot;srvtoolu_01T9qqgGQXaBRLHv3z5Bs1b1&quot;,
+  &quot;name&quot;: &quot;advisor&quot;,
+  &quot;input&quot;: {}
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-37-907Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-37-907Z" class="timestamp-link"><time datetime="2026-09-03T20:55:37.907Z" data-timestamp="2026-09-03T20:55:37.907Z">2026-09-03T20:55:37.907Z</time></a></div><div class="message-content"><pre class="json">{
+  &quot;type&quot;: &quot;advisor_tool_result&quot;,
+  &quot;tool_use_id&quot;: &quot;srvtoolu_01T9qqgGQXaBRLHv3z5Bs1b1&quot;,
+  &quot;content&quot;: {
+    &quot;type&quot;: &quot;advisor_redacted_result&quot;,
+    &quot;encrypted_content&quot;: &quot;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&quot;
+  }
+}</pre></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-39-630Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-39-630Z" class="timestamp-link"><time datetime="2026-09-03T20:55:39.630Z" data-timestamp="2026-09-03T20:55:39.630Z">2026-09-03T20:55:39.630Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EPSatm3vdRLhjrsmsgae1T">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Rename docs to design, app to docs</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git mv docs design &amp;&amp; git mv app docs &amp;&amp; ls &amp;&amp; echo &#34;---&#34; &amp;&amp; ls docs | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-55-41-120Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-55-41-120Z" class="timestamp-link"><time datetime="2026-09-03T20:55:41.120Z" data-timestamp="2026-09-03T20:55:41.120Z">2026-09-03T20:55:41.120Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>CLAUDE.md
+design
+docs
+README.md
+---
+conclusion
+index.html
+package.json
+panels
+README.md
+shared
+styles
+title</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-46-297Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-46-297Z" class="timestamp-link"><time datetime="2026-09-03T20:55:46.297Z" data-timestamp="2026-09-03T20:55:46.297Z">2026-09-03T20:55:46.297Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01B7XyXoDDHjiEC5iY4v1BAN">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Rewrite path references in two passes</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">files=$(git ls-files -- CLAUDE.md README.md design docs | grep -E &#39;\.(md|js|json|html|css)$&#39;)
+# pass 1: docs/ -&gt; design/   (the design notes moved there)
+echo &#34;$files&#34; | xargs perl -pi -e &#39;s{\bdocs/}{design/}g&#39;
+# pass 2: app/ -&gt; docs/      (slash form only; &#34;the app&#34; as a noun survives)
+echo &#34;$files&#34; | xargs perl -pi -e &#39;s{\bapp/}{docs/}g&#39;
+# the shell instructions: `cd app` has no trailing slash
+echo &#34;$files&#34; | xargs perl -pi -e &#39;s{^cd app$}{cd docs}g&#39;
+git status --short | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-55-48-112Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-55-48-112Z" class="timestamp-link"><time datetime="2026-09-03T20:55:48.112Z" data-timestamp="2026-09-03T20:55:48.112Z">2026-09-03T20:55:48.112Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> M CLAUDE.md
+ M README.md
+RM docs/checkpoints.md -&gt; design/checkpoints.md
+RM docs/idea.md -&gt; design/idea.md
+RM docs/plan.md -&gt; design/plan.md
+R  docs/poc/bench.mjs -&gt; design/poc/bench.mjs
+R  docs/poc/euler.png -&gt; design/poc/euler.png
+R  docs/poc/implicit-euler.png -&gt; design/poc/implicit-euler.png
+R  docs/poc/numerics.mjs -&gt; design/poc/numerics.mjs
+R  docs/poc/numerics2.mjs -&gt; design/poc/numerics2.mjs
+R  docs/poc/rk4.png -&gt; design/poc/rk4.png
+R  docs/poc/specrad.mjs -&gt; design/poc/specrad.mjs
+R  docs/poc/stability-poc.html -&gt; design/poc/stability-poc.html
+R  docs/reference/2024-07-17-physics-engines-explained-part-i.md -&gt; design/reference/2024-07-17-physics-engines-explained-part-i.md
+R  docs/reference/2024-07-23-physics-engine-deep-dive-part-ii.md -&gt; design/reference/2024-07-23-physics-engine-deep-dive-part-ii.md
+RM app/README.md -&gt; docs/README.md
+R  app/conclusion/conclusion.html -&gt; docs/conclusion/conclusion.html
+RM app/conclusion/conclusion.js -&gt; docs/conclusion/conclusion.js
+R  app/index.html -&gt; docs/index.html
+R  app/package.json -&gt; docs/package.json</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-50-335Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-50-335Z" class="timestamp-link"><time datetime="2026-09-03T20:55:50.335Z" data-timestamp="2026-09-03T20:55:50.335Z">2026-09-03T20:55:50.335Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Renames tracked. Now let me audit what the rewrite touched and what it missed.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-52-836Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-52-836Z" class="timestamp-link"><time datetime="2026-09-03T20:55:52.836Z" data-timestamp="2026-09-03T20:55:52.836Z">2026-09-03T20:55:52.836Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Jha1zfoGR6P5igjeJchwg9">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Audit leftovers after the rewrite</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">echo &#34;=== leftover bare &#39;app&#39; ===&#34;; grep -rn &#34;\bapp\b&#34; CLAUDE.md README.md design docs --include=*.md --include=*.js --include=*.html --include=*.json | grep -v &#34;window.app\|app\.\(store\|router\|manifest\)&#34; | head -20
+echo; echo &#34;=== bare poc/ or reference/ ===&#34;; grep -rn &#34;poc/\|reference/&#34; CLAUDE.md README.md design docs --include=*.md --include=*.js --include=*.html | head
+echo; echo &#34;=== any surviving &#39;docs/&#39; that should be design/ ===&#34;; grep -rn &#34;design/&#34; CLAUDE.md README.md | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-55-52-903Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-55-52-903Z" class="timestamp-link"><time datetime="2026-09-03T20:55:52.903Z" data-timestamp="2026-09-03T20:55:52.903Z">2026-09-03T20:55:52.903Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== leftover bare &#x27;app&#x27; ===
+(eval):1: no matches found: --include=*.md
+
+=== bare poc/ or reference/ ===
+(eval):2: no matches found: --include=*.md
+
+=== any surviving &#x27;docs/&#x27; that should be design/ ===
+CLAUDE.md:10:several integrators, one complex plane). `design/idea.md` is the concept and outline, section by
+CLAUDE.md:11:section; `design/plan.md` is the application architecture. Read `plan.md` before touching `docs/`.
+CLAUDE.md:12:`design/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+CLAUDE.md:13:`design/checkpoints.md` is the plan for the &quot;say it in your own words&quot; checkpoints (a Claude
+CLAUDE.md:53:nothing is registered anywhere else. `design/idea.md` is authoritative for what each panel and
+CLAUDE.md:76:recorded in `design/idea.md`; keep them in sync if those numbers change.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-55-57-052Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-55-57-052Z" class="timestamp-link"><time datetime="2026-09-03T20:55:57.052Z" data-timestamp="2026-09-03T20:55:57.052Z">2026-09-03T20:55:57.052Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014BSUmDUPbEcPjkdSeHbr2s">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Audit leftovers (zsh-safe)</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration
+echo &#34;=== leftover bare &#39;app&#39; (excluding window.app) ===&#34;
+grep -rn &#39;\bapp\b&#39; CLAUDE.md README.md design docs 2&gt;/dev/null | grep -v &#39;\.git/&#39; | grep -v &#39;window\.app&#39; | head -20
+echo; echo &#34;=== poc/ and reference/ refs ===&#34;
+grep -rn &#39;poc/\|reference/&#39; CLAUDE.md README.md design docs 2&gt;/dev/null | grep -v &#39;\.git/&#39; | grep -v &#39;^design/reference/&#39; | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-55-57-131Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-55-57-131Z" class="timestamp-link"><time datetime="2026-09-03T20:55:57.131Z" data-timestamp="2026-09-03T20:55:57.131Z">2026-09-03T20:55:57.131Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== leftover bare &#x27;app&#x27; (excluding window.app) ===
+CLAUDE.md:12:`design/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+design/checkpoints.md:107:The app stays a no-build static site. The API key cannot live in a browser, so the grader
+design/checkpoints.md:113:  serve.mjs             serves ../app statically and handles POST /api/check
+design/checkpoints.md:137:network error puts every card in the `off` state. Nothing else in the app notices.
+design/checkpoints.md:146:  function, so the app keeps posting to a relative URL.
+design/checkpoints.md:148:Pick when the site is deployed; nothing in the app depends on the choice.
+design/checkpoints.md:364:- **Hosting.** Node process or static host plus function. Decides nothing in the app.
+docs/index.html:4:    cd app &amp;&amp; python3 -m http.server 8765 --bind 127.0.0.1
+docs/index.html:20:&lt;!-- Bare-prefix imports for every module in the app. Panels import &#x27;shared/...&#x27; and the
+docs/shared/math/complex.js:1:// Complex numbers as [re, im] pairs. Hand-rolled: the whole app needs about a dozen lines.
+
+=== poc/ and reference/ refs ===
+CLAUDE.md:12:`design/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+design/checkpoints.md:203:2. The two essays (`design/reference/*.md`) as two more `text` blocks, read from disk at
+design/idea.md:3:An interactive, in-browser explainer for why physics engines blow up. It turns the two *Physics Engines Explained* essays (in `reference/`) into something you can drag, and the visualization/abstraction approach is structured on Bret Victor&#x27;s *Up and Down the Ladder of Abstraction* (https://worrydream.com/LadderOfAbstraction/).
+design/idea.md:444:Node benchmark of the per-pixel math (`poc/bench.mjs`): Euler 1.6 ms, RK4 (Horner) 2.6 ms,
+design/idea.md:478:update matrix (`poc/specrad.mjs`). At `k/m = 100`, semi-implicit is stable at `h = 0.19`
+design/idea.md:700:Scripts: `poc/numerics.mjs`, `poc/numerics2.mjs`.
+design/idea.md:759:`poc/stability-poc.html` is a single 9 KB file, no dependencies. Radio buttons for Euler,
+design/idea.md:767:open http://127.0.0.1:8765/poc/stability-poc.html
+docs/shared/gfx/region-gl.js:2:// |R(hλ)| ≤ 1. Ported from design/poc/stability-poc.html. `precision highp float` is required;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-01-739Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-01-739Z" class="timestamp-link"><time datetime="2026-09-03T20:56:01.739Z" data-timestamp="2026-09-03T20:56:01.739Z">2026-09-03T20:56:01.739Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-02-552Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-02-552Z" class="timestamp-link"><time datetime="2026-09-03T20:56:02.552Z" data-timestamp="2026-09-03T20:56:02.552Z">2026-09-03T20:56:02.552Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0151LUg22AfVMnpVsucfcVAK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Inspect poc serve instructions and checkpoints tree</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;755,772p&#39; design/idea.md; echo &#34;=== checkpoints tree ===&#34;; sed -n &#39;105,130p&#39; design/checkpoints.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-02-611Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-02-611Z" class="timestamp-link"><time datetime="2026-09-03T20:56:02.611Z" data-timestamp="2026-09-03T20:56:02.611Z">2026-09-03T20:56:02.611Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>plain HTML, and nobody renders the region as a GPU field. That is the differentiator.
+
+## The proof of concept
+
+`poc/stability-poc.html` is a single 9 KB file, no dependencies. Radio buttons for Euler,
+RK4, implicit Euler; sliders for `h`, `m`, `c`, `k`, plot half-range; eigenvalues drawn
+green (stable) or red (unstable) with `|R|` readout; URL params pre-seed state, e.g.
+`?method=1&amp;h=0.2&amp;r=50`. Screenshots from headless Chrome: `euler.png`, `rk4.png`,
+`implicit-euler.png`. Serve it with any static server:
+
+```
+python3 -m http.server 8765 --bind 127.0.0.1
+open http://127.0.0.1:8765/poc/stability-poc.html
+```
+
+Note: the POC plots all three regions in the `λ`-plane. Part II&#x27;s implicit-Euler snippet
+labels its axes `hλ`; the shape is the same, scaled by `h`.
+=== checkpoints tree ===
+## The server
+
+The app stays a no-build static site. The API key cannot live in a browser, so the grader
+is a small Node process that lives outside `docs/`:
+
+```
+server/
+  package.json          {&quot;type&quot;:&quot;module&quot;}, one dependency: @anthropic-ai/sdk
+  serve.mjs             serves ../app statically and handles POST /api/check
+  grade.mjs             assemble → call → validate → { pass, missing }
+  prompt.mjs            the system text and the user-turn template; pure, testable
+  checks/&lt;id&gt;.json      one rubric per checkpoint
+  prompt.test.js        node --test, no network
+  grade.test.js         node --test, no network (fake client)
+  eval/
+    fixtures/&lt;id&gt;.json  answers with expected verdicts
+    run.mjs             hits the real API, prints a table; run by hand
+```
+
+This respects `docs/`&#x27;s rule (no dependencies, no bundler) because `docs/` does not change
+and does not know the SDK exists; and it follows the API guidance to call Claude through
+the official SDK rather than hand-rolled `fetch`. The two package.json files are
+independent; `docs/package.json` stays a `&quot;type&quot;: &quot;module&quot;` marker.
+
+Development is one command:</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-11-017Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-11-017Z" class="timestamp-link"><time datetime="2026-09-03T20:56:11.017Z" data-timestamp="2026-09-03T20:56:11.017Z">2026-09-03T20:56:11.017Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-11-465Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-11-465Z" class="timestamp-link"><time datetime="2026-09-03T20:56:11.465Z" data-timestamp="2026-09-03T20:56:11.465Z">2026-09-03T20:56:11.465Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01VFJDGAF19QQzCyo1rSty1K">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find remaining literal app path references</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#39;cd app\|\.\./app\|/app\b&#39; CLAUDE.md README.md design docs 2&gt;/dev/null | grep -v &#39;\.git/&#39;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-11-516Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-11-516Z" class="timestamp-link"><time datetime="2026-09-03T20:56:11.516Z" data-timestamp="2026-09-03T20:56:11.516Z">2026-09-03T20:56:11.516Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>design/checkpoints.md:113:  serve.mjs             serves ../app statically and handles POST /api/check
+docs/index.html:4:    cd app &amp;&amp; python3 -m http.server 8765 --bind 127.0.0.1</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-15-520Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-15-520Z" class="timestamp-link"><time datetime="2026-09-03T20:56:15.520Z" data-timestamp="2026-09-03T20:56:15.520Z">2026-09-03T20:56:15.520Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Xu56oTYPFqYt3sNqwdHbdr">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Fix last two refs, add .nojekyll, verify</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">perl -pi -e &#39;s{serves \.\./app statically}{serves ../docs statically}&#39; design/checkpoints.md
+perl -pi -e &#39;s{cd app &amp;&amp; python3}{cd docs &amp;&amp; python3}&#39; docs/index.html
+: &gt; docs/.nojekyll
+grep -rn &#39;cd app\|\.\./app\|/app\b&#39; CLAUDE.md README.md design docs 2&gt;/dev/null | grep -v &#39;\.git/&#39;; echo &#34;clean&#34;
+sed -n &#39;1,8p&#39; docs/index.html; echo &#34;--- CLAUDE.md commands ---&#34;; sed -n &#39;16,30p&#39; CLAUDE.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-17-006Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-17-006Z" class="timestamp-link"><time datetime="2026-09-03T20:56:17.006Z" data-timestamp="2026-09-03T20:56:17.006Z">2026-09-03T20:56:17.006Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>clean
+&lt;!doctype html&gt;
+&lt;!--
+  Serve over HTTP; file:// cannot load ES modules, import maps, or fetch() pane prose.
+    cd docs &amp;&amp; python3 -m http.server 8765 --bind 127.0.0.1
+    open http://127.0.0.1:8765/
+--&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+--- CLAUDE.md commands ---
+## Commands
+
+Everything runs from `docs/`. There is no build, no bundler, no `npm install`.
+
+```
+cd docs
+python3 -m http.server 8765 --bind 127.0.0.1     # serve (file:// does not work: modules + import map + fetch)
+node --test &quot;shared/**/*.test.js&quot;                # all tests
+node --test shared/math/stability.test.js        # one file
+node --test --test-name-pattern &quot;implicit&quot; &quot;shared/**/*.test.js&quot;   # one test by name
+```
+
+`docs/package.json` exists only to set `&quot;type&quot;: &quot;module&quot;` for Node; do not add dependencies.
+
+Browser checks go through the chrome-devtools MCP against the running server (console, network</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-20-259Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-20-259Z" class="timestamp-link"><time datetime="2026-09-03T20:56:20.259Z" data-timestamp="2026-09-03T20:56:20.259Z">2026-09-03T20:56:20.259Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-20-714Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-20-714Z" class="timestamp-link"><time datetime="2026-09-03T20:56:20.714Z" data-timestamp="2026-09-03T20:56:20.714Z">2026-09-03T20:56:20.714Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RMPpfe2yewvXAZCmtNd491">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check plan.md tree and README headings</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;1,45p&#39; design/plan.md; echo &#34;=== docs/README head ===&#34;; sed -n &#39;1,3p&#39; docs/README.md; echo &#34;=== docs/README tail ===&#34;; tail -2 docs/README.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-20-734Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-20-734Z" class="timestamp-link"><time datetime="2026-09-03T20:56:20.734Z" data-timestamp="2026-09-03T20:56:20.734Z">2026-09-03T20:56:20.734Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Plan for `docs/`
+
+How the page in `idea.md` is put together. `idea.md` is authoritative: the outline, the
+panel-by-panel beats, the navigation rules, the rendering approach, the shared-code
+inventory, the build order, and the numeric confirmations all live there and are not
+repeated here. This file holds only the mechanics: directory layout, the load sequence, the
+pane contract, the store API, the router internals, and the stylesheet split.
+
+## Ground rules
+
+- **No build step, no dependencies.** Plain HTML, CSS, and ES modules served as-is. A static
+  server is the only tool. Anything that needs `npm install` or a bundler is out.
+- **Latest desktop browsers only.** Chrome, Safari, Firefox, Edge as shipped today. That
+  buys us import maps, `modulepreload`, WebGL2, native MathML, CSS nesting, container
+  queries, `:has()`, scroll snap, `inert`, and `structuredClone` without polyfills.
+- **Shared code loads once, panel code loads on demand.** `index.html` pulls in
+  `shared/` during the initial page load. Each panel and each side pane is its own module,
+  fetched with dynamic `import()` the first time it is needed.
+- **Light mode, and only light mode.** One stylesheet, no theme toggle, no
+  `prefers-color-scheme` branch.
+- **Math is typeset with native MathML.** No KaTeX or MathJax.
+
+## Directory layout
+
+```
+docs/
+  index.html                  shell: import map, modulepreload, stylesheet links, boot script
+  package.json                {&quot;type&quot;:&quot;module&quot;} so `node --test` can import shared/ (a marker, not a build)
+  README.md                   how to serve, how to test, where to add a panel
+
+  styles/
+    base.css                  design tokens, reset, typography, MathML sizing
+    layout.css                spine grid, rails, side-pane cells, scroll snap
+    controls.css              sliders, radios, readouts, stage (canvas stack)
+
+  shared/                     loaded on first paint; everything a panel may import
+    main.js                   boot: build the grid from the manifest, start the router
+    manifest.js               the 13 panels: index, slug, title, which panes exist
+    state.js                  the state tuple store
+    router.js                 hash routes
+    loader.js                 dynamic import + prose fetch + mount/pause/resume/destroy
+    dom.js                    tiny DOM helpers (el, fragment, clamp, fmt)
+    math/                     complex, system, integrators, stability (+ *.test.js)
+    gfx/                      region shader, canvas 2D helpers, rAF loop
+    ui/                       controls bound to the store
+=== docs/README head ===
+# docs/
+
+The no-build explainer. Plain HTML, CSS, and ES modules; nothing to install.
+=== docs/README tail ===
+
+The full plan is in `design/plan.md`.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-26-977Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-26-977Z" class="timestamp-link"><time datetime="2026-09-03T20:56:26.977Z" data-timestamp="2026-09-03T20:56:26.977Z">2026-09-03T20:56:26.977Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-27-193Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-27-193Z" class="timestamp-link"><time datetime="2026-09-03T20:56:27.193Z" data-timestamp="2026-09-03T20:56:27.193Z">2026-09-03T20:56:27.193Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_011FsvrxSXx4rLjKuZqywAyk">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read CLAUDE.md intro</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;1,16p&#39; CLAUDE.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-27-237Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-27-237Z" class="timestamp-link"><time datetime="2026-09-03T20:56:27.237Z" data-timestamp="2026-09-03T20:56:27.237Z">2026-09-03T20:56:27.237Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+Make incremental commits to main as you work.
+
+## What this is
+
+An interactive, in-browser explainer of physical and numerical stability (a damped mass-spring,
+several integrators, one complex plane). `design/idea.md` is the concept and outline, section by
+section; `design/plan.md` is the application architecture. Read `plan.md` before touching `docs/`.
+`design/poc/` holds the original proof of concept and numeric scripts; the app ports them.
+`design/checkpoints.md` is the plan for the &quot;say it in your own words&quot; checkpoints (a Claude
+API grader behind a small `server/`); it is authoritative for that feature and is not built yet.
+
+## Commands</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-37-722Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-37-722Z" class="timestamp-link"><time datetime="2026-09-03T20:56:37.722Z" data-timestamp="2026-09-03T20:56:37.722Z">2026-09-03T20:56:37.722Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_011xEUrhR47vVHkXAMCkAdZP">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Document the docs/ = app convention</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+
+# --- CLAUDE.md: say plainly that docs/ is the app, design/ is the notes ---
+p = pathlib.Path(&#39;CLAUDE.md&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;An interactive, in-browser explainer of physical and numerical stability (a damped mass-spring,
+several integrators, one complex plane). `design/idea.md` is the concept and outline, section by
+section;&#34;&#34;&#34;
+new = &#34;&#34;&#34;An interactive, in-browser explainer of physical and numerical stability (a damped mass-spring,
+several integrators, one complex plane).
+
+**`docs/` is the app, not the documentation.** GitHub Pages publishes this repo from
+`main`&#39;s `docs/` folder, which is the only folder name Pages accepts besides the repo root,
+so the site lives there and `docs/.nojekyll` keeps Jekyll&#39;s hands off it. The writing about
+the project is in `design/`.
+
+`design/idea.md` is the concept and outline, section by
+section;&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+
+# --- root README: how it is published ---
+p = pathlib.Path(&#39;README.md&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;## Quickstart&#34;&#34;&#34;
+new = &#34;&#34;&#34;The site is `docs/`; the notes behind it (`idea.md`, `plan.md`, the proof of concept, the
+source essays) are in `design/`. GitHub Pages publishes `main`&#39;s `docs/` folder as-is —
+`docs/.nojekyll` turns Jekyll off, and every path in the page is relative, so it works from
+a project subpath.
+
+## Quickstart&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+
+# --- plan.md: the directory layout should list .nojekyll ---
+p = pathlib.Path(&#39;design/plan.md&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;docs/
+  index.html                  shell: import map, modulepreload, stylesheet links, boot script&#34;&#34;&#34;
+new = &#34;&#34;&#34;docs/                         also the GitHub Pages root: Pages serves main&#39;s docs/ folder
+  .nojekyll                   empty; without it Pages runs Jekyll and eats the README files
+  index.html                  shell: import map, modulepreload, stylesheet links, boot script&#34;&#34;&#34;
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;ok&#39;)
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-39-355Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-39-355Z" class="timestamp-link"><time datetime="2026-09-03T20:56:39.355Z" data-timestamp="2026-09-03T20:56:39.355Z">2026-09-03T20:56:39.355Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-41-874Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-41-874Z" class="timestamp-link"><time datetime="2026-09-03T20:56:41.874Z" data-timestamp="2026-09-03T20:56:41.874Z">2026-09-03T20:56:41.874Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EVWzxVxesrifV36doVJuJH">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run test suite from new location</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd docs &amp;&amp; node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | tail -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-43-731Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-43-731Z" class="timestamp-link"><time datetime="2026-09-03T20:56:43.731Z" data-timestamp="2026-09-03T20:56:43.731Z">2026-09-03T20:56:43.731Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ℹ tests 88
+ℹ suites 0
+ℹ pass 88
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122.800541</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-48-212Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-48-212Z" class="timestamp-link"><time datetime="2026-09-03T20:56:48.212Z" data-timestamp="2026-09-03T20:56:48.212Z">2026-09-03T20:56:48.212Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EHhJgeLPx2Q52mDBmx13v2">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Stage and review the change set</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; git add -A &amp;&amp; git status --short | grep -v &#34;^R  &#34; &amp;&amp; echo &#34;--- rename summary ---&#34; &amp;&amp; git diff --cached --stat --find-renames | tail -3 &amp;&amp; echo &#34;--- non-rename changes ---&#34; &amp;&amp; git diff --cached --name-status --find-renames | grep -v &#34;^R100&#34; | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-49-785Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-49-785Z" class="timestamp-link"><time datetime="2026-09-03T20:56:49.785Z" data-timestamp="2026-09-03T20:56:49.785Z">2026-09-03T20:56:49.785Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>M  CLAUDE.md
+M  README.md
+A  docs/.nojekyll
+--- rename summary ---
+ {app =&gt; docs}/title/title.html                     |   0
+ {app =&gt; docs}/title/title.js                       |   0
+ 190 files changed, 65 insertions(+), 52 deletions(-)
+--- non-rename changes ---
+M	CLAUDE.md
+M	README.md
+R096	docs/checkpoints.md	design/checkpoints.md
+R099	docs/idea.md	design/idea.md
+R098	docs/plan.md	design/plan.md
+A	docs/.nojekyll
+R096	app/README.md	docs/README.md
+R078	app/conclusion/conclusion.js	docs/conclusion/conclusion.js
+R098	app/index.html	docs/index.html
+R097	app/panels/01-point-masses/README.md	docs/panels/01-point-masses/README.md
+R092	app/panels/02-newtonian-physics/README.md	docs/panels/02-newtonian-physics/README.md
+R095	app/panels/03-solving-for-x/README.md	docs/panels/03-solving-for-x/README.md
+R095	app/panels/04-physical-stability/README.md	docs/panels/04-physical-stability/README.md
+R089	app/panels/05-linearize/README.md	docs/panels/05-linearize/README.md
+R097	app/panels/06-eigen-what-now/README.md	docs/panels/06-eigen-what-now/README.md
+R096	app/panels/07-finding-eigenvalues/README.md	docs/panels/07-finding-eigenvalues/README.md
+R094	app/panels/08-recap-real-time/README.md	docs/panels/08-recap-real-time/README.md
+R090	app/panels/09-finding-error/README.md	docs/panels/09-finding-error/README.md
+R092	app/panels/10-explicit-euler/README.md	docs/panels/10-explicit-euler/README.md
+R094	app/panels/11-lets-break-it/README.md	docs/panels/11-lets-break-it/README.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-56-065Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-56-065Z" class="timestamp-link"><time datetime="2026-09-03T20:56:56.065Z" data-timestamp="2026-09-03T20:56:56.065Z">2026-09-03T20:56:56.065Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-56-56-704Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-56-56-704Z" class="timestamp-link"><time datetime="2026-09-03T20:56:56.704Z" data-timestamp="2026-09-03T20:56:56.704Z">2026-09-03T20:56:56.704Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01NBm1X5zuweAN7a9DkFvi3c">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check the pre-existing uncommitted edit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git diff --cached --find-renames -- docs/panels/08-recap-real-time/right.html | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-56-56-759Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-56-56-759Z" class="timestamp-link"><time datetime="2026-09-03T20:56:56.759Z" data-timestamp="2026-09-03T20:56:56.759Z">2026-09-03T20:56:56.759Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>diff --git a/docs/panels/08-recap-real-time/right.html b/docs/panels/08-recap-real-time/right.html
+new file mode 100644
+index 0000000..addc0b4
+--- /dev/null
++++ b/docs/panels/08-recap-real-time/right.html
+@@ -0,0 +1,20 @@
++&lt;article&gt;
++  &lt;h2&gt;Explode h: all step sizes at once&lt;/h2&gt;
++  &lt;div class=&quot;prose&quot;&gt;
++    &lt;p&gt;So far, the simulation has run one step size at a time. Here the same simulation runs
++      across a small spread of step sizes at once, one trajectory per &lt;math&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;/math&gt;,
++      all against the same exact curve.&lt;/p&gt;
++    &lt;p&gt;Read it as a bundle. The small steps lie on the blue curve and cost the most; the large
++      steps peel away first, and some never come back. Between them is the step this spring can
++      afford. That single &lt;math&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;/math&gt; is one line in this bundle, and the
++      trial-and-error developer described a moment ago is walking this range one guess at a
++      time.&lt;/p&gt;
++    &lt;p&gt;Two numbers for the highlighted run are printed in the corner of the chart: its compute
++      cost, the steps it takes per second of simulated time, and its error, how far it has
++      drifted from the exact solution. As &lt;math&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;/math&gt; grows, one falls and the other
++      rises, and the panels after this one are about proving where that trade stops being safe.&lt;/p&gt;
++    &lt;p&gt;Drag the &lt;math&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;/math&gt; marker along the range to highlight the trajectory it
++      lands on and dim the rest.&lt;/p&gt;
++  &lt;/div&gt;
++  &lt;div class=&quot;viz&quot;&gt;&lt;/div&gt;
++&lt;/article&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-07-470Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-07-470Z" class="timestamp-link"><time datetime="2026-09-03T20:57:07.470Z" data-timestamp="2026-09-03T20:57:07.470Z">2026-09-03T20:57:07.470Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-10-477Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-10-477Z" class="timestamp-link"><time datetime="2026-09-03T20:57:10.477Z" data-timestamp="2026-09-03T20:57:10.477Z">2026-09-03T20:57:10.477Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Q1Qhf4d6HC9BYxqmDUtzTW">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Diff the pre-existing uncommitted edit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git show HEAD:app/panels/08-recap-real-time/right.html &gt; /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/91c185cb-c18d-4786-a945-028b165dd276/scratchpad/08-head.html
+diff -u /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/91c185cb-c18d-4786-a945-028b165dd276/scratchpad/08-head.html docs/panels/08-recap-real-time/right.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-57-10-541Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-57-10-541Z" class="timestamp-link"><time datetime="2026-09-03T20:57:10.541Z" data-timestamp="2026-09-03T20:57:10.541Z">2026-09-03T20:57:10.541Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>(Bash completed with no output)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-17-702Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-17-702Z" class="timestamp-link"><time datetime="2026-09-03T20:57:17.702Z" data-timestamp="2026-09-03T20:57:17.702Z">2026-09-03T20:57:17.702Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-19-140Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-19-140Z" class="timestamp-link"><time datetime="2026-09-03T20:57:19.140Z" data-timestamp="2026-09-03T20:57:19.140Z">2026-09-03T20:57:19.140Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_011KodvGR42fe4g7kEBBuRq8">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Confirm rename pairing and list content changes</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git diff --cached --name-status --find-renames | grep &#34;08-recap-real-time/right.html&#34;; rm -f /private/tmp/claude-501/*/91c185cb-c18d-4786-a945-028b165dd276/scratchpad/08-head.html 2&gt;/dev/null; echo &#34;---&#34;; git diff --cached --stat --find-renames | grep -v &#34;|  *0 *$&#34; | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-57-20-676Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-57-20-676Z" class="timestamp-link"><time datetime="2026-09-03T20:57:20.676Z" data-timestamp="2026-09-03T20:57:20.676Z">2026-09-03T20:57:20.676Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>R100	app/panels/08-recap-real-time/right.html	docs/panels/08-recap-real-time/right.html
+---
+ CLAUDE.md                                          |  29 +++++++++++++--------
+ README.md                                          |   7 ++++-
+ {docs =&gt; design}/checkpoints.md                    |  18 ++++++-------
+ {docs =&gt; design}/idea.md                           |   2 +-
+ {docs =&gt; design}/plan.md                           |   9 ++++---
+ {docs =&gt; design}/poc/euler.png                     | Bin
+ {docs =&gt; design}/poc/implicit-euler.png            | Bin
+ {docs =&gt; design}/poc/rk4.png                       | Bin
+ {app =&gt; docs}/README.md                            |   4 +--
+ {app =&gt; docs}/conclusion/conclusion.js             |   2 +-
+ {app =&gt; docs}/index.html                           |   2 +-
+ {app =&gt; docs}/panels/01-point-masses/README.md     |   2 +-
+ .../panels/02-newtonian-physics/README.md          |   6 ++---
+ {app =&gt; docs}/panels/03-solving-for-x/README.md    |   2 +-
+ .../panels/04-physical-stability/README.md         |   2 +-
+ {app =&gt; docs}/panels/05-linearize/README.md        |   6 ++---
+ {app =&gt; docs}/panels/06-eigen-what-now/README.md   |   2 +-
+ .../panels/07-finding-eigenvalues/README.md        |   2 +-
+ {app =&gt; docs}/panels/08-recap-real-time/README.md  |   2 +-
+ {app =&gt; docs}/panels/09-finding-error/README.md    |   2 +-</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-22-614Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-22-614Z" class="timestamp-link"><time datetime="2026-09-03T20:57:22.614Z" data-timestamp="2026-09-03T20:57:22.614Z">2026-09-03T20:57:22.614Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>R100 — a clean rename, no stray content. Committing.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-29-354Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-29-354Z" class="timestamp-link"><time datetime="2026-09-03T20:57:29.354Z" data-timestamp="2026-09-03T20:57:29.354Z">2026-09-03T20:57:29.354Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RPjGSDxTJr8bCw559hGn4Y">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the restructure</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git commit -q -F - &lt;&lt;&#39;MSG&#39;
+publish on GitHub Pages: app/ becomes docs/, the notes become design/
+
+Pages serves either the repo root or main&#39;s docs/ folder and nothing else, so
+the site has to be called docs/. That name was taken by the writing about the
+project, which moves to design/ — idea.md, plan.md, checkpoints.md, the proof
+of concept, and the two source essays.
+
+Nothing in the page needed changing: every path is already relative and the
+import map is ./shared/, ./panels/, so it works from a project subpath. The one
+addition is an empty docs/.nojekyll, without which Pages would run Jekyll over
+the tree and render the fourteen README files as pages.
+
+The rest is prose: every docs/ reference now says design/ and every app/ says
+docs/, and CLAUDE.md leads with the warning that docs/ here is the app.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01HvvWmVeztoesTQy48J7CXX
+MSG
+git log --oneline -1 &amp;&amp; git status --short &amp;&amp; echo &#34;(clean)&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-57-30-866Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-57-30-866Z" class="timestamp-link"><time datetime="2026-09-03T20:57:30.866Z" data-timestamp="2026-09-03T20:57:30.866Z">2026-09-03T20:57:30.866Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>24b0144 publish on GitHub Pages: app/ becomes docs/, the notes become design/
+?? transcripts/
+(clean)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-37-032Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-37-032Z" class="timestamp-link"><time datetime="2026-09-03T20:57:37.032Z" data-timestamp="2026-09-03T20:57:37.032Z">2026-09-03T20:57:37.032Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-40-232Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-40-232Z" class="timestamp-link"><time datetime="2026-09-03T20:57:40.232Z" data-timestamp="2026-09-03T20:57:40.232Z">2026-09-03T20:57:40.232Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016QcCeMk9N8FGxqC9Kh2bgp">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify every asset reference resolves under docs/</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd docs &amp;&amp; missing=0
+for f in $(grep -oE &#39;href=&#34;\./[^&#34;]+&#34;|src=&#34;\./[^&#34;]+&#34;&#39; index.html | sed &#39;s/.*&#34;\.\///;s/&#34;$//&#39;); do
+  [ -f &#34;$f&#34; ] || { echo &#34;MISSING $f&#34;; missing=1; }
+done
+# every panel file the manifest implies, plus the bookends
+for f in title/title.html title/title.js conclusion/conclusion.html conclusion/conclusion.js .nojekyll; do
+  [ -f &#34;$f&#34; ] || { echo &#34;MISSING $f&#34;; missing=1; }
+done
+[ $missing -eq 0 ] &amp;&amp; echo &#34;all index.html references and bookends resolve&#34;
+echo &#34;--- files git would publish (top level) ---&#34;; git ls-files . | cut -d/ -f1 | sort -u</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T20-57-41-697Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T20-57-41-697Z" class="timestamp-link"><time datetime="2026-09-03T20:57:41.697Z" data-timestamp="2026-09-03T20:57:41.697Z">2026-09-03T20:57:41.697Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>all index.html references and bookends resolve
+--- files git would publish (top level) ---
+.nojekyll
+conclusion
+index.html
+package.json
+panels
+README.md
+shared
+styles
+title</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-51-605Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-51-605Z" class="timestamp-link"><time datetime="2026-09-03T20:57:51.605Z" data-timestamp="2026-09-03T20:57:51.605Z">2026-09-03T20:57:51.605Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done — <code>24b0144</code>. 190 files, all tracked as pure renames (R100), 88 tests still pass, and every reference in <code>index.html</code> resolves under the new root.</p>
+<p><strong>The two moves</strong></p>
+<ul>
+<li><code>docs/</code> → <code>design/</code> — idea.md, plan.md, checkpoints.md, <code>poc/</code>, the two source essays</li>
+<li><code>app/</code> → <code>docs/</code> — the site</li>
+</ul>
+<p>Pages accepts only the repo root or <code>main</code>'s <code>docs/</code> folder as a source, which is why the app had to take that name.</p>
+<p><strong>What I changed beyond the moves</strong></p>
+<ul>
+<li><strong><code>docs/.nojekyll</code></strong> (new, empty). Without it Pages runs Jekyll over the tree and renders the fourteen README files as pages.</li>
+<li>Rewrote every path reference in two passes — <code>docs/</code> → <code>design/</code> first, then <code>app/</code> → <code>docs/</code> — so prose like "the app ports them" survived. Also caught the no-slash forms the pattern missed: <code>cd app</code> in three places, <code>serves ../app statically</code> in checkpoints.md.</li>
+<li><strong>CLAUDE.md now leads with the warning that <code>docs/</code> here is the app, not documentation</strong> — otherwise the next session opens <code>docs/</code> expecting notes.</li>
+</ul>
+<p><strong>Nothing in the page itself needed touching.</strong> Every path was already <code>./</code>-relative and the import map is <code>./shared/</code>, <code>./panels/</code>, so it works unmodified from a project subpath like <code>username.github.io/explainer-numerical-integration/</code>. Hash routing needs no server rewrites, and the favicon is a data URI, so there's no <code>/favicon.ico</code> request to 404.</p>
+<p><strong>One thing left for you</strong> — a repo setting I can't make: Settings → Pages → Source = "Deploy from a branch", branch <code>main</code>, folder <code>/docs</code>. No Actions workflow needed.</p>
+<p>Also: your local server is running from the repo root, so the app is now at <code>http://127.0.0.1:8765/docs/</code> (or restart it from <code>docs/</code> for the bare root).</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T20-57-51-720Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T20-57-51-720Z" class="timestamp-link"><time datetime="2026-09-03T20:57:51.720Z" data-timestamp="2026-09-03T20:57:51.720Z">2026-09-03T20:57:51.720Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T20-57-55-383Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T20-57-55-383Z" class="timestamp-link"><time datetime="2026-09-03T20:57:55.383Z" data-timestamp="2026-09-03T20:57:55.383Z">2026-09-03T20:57:55.383Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>TL;DR:</strong> <code>docs/</code> → <code>design/</code>, then <code>app/</code> → <code>docs/</code>. Committed <code>24b0144</code> — 190 files, all clean renames, 88 tests pass. Added <code>docs/.nojekyll</code> so Pages doesn't Jekyll the READMEs; fixed every path reference including the no-slash <code>cd app</code> forms; CLAUDE.md now warns up front that <code>docs/</code> is the app.</p>
+<p><strong>Your turn:</strong> Settings → Pages → branch <code>main</code>, folder <code>/docs</code>. Local server now serves it at <code>:8765/docs/</code>.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-003.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<span class="current">4</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

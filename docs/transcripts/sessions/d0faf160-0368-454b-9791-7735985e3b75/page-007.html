@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 7</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 7/7</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-006.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<span class="current">7</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-03T18-01-45-049Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T18-01-45-049Z" class="timestamp-link"><time datetime="2026-09-03T18:01:45.049Z" data-timestamp="2026-09-03T18:01:45.049Z">2026-09-03T18:01:45.049Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-01-50-558Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-01-50-558Z" class="timestamp-link"><time datetime="2026-09-03T18:01:50.558Z" data-timestamp="2026-09-03T18:01:50.558Z">2026-09-03T18:01:50.558Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>TL;DR</strong></p>
+<p><strong>Readout sweep committed</strong> — <code>4a2d6e6</code>, one commit as asked. All 24 boxes gone, 88 tests pass.
+- Panel 9's ratio/doubling-time and panel 13's controller tally (the two <code>idea.md</code> calls the beat) moved across intact
+- Only duplication was dropped — tables the nested disks already draw
+- <code>--stage-max</code>: <code>−21rem</code> → <code>−18rem</code> (not the full 8rem; panes still stack controls under the stage)
+- Agent self-caught a layout bug via advisor and reverted it</p>
+<p><strong>Slider migration now running</strong> — was blocked on file overlap with the readout sweep, launched the moment it cleared. 25 sliders, 12 panes.</p>
+<p><strong>Needs your call:</strong> an untracked <code>app/title/</code> appeared mid-session — standalone title page + GIF collage script, empty <code>gifs/</code> dir. Not from anything I briefed. Left it uncommitted.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T18-21-16-205Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T18-21-16-205Z" class="timestamp-link"><time datetime="2026-09-03T18:21:16.205Z" data-timestamp="2026-09-03T18:21:16.205Z">2026-09-03T18:21:16.205Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>wyjzfzy7c</task-id>
+<tool-use-id>toolu_01LW7x6TVJj8J8u46yEzTiJY</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/wyjzfzy7c.output</output-file>
+<status>completed</status></p>
+<summary>Dynamic workflow "Migrate every parameter slider to a draggable number inside the equation it belongs to" completed</summary>
+<p><result>"All clean. Final report:\n\n## 1. Files changed, grouped by panel\n\n- <strong>Panel 1</strong> (point-masses): <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>\n- <strong>Panel 2</strong> (newtonian-physics): <code>right.js</code>\n- <strong>Panel 3</strong> (solving-for-x): <code>spine.js</code>, <code>spine.html</code>\n- <strong>Panel 4</strong> (physical-stability): <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>, <code>right.html</code>\n- <strong>Panel 6</strong> (eigen-what-now): <code>left.js</code>, <code>left.html</code>\n- <strong>Panel 8</strong> (recap-real-time): <code>spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>left.html</code>\n- <strong>Panel 9</strong> (finding-error): <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>, <code>right.html</code>\n- <strong>Panel 10</strong> (explicit-euler): <code>spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>left.html</code>\n- <strong>Panel 11</strong> (lets-break-it): <code>spine.js</code>, <code>spine.html</code>\n- <strong>Panel 13</strong> (variable-step-sizes): <code>spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>left.html</code>\n- <strong>Shared</strong>: <code>app/shared/ui/scrub.js</code> (additive only)\n\n## 2. Slider → equation table\n\n| Panel/pane | Parameter | Equation the number now lives in |\n|---|---|---|\n| 1 spine | m | <code>m = [m]</code> block equation |\n| 1 right | theta | <code>(x, y, θ) = (…, …, [θ])</code> (already scrubbable; only removed the redundant slider) |\n| 2 right | lever | <code>ΣF = (…) at d = [d]</code> |\n| 3 spine | h | <code>dt = [h] s</code> |\n| 4 spine | epsilon | new: <code>\\|x(t) − φ(t)\\| ≤ ε = [ε]</code>, the ε-tube's own defining inequality |\n| 4 spine | c (local) | <code>Re λ = −[c]/2m = [α]</code>, with <code>data-snap=\"0\"</code> |\n| 4 right | c (tuple) | <code>c = [c]</code> in \"Drag c … through zero\" |\n| 6 left | tx, ty, theta, s | new: <code>M = T([tx],[ty])·R([θ]°)·S([s])</code>, replacing the abstract <code>T·R·S</code> |\n| 8 spine | h | <code>h = [h] s</code> (frame-cost arithmetic) |\n| 8 left | h | <code>h = [h] s</code> (frame-cost arithmetic) |\n| 8 left | objects | <code>Charge that one step to [objects] of them…</code> (<code>&amp;lt;mtext&amp;gt;</code>, bindMath-owned text) |\n| 9 spine | h | new: <code>h = [h]</code> in \"change h and see it cross one\" |\n| 9 right | x0, v0 | new: <code>(x₀, v₀) = ([x0], [v0])</code>, \"Drag the state\" |\n| 9 right | h | new: <code>h = [h]</code>, \"Change h … or the method\" |\n| 10 spine | h | <code>h = [h]</code> in the disk verdict sentence (already present) |\n| 10 spine | m, c, k | new: <code>m = [m]</code>, <code>c = [c]</code>, <code>k = [k]</code> in \"Drag m, c, k\" |\n| 10 left | h | <code>\\|1 + [h](λ) \\| = [abs-r]</code>, the by-hand R(hλ) computation (already present) |\n| 11 spine | h | new: <code>h = [h]</code> in \"Drag h and the region rescales\" |\n| 13 spine | tol | new: <code>target local error = [tol]</code> |\n| 13 left | h | <code>h = [h] s</code> in \"Take one step of h\" (already present) |\n\nNo survivors: <code>grep -rn \"slider(\" app/panels/</code> returns nothing. (Panels 5 and 7 were already migrated before this session and are unchanged; panel 6 <strong>spine</strong>'s own damping control is a hand-rolled <code>localSlider()</code> defined inside that file — not <code>shared/ui/controls.js</code>'s <code>slider()</code> — so it never matched the grep and was never in the 25-site list; I left it untouched.)\n\n## 3. Panel 4 c=0 and panel 6 highlight\n\n<strong>Panel 4 c=0:</strong> Added an opt-in <code>data-snap=\"0\"</code> to <code>scrub.js</code> (see §4). During a drag/key move, if the candidate value is within one gesture-step of a snap target, or the move crosses it, the value snaps exactly to the target — except when already sitting on it, so the drag can leave 0 again. This was caught and fixed mid-review: my first version computed the capture tolerance from the move's own size but didn't exempt the already-snapped case, so every subsequent move computed a tolerance exactly equal to its own distance from 0 and re-snapped forever, trapping the reader at c=0. Fixed with a <code>v === target</code> skip. Re-verified by trace and by <code>node --test</code>.\n\nPanel 4's spine also needed a small facade (<code>scrub = { get, set, subscribe, limits }</code>) merging <code>local.c</code> and <code>aux.epsilon</code>, because <code>bindScrub</code> binds every <code>[data-scrub]</code> node under the article to one store — two different backing stores in one article would have crashed the aux node against <code>local</code>'s validator.\n\n<strong>Panel 6 highlight:</strong> Rewired the arm/disarm listeners from the (now-deleted) slider <code>&amp;lt;label&amp;gt;</code> containers onto the individual <code>&amp;lt;mn data-scrub&amp;gt;</code> nodes in the prose (<code>article.querySelector('[data-scrub=\"tx\"]')</code> etc.), keyed the same way as before (<code>{tx,ty}→translate group</code>, <code>{theta}→rotate</code>, <code>{s}→scale</code>). <code>pointerdown</code>/<code>keydown</code> arm, window-level <code>pointerup</code>/<code>pointercancel</code>/<code>keyup</code> disarm — identical mechanism, different target elements. Not implemented via <code>bindScrub</code>'s own <code>data-active</code>, because that attribute is only set on pointer drag, not keyboard, and the original slider-based highlight worked for both.\n\n## 4. <code>app/shared/ui/scrub.js</code> diff (backward compatible)\n\n<code>diff\n@@ -11,6 +11,13 @@\n // data-log attribute makes the drag multiplicative, for h and k. The text is written here\n // only when the element has no data-var, so it coexists with bindMath on the same\n // element: livemath owns the text, scrub owns the gesture.\n+//\n+// A data-snap=\"0\" (or a comma list, \"0,1\") makes those values landable exactly, the way a\n+// stepped &amp;lt;input type=range&amp;gt; guarantees its grid points: a move that would step past a\n+// snap value, or land within one step of it, is replaced with the snap value itself. The\n+// tolerance is the size of the gesture that produced the move, so a slow drag must still\n+// come close and a fast one cannot skip over the value entirely. Nodes without data-snap\n+// are unaffected — snaps is empty and move() returns exactly what it always did.\n \n import { fmt } from '../dom.js';\n \n@@ -41,6 +48,7 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps\n     const ownsText = !node.hasAttribute('data-var');\n     const clamp = v =&amp;gt; Math.min(hi, Math.max(lo, v));\n     const value = () =&amp;gt; store.get()[key];\n+    const snaps = node.dataset.snap != null ? node.dataset.snap.split(',').map(Number).filter(Number.isFinite) : [];\n \n     node.classList.add('scrub');\n     node.setAttribute('tabindex', '0');\n@@ -51,7 +59,16 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps\n     // one unit of gesture: a pixel of drag or 1/keySteps of a key sweep, in the key's units\n     const perPixel = v =&amp;gt; (log ? Math.log(hi / lo) / pixelsPerRange : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / pixelsPerRange);\n     const perKey = v =&amp;gt; (log ? Math.log(hi / lo) / keySteps : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / keySteps);\n-    const move = (v, amount) =&amp;gt; clamp(log ? v * Math.exp(amount) : v + amount);\n+    const move = (v, amount) =&amp;gt; {\n+      const next = clamp(log ? v * Math.exp(amount) : v + amount);\n+      if (snaps.length === 0) return next;\n+      const tol = Math.max(Math.abs(next - v), 1e-9);   // this move's own size: the snap window\n+      for (const target of snaps) {\n+        if (v === target) continue;   // already on the detent: let this move leave it\n+        if (Math.abs(next - target) &amp;lt; tol || (v - target) * (next - target) &amp;lt;= 0) return target;\n+      }\n+      return next;\n+    };\n     const write = v =&amp;gt; { if (v !== value()) store.set({ [key]: v }); };\n \n     let drag = null;   // { id, lastX, v }\n</code>\n\nBackward compatible: <code>snaps</code> is empty unless a node has <code>data-snap</code>; <code>move()</code>'s first line is unchanged, and with <code>snaps.length === 0</code> it returns <code>next</code> immediately — bit-for-bit the old expression. Only <code>panels/04-physical-stability/spine.html</code>'s one <code>&amp;lt;mn data-snap=\"0\"&amp;gt;</code> exercises the new branch. <code>node --check</code> and <code>node --test \"shared/**/*.test.js\"</code> (88/88) both pass after the fix.\n\n## 5. New equations introduced, and justification\n\n- <strong>Panel 4 spine — ε-tube inequality</strong> <code>|x(t) − φ(t)| ≤ ε</code>: this <em>is</em> the panel's own subject (Eberly's physical-stability definition), already drawn as a shaded band on the plot; it had no MathML form anywhere in the prose. Not invented — lifted from the panel's own picture.\n- <strong>Panel 6 left — <code>M = T(tx,ty)·R(θ)·S(s)</code></strong>: the prose already named this composition symbolically (<code>T·R·S</code>, and in the code comments); I only added the numeric arguments. Matches the task's explicit suggestion.\n- **Pane
+... (truncated 2996 chars, full result in /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/wyjzfzy7c.output)</result>
+<diagnostics>Per-agent results: /Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/subagents/workflows/wf_8c321bbe-560/journal.jsonl — one {"type":"result",...} line per completed agent with its full return value.
+If the result above is empty or unexpected, Read this file BEFORE diagnosing — do not assume agents returned non-empty results.
+To re-run with edited post-processing: Workflow({scriptPath: '/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/scratchpad/sliders-to-scrubs.js', resumeFromRunId: 'wf_8c321bbe-560'}) — agents whose (prompt, opts) are unchanged replay from cache.</diagnostics>
+<usage><agent_count>1</agent_count><agents_done>1</agents_done><agents_error>0</agents_error><agents_skipped>0</agents_skipped><agents_empty_result>0</agents_empty_result><subagent_tokens>254575</subagent_tokens><tool_uses>159</tool_uses><duration_ms>1181029</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-32-810Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-32-810Z" class="timestamp-link"><time datetime="2026-09-03T18:21:32.810Z" data-timestamp="2026-09-03T18:21:32.810Z">2026-09-03T18:21:32.810Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-33-517Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-33-517Z" class="timestamp-link"><time datetime="2026-09-03T18:21:33.517Z" data-timestamp="2026-09-03T18:21:33.517Z">2026-09-03T18:21:33.517Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Slider sweep is back. Verifying, including the shared <code>scrub.js</code> change:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-34-927Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-34-927Z" class="timestamp-link"><time datetime="2026-09-03T18:21:34.927Z" data-timestamp="2026-09-03T18:21:34.927Z">2026-09-03T18:21:34.927Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01MbzeggwPZ26nBLodSU79Wp">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check slider survivors and panel 6 hand-rolled slider</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;slider(&#34; panels/ 2&gt;/dev/null | head; echo &#34;--- localSlider in panel 6 spine ---&#34;; grep -n &#34;localSlider&#34; -A 18 panels/06-eigen-what-now/spine.js | head -32</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-21-34-954Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-21-34-954Z" class="timestamp-link"><time datetime="2026-09-03T18:21:34.954Z" data-timestamp="2026-09-03T18:21:34.954Z">2026-09-03T18:21:34.954Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- localSlider in panel 6 spine ---
+ugrep: warning: panels/06-eigen-what-now/spine.js: No such file or directory</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-36-109Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-36-109Z" class="timestamp-link"><time datetime="2026-09-03T18:21:36.109Z" data-timestamp="2026-09-03T18:21:36.109Z">2026-09-03T18:21:36.109Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EAPLWerTBGKczRfvsaD32Q">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run tests and inspect scrub.js diff</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | grep -E &#34;^. (tests|pass|fail)&#34;; echo &#34;--- scrub.js diff ---&#34;; git diff app/shared/ui/scrub.js | head -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-21-37-632Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-21-37-632Z" class="timestamp-link"><time datetime="2026-09-03T18:21:37.632Z" data-timestamp="2026-09-03T18:21:37.632Z">2026-09-03T18:21:37.632Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ℹ tests 0
+ℹ pass 0
+ℹ fail 0
+--- scrub.js diff ---
+diff --git a/app/shared/ui/scrub.js b/app/shared/ui/scrub.js
+index fcd667b..f305762 100644
+--- a/app/shared/ui/scrub.js
++++ b/app/shared/ui/scrub.js
+@@ -11,6 +11,13 @@
+ // data-log attribute makes the drag multiplicative, for h and k. The text is written here
+ // only when the element has no data-var, so it coexists with bindMath on the same
+ // element: livemath owns the text, scrub owns the gesture.
++//
++// A data-snap=&quot;0&quot; (or a comma list, &quot;0,1&quot;) makes those values landable exactly, the way a
++// stepped &lt;input type=range&gt; guarantees its grid points: a move that would step past a
++// snap value, or land within one step of it, is replaced with the snap value itself. The
++// tolerance is the size of the gesture that produced the move, so a slow drag must still
++// come close and a fast one cannot skip over the value entirely. Nodes without data-snap
++// are unaffected — snaps is empty and move() returns exactly what it always did.
+ 
+ import { fmt } from &#x27;../dom.js&#x27;;
+ 
+@@ -41,6 +48,7 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps
+     const ownsText = !node.hasAttribute(&#x27;data-var&#x27;);
+     const clamp = v =&gt; Math.min(hi, Math.max(lo, v));
+     const value = () =&gt; store.get()[key];
++    const snaps = node.dataset.snap != null ? node.dataset.snap.split(&#x27;,&#x27;).map(Number).filter(Number.isFinite) : [];
+ 
+     node.classList.add(&#x27;scrub&#x27;);
+     node.setAttribute(&#x27;tabindex&#x27;, &#x27;0&#x27;);
+@@ -51,7 +59,16 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps
+     // one unit of gesture: a pixel of drag or 1/keySteps of a key sweep, in the key&#x27;s units
+     const perPixel = v =&gt; (log ? Math.log(hi / lo) / pixelsPerRange : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / pixelsPerRange);
+     const perKey = v =&gt; (log ? Math.log(hi / lo) / keySteps : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / keySteps);
+-    const move = (v, amount) =&gt; clamp(log ? v * Math.exp(amount) : v + amount);
++    const move = (v, amount) =&gt; {
++      const next = clamp(log ? v * Math.exp(amount) : v + amount);
++      if (snaps.length === 0) return next;
++      const tol = Math.max(Math.abs(next - v), 1e-9);   // this move&#x27;s own size: the snap window
++      for (const target of snaps) {
++        if (v === target) continue;   // already on the detent: let this move leave it
++        if (Math.abs(next - target) &lt; tol || (v - target) * (next - target) &lt;= 0) return target;
++      }
++      return next;
++    };
+     const write = v =&gt; { if (v !== value()) store.set({ [key]: v }); };
+ 
+     let drag = null;   // { id, lastX, v }</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-48-980Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-48-980Z" class="timestamp-link"><time datetime="2026-09-03T18:21:48.980Z" data-timestamp="2026-09-03T18:21:48.980Z">2026-09-03T18:21:48.980Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-49-740Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-49-740Z" class="timestamp-link"><time datetime="2026-09-03T18:21:49.740Z" data-timestamp="2026-09-03T18:21:49.740Z">2026-09-03T18:21:49.740Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>CLAUDE.md changed on disk — that resolves <code>app/title/</code>: it's your in-progress title page (<code>#/0</code>), so I'll keep leaving it alone. Re-running tests from the right directory:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-21-51-423Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-21-51-423Z" class="timestamp-link"><time datetime="2026-09-03T18:21:51.423Z" data-timestamp="2026-09-03T18:21:51.423Z">2026-09-03T18:21:51.423Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Wge26XLtT1uVpSCh7UZvA9">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run tests from app, check slider survivors</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | grep -E &#34;^. (tests|pass|fail)&#34;; echo &#34;--- slider survivors ---&#34;; grep -rn &#34;slider(&#34; panels/ | grep -v &#34;localSlider&#34; | head; echo &#34;--- panel 6 spine localSlider ---&#34;; grep -n &#34;localSlider&#34; panels/06-eigen-what-now/spine.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-21-53-016Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-21-53-016Z" class="timestamp-link"><time datetime="2026-09-03T18:21:53.016Z" data-timestamp="2026-09-03T18:21:53.016Z">2026-09-03T18:21:53.016Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ℹ tests 88
+ℹ pass 88
+ℹ fail 0
+--- slider survivors ---
+--- panel 6 spine localSlider ---
+65:function localSlider({ label, min, max, value, format = v =&gt; String(v), onInput, signal }) {
+248:  cCtl = localSlider({</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-01-799Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-01-799Z" class="timestamp-link"><time datetime="2026-09-03T18:22:01.799Z" data-timestamp="2026-09-03T18:22:01.799Z">2026-09-03T18:22:01.799Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-02-846Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-02-846Z" class="timestamp-link"><time datetime="2026-09-03T18:22:02.846Z" data-timestamp="2026-09-03T18:22:02.846Z">2026-09-03T18:22:02.846Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>88 tests pass and no <code>slider(</code> survivors — but page 6's spine has a <strong>hand-rolled</strong> <code>localSlider()</code> (a raw <code>&lt;input type=range&gt;</code>) that never matched the grep. That's still a parameter slider, so the task isn't done. Closing it myself:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-03-732Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-03-732Z" class="timestamp-link"><time datetime="2026-09-03T18:22:03.732Z" data-timestamp="2026-09-03T18:22:03.732Z">2026-09-03T18:22:03.732Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UU7onLBjCKizqfJiarc2Z5">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 6 localSlider and its use</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;60,80p;235,275p&#39; panels/06-eigen-what-now/spine.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-22-03-751Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-22-03-751Z" class="timestamp-link"><time datetime="2026-09-03T18:22:03.751Z" data-timestamp="2026-09-03T18:22:03.751Z">2026-09-03T18:22:03.751Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>  if (![c1, c2, ...p.flat(), ...q.flat()].every(n =&gt; Number.isFinite(n))) return null;
+  return { c: [c1, c2], u: [u1, u2], p, q, lam };
+}
+
+/** A local slider for a number that lives outside the tuple (this pane&#x27;s own damping). */
+function localSlider({ label, min, max, value, format = v =&gt; String(v), onInput, signal }) {
+  const input = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min, max, step: &#x27;any&#x27;, value });
+  const out = el(&#x27;output&#x27;, {}, format(value));
+  input.addEventListener(&#x27;input&#x27;, () =&gt; { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
+  const node = el(&#x27;label&#x27;, { class: &#x27;control&#x27; }, el(&#x27;span&#x27;, { class: &#x27;control-label&#x27; }, el(&#x27;span&#x27;, {}, label), out), input);
+  node.setValue = v =&gt; { input.value = v; out.textContent = format(v); };
+  node.setMax = v =&gt; { input.max = v; };
+  return node;
+}
+
+const sup = (name, i) =&gt; `&lt;msub&gt;&lt;mover&gt;&lt;mi&gt;${name}&lt;/mi&gt;&lt;mo&gt;^&lt;/mo&gt;&lt;/mover&gt;&lt;mn&gt;${i}&lt;/mn&gt;&lt;/msub&gt;`;
+const col = (a, b) =&gt; `&lt;mrow&gt;&lt;mo&gt;[&lt;/mo&gt;&lt;mtable&gt;&lt;mtr&gt;&lt;mtd&gt;${a}&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;${b}&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo&gt;]&lt;/mo&gt;&lt;/mrow&gt;`;
+const slot = (name, digits, initial) =&gt; `&lt;mn data-var=&quot;${name}&quot; data-digits=&quot;${digits}&quot;&gt;${initial}&lt;/mn&gt;`;
+
+/** Â, v and R as one equation, then the split of R, then the live numbers under both. */
+const equations = () =&gt; fragment(`
+  });
+
+  createDragHandles(stage.canvas(&#x27;plane&#x27;), {
+    signal, hitRadius: 14,
+    handles: () =&gt; [{ id: &#x27;v&#x27;, x: vec[0], y: vec[1] }],
+    view: () =&gt; view ?? makeView({ w: 1, h: 1, dpr: 1, halfW: HALF_W }),
+    onMove: (id, p) =&gt; {
+      if (Math.hypot(p.x, p.y) &lt; 0.05) return;
+      vec = [p.x, p.y];
+      notify();
+    },
+  });
+
+  cCtl = localSlider({
+    label: &#x27;this pane’s own c (damping): lower it past 2√(mk)&#x27;,
+    min: 0, max: Math.max(50, 3 * 2 * Math.sqrt(s0.m * s0.k)), value: localC,
+    format: v =&gt; fmt(v, 2),
+    onInput: v =&gt; { localC = v; notify(); },
+    signal,
+  });
+  root.append(controls(row(cCtl)));
+
+  // The picture is the argument; the slots carry only what a picture cannot print. The
+  // verdict sentence and the eigen-directions live on the canvas (drawText), not here.
+  bindMath(article, local, s =&gt; {
+    const d = model(s);
+    return {
+      a10: d.A[1][0], a11: d.A[1][1], ahat11: d.Ahat[1][1],
+      omega: d.omega, localC: s.localC, critical: 2 * Math.sqrt(s.m * s.k),
+      regime: d.r === &#x27;critical&#x27; ? &#x27;critically damped&#x27; : d.r,
+      vx: d.v[0], vy: d.v[1], rx: d.R[0], ry: d.R[1],
+      lam1: fmtLam(d.e.values[0]), lam2: fmtLam(d.e.values[1]),
+      c1: d.split ? d.split.c[0] : DASH, c2: d.split ? d.split.c[1] : DASH,
+    };
+  }, { signal });
+
+  const unsub = store.subscribe(notify, { immediate: false });
+  return { destroy() { unsub(); subs.clear(); } };
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-05-659Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-05-659Z" class="timestamp-link"><time datetime="2026-09-03T18:22:05.659Z" data-timestamp="2026-09-03T18:22:05.659Z">2026-09-03T18:22:05.659Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016BbyxTkZCsF6WZCD1mKRhg">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find panel 6 local c plumbing</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;zeta\|localC\|data-var\|data-scrub\|bindMath\|bindScrub\|cAdapter\|readonly\|adapter&#34; panels/06-eigen-what-now/spine.js | head -30; echo &#34;=== spine.html MathML ===&#34;; grep -n &#34;data-var\|&lt;math&#34; panels/06-eigen-what-now/spine.html | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-22-05-711Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-22-05-711Z" class="timestamp-link"><time datetime="2026-09-03T18:22:05.711Z" data-timestamp="2026-09-03T18:22:05.711Z">2026-09-03T18:22:05.711Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>28:import { bindMath } from &#x27;shared/ui/livemath.js&#x27;;
+77:const slot = (name, digits, initial) =&gt; `&lt;mn data-var=&quot;${name}&quot; data-digits=&quot;${digits}&quot;&gt;${initial}&lt;/mn&gt;`;
+104:      &lt;math&gt;&lt;mrow&gt;${sup(&#x27;λ&#x27;, 1)}&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;lam1&quot;&gt;−0.382&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;,
+105:      &lt;math&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;c1&quot; data-digits=&quot;2&quot;&gt;0.00&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;;
+106:      &lt;math&gt;&lt;mrow&gt;${sup(&#x27;λ&#x27;, 2)}&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;lam2&quot;&gt;−2.618&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;,
+107:      &lt;math&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&quot;c2&quot; data-digits=&quot;2&quot;&gt;0.00&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;.
+112:      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;${slot(&#x27;localC&#x27;, 2, &#x27;30.00&#x27;)}&lt;/mrow&gt;&lt;/math&gt; against
+114:      (&lt;math&gt;&lt;mi data-var=&quot;regime&quot;&gt;overdamped&lt;/mi&gt;&lt;/math&gt;) — the spring’s
+131:  let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
+139:    localC = PRESET_FACTOR * critical;
+141:    cCtl?.setValue(localC);
+145:  // dragged vector. Shaped like a store so bindMath can bind to it; nothing here writes back.
+150:    return { ...s, localC, vx: vec[0], vy: vec[1] };
+163:    const zeta = dampingRatio(s.m, s.localC, s.k);
+164:    const Ahat = [[0, 1], [-1, -2 * zeta]];
+171:      zeta, Ahat, e, v, dirs, near, off,
+173:      A: systemMatrix(s.m, s.localC, s.k),
+176:      r: regime(s.m, s.localC, s.k),
+250:    min: 0, max: Math.max(50, 3 * 2 * Math.sqrt(s0.m * s0.k)), value: localC,
+252:    onInput: v =&gt; { localC = v; notify(); },
+259:  bindMath(article, local, s =&gt; {
+263:      omega: d.omega, localC: s.localC, critical: 2 * Math.sqrt(s.m * s.k),
+=== spine.html MathML ===
+5:    &lt;p&gt;Say you have a matrix, &lt;math&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/math&gt;. If you were to multiply
+6:      &lt;math&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/math&gt; by some vector, you would end up with a transformed version of it.
+9:    &lt;p&gt;This means that, regardless of the crazy transformation that &lt;math&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/math&gt; might
+11:      &lt;math&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/math&gt; &lt;em&gt;only changes it in length&lt;/em&gt;. It’s an arrow that only grows and
+13:    &lt;math display=&quot;block&quot;&gt;
+17:      &lt;math&gt;&lt;mi&gt;π&lt;/mi&gt;&lt;/math&gt;. It’s just a number that represents how far the matrix stretched or
+19:    &lt;p&gt;The matrix here is the spring’s own, built from the current &lt;math&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;/math&gt; and
+20:      &lt;math&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/math&gt; with a damping &lt;math&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;/math&gt; of this panel’s own — the
+21:      spring’s real &lt;math&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;/math&gt; is left alone. Drag &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; around
+22:      the plane. &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;R&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mover&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;mo&gt;^&lt;/mo&gt;&lt;/mover&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt;
+23:      is drawn split: the part of &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; that lies along an invariant direction,
+25:      leftover vanishes and &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;R&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;λ&lt;/mi&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt;.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-16-652Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-16-652Z" class="timestamp-link"><time datetime="2026-09-03T18:22:16.652Z" data-timestamp="2026-09-03T18:22:16.652Z">2026-09-03T18:22:16.652Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-17-763Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-17-763Z" class="timestamp-link"><time datetime="2026-09-03T18:22:17.763Z" data-timestamp="2026-09-03T18:22:17.763Z">2026-09-03T18:22:17.763Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CX42DfaDfrmE5m5ciXhQG1">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 6 local adapter and imports</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;108,160p&#39; panels/06-eigen-what-now/spine.js; echo &#34;=== imports ===&#34;; sed -n &#39;18,32p&#39; panels/06-eigen-what-now/spine.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-22-17-790Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-22-17-790Z" class="timestamp-link"><time datetime="2026-09-03T18:22:17.790Z" data-timestamp="2026-09-03T18:22:17.790Z">2026-09-03T18:22:17.790Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>      Natural units &lt;math&gt;&lt;mrow&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mo&gt;/&lt;/mo&gt;&lt;mi&gt;ω&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;
+      per &lt;math&gt;&lt;mrow&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;/&lt;/mo&gt;&lt;mi&gt;ω&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt; s: the raw
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo&gt;[&lt;/mo&gt;&lt;mo&gt;[&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;]&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mo&gt;[&lt;/mo&gt;${slot(&#x27;a10&#x27;, 2, &#x27;−100.00&#x27;)}&lt;mo&gt;,&lt;/mo&gt;${slot(&#x27;a11&#x27;, 2, &#x27;−30.00&#x27;)}&lt;mo&gt;]&lt;/mo&gt;&lt;mo&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;/math&gt;,
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;ω&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;${slot(&#x27;omega&#x27;, 2, &#x27;10.00&#x27;)}&lt;/mrow&gt;&lt;/math&gt; /s. This pane’s own
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;${slot(&#x27;localC&#x27;, 2, &#x27;30.00&#x27;)}&lt;/mrow&gt;&lt;/math&gt; against
+      &lt;math&gt;&lt;mrow&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;msqrt&gt;&lt;mrow&gt;&lt;mi&gt;m&lt;/mi&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/mrow&gt;&lt;/msqrt&gt;&lt;mo&gt;=&lt;/mo&gt;${slot(&#x27;critical&#x27;, 2, &#x27;20.00&#x27;)}&lt;/mrow&gt;&lt;/math&gt;
+      (&lt;math&gt;&lt;mi data-var=&quot;regime&quot;&gt;overdamped&lt;/mi&gt;&lt;/math&gt;) — the spring’s
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;${slot(&#x27;c&#x27;, 2, &#x27;0.10&#x27;)}&lt;/mrow&gt;&lt;/math&gt; is never written from
+      here. Slide it below critical and the two directions meet and vanish.
+    &lt;/small&gt;
+  &lt;/div&gt;`);
+
+export function mount(root, ctx) {
+  const { store, signal } = ctx;
+  const article = root.closest(&#x27;article&#x27;) ?? root;
+  let vec = [1.2, 0.9];     // the dragged vector, in (x, v/ω) units
+  let view = null;
+
+  // This pane&#x27;s own damping (never written to the tuple). Seeded from the tuple&#x27;s current
+  // m, k; recomputed only when either changes, otherwise preserved while the pane stays
+  // mounted (dragging the slider below critical must not get overwritten on the next frame).
+  const s0 = store.get();
+  let mkKey = `${s0.m}/${s0.k}`;
+  let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
+  let cCtl = null;
+
+  function ensureLocalC(s) {
+    const key = `${s.m}/${s.k}`;
+    if (key === mkKey) return;
+    mkKey = key;
+    const critical = 2 * Math.sqrt(s.m * s.k);
+    localC = PRESET_FACTOR * critical;
+    cCtl?.setMax(Math.max(50, 3 * critical));
+    cCtl?.setValue(localC);
+  }
+
+  // The pane&#x27;s own read-only view of the world: the tuple, plus the local damping and the
+  // dragged vector. Shaped like a store so bindMath can bind to it; nothing here writes back.
+  const subs = new Set();
+  const snapshot = () =&gt; {
+    const s = store.get();
+    ensureLocalC(s);
+    return { ...s, localC, vx: vec[0], vy: vec[1] };
+  };
+  const local = {
+    get: snapshot,
+    subscribe(fn, { immediate = true } = {}) {
+      subs.add(fn);
+      if (immediate) { const s = snapshot(); fn(s, s); }
+      return () =&gt; subs.delete(fn);
+    },
+  };
+
+=== imports ===
+// local to this pane: a `c` that defaults to an overdamped multiple of critical, recomputed
+// only when the tuple&#x27;s m or k change, and otherwise left alone — including while the reader
+// drags it down through critical to watch the two directions converge and vanish.
+
+import { el, fmt, fragment } from &#x27;shared/dom.js&#x27;;
+import { createStage } from &#x27;shared/gfx/stage.js&#x27;;
+import { createDragHandles } from &#x27;shared/gfx/drag.js&#x27;;
+import { cssVar, makeView, drawGrid, drawArrow, drawPolyline, drawText, drawPoint } from &#x27;shared/gfx/plot2d.js&#x27;;
+import { systemMatrix, regime, naturalFrequency, dampingRatio } from &#x27;shared/math/system.js&#x27;;
+import { eigen, apply } from &#x27;shared/math/matrix2.js&#x27;;
+import { bindMath } from &#x27;shared/ui/livemath.js&#x27;;
+import { controls, row } from &#x27;shared/ui/controls.js&#x27;;
+
+const HALF_W = 2.6;
+const NEAR_DEG = 4;        // within this angle of an eigenvector, it lights up</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-52-270Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-52-270Z" class="timestamp-link"><time datetime="2026-09-03T18:22:52.270Z" data-timestamp="2026-09-03T18:22:52.270Z">2026-09-03T18:22:52.270Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-22-53-358Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-22-53-358Z" class="timestamp-link"><time datetime="2026-09-03T18:22:53.358Z" data-timestamp="2026-09-03T18:22:53.358Z">2026-09-03T18:22:53.358Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01MFMHm7PP37nEFdGNzVsqds">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check el/notify/controls usage in panel 6 spine</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;el(\|function notify\|const notify\|controls(\|row(&#34; panels/06-eigen-what-now/spine.js | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-22-53-422Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-22-53-422Z" class="timestamp-link"><time datetime="2026-09-03T18:22:53.422Z" data-timestamp="2026-09-03T18:22:53.422Z">2026-09-03T18:22:53.422Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>66:  const input = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min, max, step: &#x27;any&#x27;, value });
+67:  const out = el(&#x27;output&#x27;, {}, format(value));
+69:  const node = el(&#x27;label&#x27;, { class: &#x27;control&#x27; }, el(&#x27;span&#x27;, { class: &#x27;control-label&#x27; }, el(&#x27;span&#x27;, {}, label), out), input);
+162:  function model(s) {
+183:  const notify = () =&gt; { const s = snapshot(); for (const fn of subs) fn(s, s); stage.invalidate(); };
+186:    const { e, v, R, dirs, near, off, split } = model(local.get());
+212:      drawArrow(g, view, 0, 0, qa[0], qa[1], { color: DIR[ia], width: 2, head: 7 });
+213:      drawArrow(g, view, qa[0], qa[1], R[0], R[1], { color: DIR[ib], width: 2, head: 7 });
+220:    drawArrow(g, view, 0, 0, v[0], v[1], { color: cssVar(&#x27;--fg&#x27;), width: 2.5, head: 9 });
+223:    drawArrow(g, view, 0, 0, R[0], R[1], { color: cssVar(&#x27;--approx&#x27;), width: 2.5, head: 9 });
+255:  root.append(controls(row(cCtl)));
+260:    const d = model(s);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-19-538Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-19-538Z" class="timestamp-link"><time datetime="2026-09-03T18:23:19.538Z" data-timestamp="2026-09-03T18:23:19.538Z">2026-09-03T18:23:19.538Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_015voe4MrEDCB6neF5zCyhrM">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Make panel 6 spine damping a scrubbed number</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;panels/06-eigen-what-now/spine.js&#39;)
+s = p.read_text()
+
+# 1. the local c becomes a scrubbable number in the line that already prints it
+old = &#34;&#34;&#34;      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;${slot(&#39;localC&#39;, 2, &#39;30.00&#39;)}&lt;/mrow&gt;&lt;/math&gt; against&#34;&#34;&#34;
+new = &#34;&#34;&#34;      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&#34;localC&#34; data-scrub=&#34;localC&#34; data-digits=&#34;2&#34;&gt;30.00&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt; against&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;      here. Slide it below critical and the two directions meet and vanish.&#34;&#34;&#34;
+new = &#34;&#34;&#34;      here. Drag it below critical and the two directions meet and vanish.&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+# 2. the hand-rolled range input goes
+old = &#34;&#34;&#34;/** A local slider for a number that lives outside the tuple (this pane&#39;s own damping). */
+function localSlider({ label, min, max, value, format = v =&gt; String(v), onInput, signal }) {
+  const input = el(&#39;input&#39;, { type: &#39;range&#39;, min, max, step: &#39;any&#39;, value });
+  const out = el(&#39;output&#39;, {}, format(value));
+  input.addEventListener(&#39;input&#39;, () =&gt; { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
+  const node = el(&#39;label&#39;, { class: &#39;control&#39; }, el(&#39;span&#39;, { class: &#39;control-label&#39; }, el(&#39;span&#39;, {}, label), out), input);
+  node.setValue = v =&gt; { input.value = v; out.textContent = format(v); };
+  node.setMax = v =&gt; { input.max = v; };
+  return node;
+}
+
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, &#39;&#39;, 1)
+
+old = &#34;&#34;&#34;  let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
+  let cCtl = null;
+&#34;&#34;&#34;
+new = &#34;&#34;&#34;  let localC = PRESET_FACTOR * 2 * Math.sqrt(s0.m * s0.k);
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;    localC = PRESET_FACTOR * critical;
+    cCtl?.setMax(Math.max(50, 3 * critical));
+    cCtl?.setValue(localC);
+  }&#34;&#34;&#34;
+new = &#34;&#34;&#34;    localC = PRESET_FACTOR * critical;
+  }&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+# 3. the adapter gains a setter and a range, so bindScrub can drive localC.
+#    C_RANGE is fixed, not derived from m and k: bindScrub reads limits once at bind time,
+#    and 2√(mk) over the tuple&#39;s own ranges never leaves this window.
+old = &#34;&#34;&#34;  const local = {
+    get: snapshot,
+    subscribe(fn, { immediate = true } = {}) {
+      subs.add(fn);
+      if (immediate) { const s = snapshot(); fn(s, s); }
+      return () =&gt; subs.delete(fn);
+    },
+  };&#34;&#34;&#34;
+new = &#34;&#34;&#34;  const local = {
+    get: snapshot,
+    /** Only localC is writable, and only into this pane: the tuple&#39;s c is never touched. */
+    set(patch) {
+      if (!(&#39;localC&#39; in patch) || !Number.isFinite(patch.localC)) return snapshot();
+      const next = Math.min(C_RANGE[1], Math.max(C_RANGE[0], patch.localC));
+      if (next !== localC) { localC = next; notify({ localC: next }); }
+      return snapshot();
+    },
+    subscribe(fn, { immediate = true } = {}) {
+      subs.add(fn);
+      if (immediate) { const s = snapshot(); fn(s, s); }
+      return () =&gt; subs.delete(fn);
+    },
+    limits: { localC: C_RANGE },
+  };&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+# 4. notify carries a patch so bindScrub&#39;s `key in patch` guard fires
+old = &#34;&#34;&#34;  const notify = () =&gt; { const s = snapshot(); for (const fn of subs) fn(s, s); stage.invalidate(); };&#34;&#34;&#34;
+new = &#34;&#34;&#34;  const notify = (patch) =&gt; { const s = snapshot(); for (const fn of subs) fn(s, patch ?? s); stage.invalidate(); };&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+# 5. the control block goes; the equation is the control
+old = &#34;&#34;&#34;  cCtl = localSlider({
+    label: &#39;this pane’s own c (damping): lower it past 2√(mk)&#39;,
+    min: 0, max: Math.max(50, 3 * 2 * Math.sqrt(s0.m * s0.k)), value: localC,
+    format: v =&gt; fmt(v, 2),
+    onInput: v =&gt; { localC = v; notify(); },
+    signal,
+  });
+  root.append(controls(row(cCtl)));
+
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, &#39;&#39;, 1)
+
+old = &#34;&#34;&#34;  bindMath(article, local, s =&gt; {&#34;&#34;&#34;
+new = &#34;&#34;&#34;  bindScrub(article, local, { signal });
+  bindMath(article, local, s =&gt; {&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+# 6. imports and the range constant
+old = &#34;&#34;&#34;import { bindMath } from &#39;shared/ui/livemath.js&#39;;
+import { controls, row } from &#39;shared/ui/controls.js&#39;;
+&#34;&#34;&#34;
+new = &#34;&#34;&#34;import { bindMath } from &#39;shared/ui/livemath.js&#39;;
+import { bindScrub } from &#39;shared/ui/scrub.js&#39;;
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;const HALF_W = 2.6;&#34;&#34;&#34;
+new = &#34;&#34;&#34;/** This pane&#39;s own range for c. Fixed, not derived from m and k: bindScrub reads a key&#39;s
+ *  limits once at bind time, and 2√(mk) over the tuple&#39;s own m and k stays inside this. */
+const C_RANGE = [0, 200];
+
+const HALF_W = 2.6;&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+p.write_text(s)
+print(&#39;ok&#39;)
+PY
+grep -n &#34;^import\|el(&#34; panels/06-eigen-what-now/spine.js | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-23-21-096Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-23-21-096Z" class="timestamp-link"><time datetime="2026-09-03T18:23:21.096Z" data-timestamp="2026-09-03T18:23:21.096Z">2026-09-03T18:23:21.096Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+22:import { el, fmt, fragment } from &#x27;shared/dom.js&#x27;;
+23:import { createStage } from &#x27;shared/gfx/stage.js&#x27;;
+24:import { createDragHandles } from &#x27;shared/gfx/drag.js&#x27;;
+25:import { cssVar, makeView, drawGrid, drawArrow, drawPolyline, drawText, drawPoint } from &#x27;shared/gfx/plot2d.js&#x27;;
+26:import { systemMatrix, regime, naturalFrequency, dampingRatio } from &#x27;shared/math/system.js&#x27;;
+27:import { eigen, apply } from &#x27;shared/math/matrix2.js&#x27;;
+28:import { bindMath } from &#x27;shared/ui/livemath.js&#x27;;
+29:import { bindScrub } from &#x27;shared/ui/scrub.js&#x27;;
+160:  function model(s) {
+184:    const { e, v, R, dirs, near, off, split } = model(local.get());</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-26-216Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-26-216Z" class="timestamp-link"><time datetime="2026-09-03T18:23:26.216Z" data-timestamp="2026-09-03T18:23:26.216Z">2026-09-03T18:23:26.216Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-28-359Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-28-359Z" class="timestamp-link"><time datetime="2026-09-03T18:23:28.359Z" data-timestamp="2026-09-03T18:23:28.359Z">2026-09-03T18:23:28.359Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01X58nBotp5YktqPxseTD38S">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Drop unused import, verify no sliders remain anywhere</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -c &#34;fmt(&#34; panels/06-eigen-what-now/spine.js; sed -i &#39;&#39; &#34;s|^import { el, fmt, fragment } from &#39;shared/dom.js&#39;;|import { fmt, fragment } from &#39;shared/dom.js&#39;;|&#34; panels/06-eigen-what-now/spine.js &amp;&amp; node --check panels/06-eigen-what-now/spine.js &amp;&amp; echo &#34;syntax ok&#34; &amp;&amp; grep -rn &#34;slider\|&lt;input&#34; panels/ | grep -v &#34;role=\|// &#34; | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-23-30-332Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-23-30-332Z" class="timestamp-link"><time datetime="2026-09-03T18:23:30.332Z" data-timestamp="2026-09-03T18:23:30.332Z">2026-09-03T18:23:30.332Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>4
+syntax ok
+panels/11-lets-break-it/README.md:7:  running against the exact solution, transport, an `h` slider, the integrator picker, and
+panels/11-lets-break-it/README.md:9:  slider and transport; the run strip; picker and presets in one row. No readout: the
+panels/12-higher-order-rk/README.md:13:  time (a local slider), against the exponential, with |Sₙ(hλ)| for the current spring. No
+panels/12-higher-order-rk/README.md:20:  `order` layers in one shader pass; a local slider highlights one order and its polynomial.
+panels/12-higher-order-rk/README.md:25:  of implicit runs across six step sizes against the exact curve; a discrete slider sets the
+panels/05-linearize/README.md:24:  No readout, and no second stage: the nonlinear-vs-linearized run and its parameter sliders
+panels/02-newtonian-physics/README.md:12:  draggable too (there is no separate mass slider). The scrubs and slots bind through one
+panels/08-recap-real-time/README.md:14:  (pane-local store, log slider 1 … 10 M, default 500 000 — the essay&#x27;s &quot;a few milliseconds every
+panels/10-explicit-euler/README.md:7:  on it in green or red, Rhodes&#x27; reading in the margins, sliders on `h`, `m`, `c`, `k`. No
+panels/10-explicit-euler/README.md:14:  a tangent walk reads better tall, and nothing else sits under it but one slider.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-35-217Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-35-217Z" class="timestamp-link"><time datetime="2026-09-03T18:23:35.217Z" data-timestamp="2026-09-03T18:23:35.217Z">2026-09-03T18:23:35.217Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-36-313Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-36-313Z" class="timestamp-link"><time datetime="2026-09-03T18:23:36.313Z" data-timestamp="2026-09-03T18:23:36.313Z">2026-09-03T18:23:36.313Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0188GS2JVKVWRbde35nXpQ1U">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Confirm no raw range inputs remain, run tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;&#39;input&#39;\|\&#34;input\&#34;\|type: &#39;range&#39;&#34; panels/ | head; echo &#34;--- ok if empty ---&#34;; node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | grep -E &#34;^. (tests|pass|fail)&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-23-38-060Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-23-38-060Z" class="timestamp-link"><time datetime="2026-09-03T18:23:38.060Z" data-timestamp="2026-09-03T18:23:38.060Z">2026-09-03T18:23:38.060Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>panels/13-variable-step-sizes/left.js:68:  const atInput = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min: 0, max: STEPS - 1, step: 1, value: at });
+panels/13-variable-step-sizes/left.js:70:  atInput.addEventListener(&#x27;input&#x27;, () =&gt; { at = Number(atInput.value); atOut.textContent = `step ${at}`; stage.invalidate(); }, { signal });
+panels/12-higher-order-rk/right-2.js:42:  const input = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
+panels/12-higher-order-rk/right-2.js:44:  input.addEventListener(&#x27;input&#x27;, () =&gt; store.set({ h: HS[Number(input.value)] }), { signal });
+panels/10-explicit-euler/right.js:54:  const input = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
+panels/10-explicit-euler/right.js:56:  input.addEventListener(&#x27;input&#x27;, () =&gt; store.set({ h: HS[Number(input.value)] }), { signal });
+panels/03-solving-for-x/left.js:20:  const input = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min, max, step, value });
+panels/03-solving-for-x/left.js:22:  input.addEventListener(&#x27;input&#x27;, () =&gt; { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
+panels/09-finding-error/left.js:19:  const zInput = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min: 0.5, max: 1.5, step: 0.001, value: z });
+panels/09-finding-error/left.js:53:  zInput.addEventListener(&#x27;input&#x27;, () =&gt; { z = Number(zInput.value); zOut.textContent = z.toFixed(3); update(); }, { signal });
+--- ok if empty ---
+ℹ tests 88
+ℹ pass 88
+ℹ fail 0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-51-127Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-51-127Z" class="timestamp-link"><time datetime="2026-09-03T18:23:51.127Z" data-timestamp="2026-09-03T18:23:51.127Z">2026-09-03T18:23:51.127Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-51-903Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-51-903Z" class="timestamp-link"><time datetime="2026-09-03T18:23:51.903Z" data-timestamp="2026-09-03T18:23:51.903Z">2026-09-03T18:23:51.903Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Five more hand-rolled range inputs the agent's <code>slider(</code> grep missed. Three are sweep selectors (picking which member of a bundle to highlight — same role as <code>sweepStrip</code>, which I excluded). Two are genuine parameters:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-52-538Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-52-538Z" class="timestamp-link"><time datetime="2026-09-03T18:23:52.538Z" data-timestamp="2026-09-03T18:23:52.538Z">2026-09-03T18:23:52.538Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_011iU6DE8GNx2q9J8LNbgPw2">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 9 left</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;1,60p&#39; panels/09-finding-error/left.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-23-52-573Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-23-52-573Z" class="timestamp-link"><time datetime="2026-09-03T18:23:52.573Z" data-timestamp="2026-09-03T18:23:52.573Z">2026-09-03T18:23:52.573Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// Panel 9, left: one step multiplies the error by z; n steps multiply it by zⁿ. A slider for
+// z (local to the pane) and a sequence you step forward, drawn as dots, with the number of
+// steps and the time (at the store&#x27;s h) the error takes to double or halve.
+
+import { el, fmt } from &#x27;shared/dom.js&#x27;;
+import { createStage } from &#x27;shared/gfx/stage.js&#x27;;
+import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from &#x27;shared/gfx/plot2d.js&#x27;;
+import { doublingTime, halvingTime } from &#x27;shared/math/stability.js&#x27;;
+import { controls, row } from &#x27;shared/ui/controls.js&#x27;;
+
+const MAX_STEPS = 140;   // &quot;a thousandfold after 140&quot; at 1.05
+const sub = i =&gt; String(i).replace(/\d/g, d =&gt; &#x27;₀₁₂₃₄₅₆₇₈₉&#x27;[d]);
+
+export function mount(root, ctx) {
+  const { store, signal } = ctx;
+  let z = 1.05, n = 10;   // the ratio and how many steps have been taken
+
+  const stage = createStage(root, { layers: [&#x27;plot&#x27;], aspect: &#x27;wide&#x27;, signal });
+  const zInput = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min: 0.5, max: 1.5, step: 0.001, value: z });
+  const zOut = el(&#x27;output&#x27;, {}, z.toFixed(3));
+
+  stage.onDraw(({ w, h, dpr }) =&gt; {
+    const g = stage.ctx(&#x27;plot&#x27;);
+    g.clearRect(0, 0, w, h);
+    const e = [];
+    for (let i = 0; i &lt;= n; i++) e.push(z ** i);
+    const peak = Math.max(...e, 1);
+    const view = makeView({ w, h, dpr, xMin: -1, xMax: Math.max(n, 10) + 1, yMin: -0.05 * peak, yMax: peak * 1.12 });
+    drawGrid(g, view, { xLabel: &#x27;step i&#x27;, yLabel: &#x27;eᵢ = zⁱ · e₀&#x27; });
+    drawPolyline(g, view, [-1, Math.max(n, 10) + 1], [1, 1], { color: cssVar(&#x27;--axis&#x27;), width: 1, dash: [4, 4], alpha: 0.6 });
+    drawText(g, view, &#x27;e₀ = 1&#x27;, 0, 1, { color: cssVar(&#x27;--tick&#x27;), size: 11, dx: 8, dy: 14, align: &#x27;left&#x27; });
+    const color = cssVar(z &gt; 1 ? &#x27;--unstable&#x27; : z &lt; 1 ? &#x27;--stable&#x27; : &#x27;--axis&#x27;);
+    const xs = e.map((_, i) =&gt; i);
+    drawPolyline(g, view, xs, e, { color, width: 1, alpha: 0.5 });
+    if (n &lt;= 60) e.forEach((v, i) =&gt; drawPoint(g, view, i, v, { r: 3.5, fill: color, stroke: null }));
+    else drawPolyline(g, view, xs, e, { color, width: 2 });
+
+    // the arithmetic, in whichever top corner the curve itself isn&#x27;t occupying: z &gt; 1 climbs
+    // to the top-right, z &lt; 1 starts near the top-left (e₀ = 1)
+    const h_ = store.get().h;
+    const doubling = doublingTime(h_, z), halving = halvingTime(h_, z);
+    const steps = z &gt; 1 ? Math.LN2 / Math.log(z) : z &lt; 1 ? Math.LN2 / -Math.log(z) : Infinity;
+    const corner = z &gt; 1 ? { x: view.xMin, align: &#x27;left&#x27;, dx: 8 } : { x: view.xMax, align: &#x27;right&#x27;, dx: -8 };
+    drawText(g, view, `e₁ = z · e₀ = ${fmt(z, 3)}`, corner.x, view.yMax, { align: corner.align, dx: corner.dx, color, size: 12, dy: 16 });
+    drawText(g, view, `after ${n} step${n === 1 ? &#x27;&#x27; : &#x27;s&#x27;}: e${sub(n)} = ${fmt(z ** n, 4)}`, corner.x, view.yMax, { align: corner.align, dx: corner.dx, color, size: 12, dy: 32 });
+    const time = z === 1 ? &#x27;the error never doubles or halves&#x27;
+      : `${z &gt; 1 ? &#x27;doubles&#x27; : &#x27;halves&#x27;} every ${fmt(steps, 1)} steps = ${fmt(z &gt; 1 ? doubling : halving, 2)} s at h = ${fmt(h_, 3)} s`;
+    drawText(g, view, time, corner.x, view.yMax, { align: corner.align, dx: corner.dx, color, size: 12, dy: 48 });
+  });
+
+  const update = () =&gt; stage.invalidate();
+
+  zInput.addEventListener(&#x27;input&#x27;, () =&gt; { z = Number(zInput.value); zOut.textContent = z.toFixed(3); update(); }, { signal });
+  const btn = (label, fn) =&gt; el(&#x27;button&#x27;, { class: &#x27;btn&#x27;, type: &#x27;button&#x27;, onclick: fn }, label);
+  root.append(controls(
+    el(&#x27;label&#x27;, { class: &#x27;control&#x27; }, el(&#x27;span&#x27;, { class: &#x27;control-label&#x27; }, el(&#x27;span&#x27;, {}, &#x27;z, the ratio per step&#x27;), zOut), zInput),
+    row(
+      btn(&#x27;Step&#x27;, () =&gt; { n = Math.min(MAX_STEPS, n + 1); update(); }),
+      btn(&#x27;+10 steps&#x27;, () =&gt; { n = Math.min(MAX_STEPS, n + 10); update(); }),
+      btn(&#x27;Reset&#x27;, () =&gt; { n = 10; update(); }),</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-23-53-323Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-23-53-323Z" class="timestamp-link"><time datetime="2026-09-03T18:23:53.323Z" data-timestamp="2026-09-03T18:23:53.323Z">2026-09-03T18:23:53.323Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JWYqspcApPJSENokuEkwxw">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 3 left</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;1,45p&#39; panels/03-solving-for-x/left.js; echo &#34;=== html ===&#34;; cat panels/03-solving-for-x/left.html</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-23-53-356Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-23-53-356Z" class="timestamp-link"><time datetime="2026-09-03T18:23:53.356Z" data-timestamp="2026-09-03T18:23:53.356Z">2026-09-03T18:23:53.356Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>// Panel 3, left: one instant of the spine&#x27;s trajectory (t concrete). x and v as two stacked
+// strips of the exact solution, with the tangent at a scrubbed t: the slope of x is v, the
+// slope of v is a. The scrub is local to this pane; the store&#x27;s t belongs to the players.
+
+import { el, fmt, clamp } from &#x27;shared/dom.js&#x27;;
+import { createStage } from &#x27;shared/gfx/stage.js&#x27;;
+import { drawTrajectory } from &#x27;shared/gfx/trajectory.js&#x27;;
+import { cssVar, drawPoint, drawPolyline, drawText, makeView } from &#x27;shared/gfx/plot2d.js&#x27;;
+import { exactSolution, acceleration } from &#x27;shared/math/system.js&#x27;;
+import { controls } from &#x27;shared/ui/controls.js&#x27;;
+
+const SPAN = 4;        // seconds shown
+const SAMPLES = 800;   // of the exact curve
+const TANGENT = 0.2;   // half-length of the tangent segment, in seconds
+const BAR_H = 34;      // the local, canvas-drawn a-bar: no shared &quot;thin bar&quot; stage exists, so
+                        // this pane sizes and draws its own bare canvas (see mount())
+
+/** A local slider (the scrubbed t is not part of the tuple). */
+function localSlider({ label, min, max, step = &#x27;any&#x27;, value, format = v =&gt; String(v), onInput, signal }) {
+  const input = el(&#x27;input&#x27;, { type: &#x27;range&#x27;, min, max, step, value });
+  const out = el(&#x27;output&#x27;, {}, format(value));
+  input.addEventListener(&#x27;input&#x27;, () =&gt; { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
+  return el(&#x27;label&#x27;, { class: &#x27;control&#x27; }, el(&#x27;span&#x27;, { class: &#x27;control-label&#x27; }, el(&#x27;span&#x27;, {}, label), out), input);
+}
+
+export function mount(root, ctx) {
+  const { store, signal } = ctx;
+  let tScrub = 0.6;
+
+  const xStage = createStage(root, { layers: [&#x27;plot&#x27;], aspect: &#x27;strip&#x27;, signal });
+  const vStage = createStage(root, { layers: [&#x27;plot&#x27;], aspect: &#x27;strip&#x27;, signal });
+
+  let curve = null, curveKey = &#x27;&#x27;;
+  function curves(state) {
+    const key = `${state.m}/${state.c}/${state.k}/${state.x0}/${state.v0}`;
+    if (key === curveKey) return curve;
+    const sol = exactSolution(state);
+    const acc = acceleration(state.m, state.c, state.k);
+    const t = new Float64Array(SAMPLES + 1), x = new Float64Array(SAMPLES + 1), v = new Float64Array(SAMPLES + 1);
+    let capA = 1e-6;
+    for (let i = 0; i &lt;= SAMPLES; i++) {
+      t[i] = SPAN * i / SAMPLES; x[i] = sol.x(t[i]); v[i] = sol.v(t[i]);
+      capA = Math.max(capA, Math.abs(acc(x[i], v[i])));
+    }
+    curveKey = key;
+=== html ===
+&lt;article&gt;
+  &lt;h2&gt;x, v, a: derivatives&lt;/h2&gt;
+  &lt;div class=&quot;prose&quot;&gt;
+    &lt;p&gt;Position &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; is where the mass is. Velocity &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; is
+      how fast &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; is changing right now: the slope of the
+      &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; curve at this instant. Acceleration &lt;math&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/math&gt; is how
+      fast &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; is changing: the slope of the &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; curve.&lt;/p&gt;
+    &lt;math display=&quot;block&quot;&gt;
+      &lt;mrow&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;′&lt;/mo&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mfrac&gt;&lt;mrow&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/mrow&gt;&lt;mrow&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/mrow&gt;&lt;/mfrac&gt;
+      &lt;mspace width=&quot;2em&quot;/&gt;
+      &lt;mi&gt;a&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mo&gt;′&lt;/mo&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;″&lt;/mo&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mfrac&gt;&lt;mrow&gt;&lt;msup&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/mrow&gt;&lt;mrow&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;msup&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;/mfrac&gt;&lt;/mrow&gt;
+    &lt;/math&gt;
+    &lt;p&gt;That is why the force sum is an equation about &lt;math&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;″&lt;/mo&gt;&lt;/msup&gt;&lt;/math&gt;:
+      Newton hands us the slope of the slope, and we want &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; itself.
+      Going from &lt;math&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/math&gt; back to &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt;, and from
+      &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; back to &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt;, is integration, and doing it
+      numerically is the whole of Part II.&lt;/p&gt;
+    &lt;p&gt;This is one instant of the trajectory on the spine. Nudge &lt;math&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/math&gt; and
+      watch the tangent tilt: the slope you see on &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; is the value of
+      &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt;, and the slope on &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; is the value of
+      &lt;math&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/math&gt;.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;viz&quot;&gt;&lt;/div&gt;
+&lt;/article&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-02-974Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-02-974Z" class="timestamp-link"><time datetime="2026-09-03T18:24:02.974Z" data-timestamp="2026-09-03T18:24:02.974Z">2026-09-03T18:24:02.974Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-03-678Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-03-678Z" class="timestamp-link"><time datetime="2026-09-03T18:24:03.678Z" data-timestamp="2026-09-03T18:24:03.678Z">2026-09-03T18:24:03.678Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Both are genuine parameters with equations already in the prose. Converting them:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-04-276Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-04-276Z" class="timestamp-link"><time datetime="2026-09-03T18:24:04.276Z" data-timestamp="2026-09-03T18:24:04.276Z">2026-09-03T18:24:04.276Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01N5xDbVfYACPJAbJboSyXYj">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 9 left html and tail</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat panels/09-finding-error/left.html; echo &#34;=== panel 9 left.js tail ===&#34;; sed -n &#39;54,75p&#39; panels/09-finding-error/left.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-24-04-325Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-24-04-325Z" class="timestamp-link"><time datetime="2026-09-03T18:24:04.325Z" data-timestamp="2026-09-03T18:24:04.325Z">2026-09-03T18:24:04.325Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&lt;article&gt;
+  &lt;h2&gt;Geometric growth&lt;/h2&gt;
+  &lt;div class=&quot;prose&quot;&gt;
+    &lt;p&gt;One step: error in, error out. If a step multiplies the error by
+      &lt;math&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;/math&gt;, then&lt;/p&gt;
+    &lt;math display=&quot;block&quot;&gt;
+      &lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/msub&gt;
+      &lt;mspace width=&quot;2em&quot;/&gt;
+      &lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/msup&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/msub&gt;&lt;/mrow&gt;
+    &lt;/math&gt;
+    &lt;p&gt;That is a geometric sequence, and its whole character is the size of
+      &lt;math&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;/math&gt;. Above 1 it compounds: 1.05 per step looks harmless for a few
+      steps and is a thousandfold after 140. Below 1 it decays toward zero. Exactly 1 holds
+      steady. The comparison is with 1, not with 0; a ratio of 0.999 is still shrinking.&lt;/p&gt;
+    &lt;p&gt;A ratio per step turns into a time by counting steps: the error doubles when
+      &lt;math&gt;&lt;mrow&gt;&lt;msup&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt;, so after
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;ln&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;mo&gt;/&lt;/mo&gt;&lt;mi&gt;ln&lt;/mi&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt;
+      steps, or &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mo&gt;·&lt;/mo&gt;&lt;mi&gt;ln&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;mo&gt;/&lt;/mo&gt;&lt;mi&gt;ln&lt;/mi&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;/mrow&gt;&lt;/math&gt;
+      seconds. That is the doubling time on the spine.&lt;/p&gt;
+    &lt;p&gt;Type a ratio and step it forward; then set it just above and just below 1 and watch how
+      little the difference looks at first.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;viz&quot;&gt;&lt;/div&gt;
+&lt;/article&gt;
+=== panel 9 left.js tail ===
+  const btn = (label, fn) =&gt; el(&#x27;button&#x27;, { class: &#x27;btn&#x27;, type: &#x27;button&#x27;, onclick: fn }, label);
+  root.append(controls(
+    el(&#x27;label&#x27;, { class: &#x27;control&#x27; }, el(&#x27;span&#x27;, { class: &#x27;control-label&#x27; }, el(&#x27;span&#x27;, {}, &#x27;z, the ratio per step&#x27;), zOut), zInput),
+    row(
+      btn(&#x27;Step&#x27;, () =&gt; { n = Math.min(MAX_STEPS, n + 1); update(); }),
+      btn(&#x27;+10 steps&#x27;, () =&gt; { n = Math.min(MAX_STEPS, n + 10); update(); }),
+      btn(&#x27;Reset&#x27;, () =&gt; { n = 10; update(); }),
+      btn(&#x27;z = 1.05&#x27;, () =&gt; { z = 1.05; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
+      btn(&#x27;z = 0.95&#x27;, () =&gt; { z = 0.95; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
+    ),
+  ));
+
+  const unsub = store.subscribe((s, patch) =&gt; { if (&#x27;h&#x27; in patch) update(); }, { immediate: false });
+  return { destroy() { unsub(); } };
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-16-836Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-16-836Z" class="timestamp-link"><time datetime="2026-09-03T18:24:16.836Z" data-timestamp="2026-09-03T18:24:16.836Z">2026-09-03T18:24:16.836Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-17-273Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-17-273Z" class="timestamp-link"><time datetime="2026-09-03T18:24:17.273Z" data-timestamp="2026-09-03T18:24:17.273Z">2026-09-03T18:24:17.273Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0118sNNsa5rvSM4fQLzpND2G">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find panel 3 left control wiring</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;localSlider\|controls(\|root.append\|tScrub&#34; panels/03-solving-for-x/left.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-24-17-295Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-24-17-295Z" class="timestamp-link"><time datetime="2026-09-03T18:24:17.295Z" data-timestamp="2026-09-03T18:24:17.295Z">2026-09-03T18:24:17.295Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>19:function localSlider({ label, min, max, step = &#x27;any&#x27;, value, format = v =&gt; String(v), onInput, signal }) {
+28:  let tScrub = 0.6;
+58:    drawPolyline(g, view, [tScrub, tScrub], [view.yMin, view.yMax], { color: cssVar(&#x27;--axis&#x27;), width: 1, dash: [3, 3], alpha: 0.5 });
+59:    drawPolyline(g, view, [tScrub - TANGENT, tScrub + TANGENT], [value - TANGENT * slope, value + TANGENT * slope], { color: cssVar(&#x27;--approx&#x27;), width: 2.5 });
+60:    drawPoint(g, view, tScrub, value, { r: 5, fill: cssVar(&#x27;--approx&#x27;) });
+95:    const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
+101:    const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
+110:  root.append(controls(localSlider({
+111:    label: &#x27;t (this instant)&#x27;, min: 0, max: SPAN, value: tScrub, format: v =&gt; `${v.toFixed(2)} s`, signal,
+112:    onInput: v =&gt; { tScrub = v; invalidate(); },</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-19-169Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-19-169Z" class="timestamp-link"><time datetime="2026-09-03T18:24:19.169Z" data-timestamp="2026-09-03T18:24:19.169Z">2026-09-03T18:24:19.169Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CvniMJf4LH8Y6QwbMgJ5cZ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read panel 3 left tail</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;105,125p&#39; panels/03-solving-for-x/left.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-24-19-190Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-24-19-190Z" class="timestamp-link"><time datetime="2026-09-03T18:24:19.190Z" data-timestamp="2026-09-03T18:24:19.190Z">2026-09-03T18:24:19.190Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>    if (barCanvas.width !== w) barCanvas.width = w;
+    drawBar(a, c.capA);
+  });
+
+  const invalidate = () =&gt; { xStage.invalidate(); vStage.invalidate(); };
+  root.append(controls(localSlider({
+    label: &#x27;t (this instant)&#x27;, min: 0, max: SPAN, value: tScrub, format: v =&gt; `${v.toFixed(2)} s`, signal,
+    onInput: v =&gt; { tScrub = v; invalidate(); },
+  }), barBox));
+
+  const unsub = store.subscribe(invalidate, { immediate: false });
+  return { destroy() { unsub(); } };
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-48-027Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-48-027Z" class="timestamp-link"><time datetime="2026-09-03T18:24:48.027Z" data-timestamp="2026-09-03T18:24:48.027Z">2026-09-03T18:24:48.027Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01WkXdp8ea4XXFVZCVbAJE3z">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Convert panel 3 and 9 left sliders to scrubs</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+
+# ---------- panel 3 left: t becomes a scrubbed number in the prose ----------
+h = pathlib.Path(&#39;panels/03-solving-for-x/left.html&#39;)
+s = h.read_text()
+old = &#34;&#34;&#34;    &lt;p&gt;This is one instant of the trajectory on the spine. Nudge &lt;math&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/math&gt; and
+      watch the tangent tilt: the slope you see on &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; is the value of
+      &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt;, and the slope on &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; is the value of
+      &lt;math&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/math&gt;.&lt;/p&gt;&#34;&#34;&#34;
+new = &#34;&#34;&#34;    &lt;p&gt;This is one instant of the trajectory on the spine, at
+      &lt;math&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&#34;t&#34; data-scrub=&#34;t&#34; data-digits=&#34;2&#34;&gt;0.60&lt;/mn&gt;&lt;/mrow&gt;&lt;/math&gt; s.
+      Drag that number and watch the tangent tilt: the slope you see on
+      &lt;math&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/math&gt; is the value of &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt;, and the slope on
+      &lt;math&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;/math&gt; is the value of &lt;math&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;/math&gt;.&lt;/p&gt;&#34;&#34;&#34;
+assert old in s; h.write_text(s.replace(old, new, 1))
+
+p = pathlib.Path(&#39;panels/03-solving-for-x/left.js&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;/** A local slider (the scrubbed t is not part of the tuple). */
+function localSlider({ label, min, max, step = &#39;any&#39;, value, format = v =&gt; String(v), onInput, signal }) {
+  const input = el(&#39;input&#39;, { type: &#39;range&#39;, min, max, step, value });
+  const out = el(&#39;output&#39;, {}, format(value));
+  input.addEventListener(&#39;input&#39;, () =&gt; { out.textContent = format(Number(input.value)); onInput(Number(input.value)); }, { signal });
+  return el(&#39;label&#39;, { class: &#39;control&#39; }, el(&#39;span&#39;, { class: &#39;control-label&#39; }, el(&#39;span&#39;, {}, label), out), input);
+}
+
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, &#39;&#39;, 1)
+
+old = &#34;&#34;&#34;  root.append(controls(localSlider({
+    label: &#39;t (this instant)&#39;, min: 0, max: SPAN, value: tScrub, format: v =&gt; `${v.toFixed(2)} s`, signal,
+    onInput: v =&gt; { tScrub = v; invalidate(); },
+  }), barBox));
+&#34;&#34;&#34;
+new = &#34;&#34;&#34;  root.append(controls(barBox));
+
+  // The instant itself is the control: t is dragged where it is written, in the prose.
+  // Local to the pane — the store&#39;s t belongs to the players.
+  const tSubs = new Set();
+  const tStore = {
+    get: () =&gt; ({ t: tScrub }),
+    set(patch) {
+      if (!Number.isFinite(patch.t)) return { t: tScrub };
+      const next = clamp(patch.t, 0, SPAN);
+      if (next !== tScrub) { tScrub = next; for (const fn of tSubs) fn({ t: tScrub }, { t: tScrub }); invalidate(); }
+      return { t: tScrub };
+    },
+    subscribe(fn, { immediate = true } = {}) {
+      tSubs.add(fn);
+      if (immediate) fn({ t: tScrub }, { t: tScrub });
+      return () =&gt; tSubs.delete(fn);
+    },
+    limits: { t: [0, SPAN] },
+  };
+  const article = root.closest(&#39;article&#39;) ?? root;
+  bindScrub(article, tStore, { signal });
+  bindMath(article, tStore, { signal });
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;import { controls } from &#39;shared/ui/controls.js&#39;;&#34;&#34;&#34;
+new = &#34;&#34;&#34;import { controls } from &#39;shared/ui/controls.js&#39;;
+import { bindScrub } from &#39;shared/ui/scrub.js&#39;;
+import { bindMath } from &#39;shared/ui/livemath.js&#39;;&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+p.write_text(s)
+
+# ---------- panel 9 left: z becomes a scrubbed number in e(i+1) = z e(i) ----------
+h = pathlib.Path(&#39;panels/09-finding-error/left.html&#39;)
+s = h.read_text()
+old = &#34;&#34;&#34;      &lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/msub&gt;&#34;&#34;&#34;
+new = &#34;&#34;&#34;      &lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn data-var=&#34;z&#34; data-scrub=&#34;z&#34; data-digits=&#34;3&#34;&gt;1.050&lt;/mn&gt;&lt;msub&gt;&lt;mi&gt;e&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/msub&gt;&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+old = &#34;&#34;&#34;    &lt;p&gt;Type a ratio and step it forward; then set it just above and just below 1 and watch how
+      little the difference looks at first.&lt;/p&gt;&#34;&#34;&#34;
+new = &#34;&#34;&#34;    &lt;p&gt;Drag &lt;math&gt;&lt;mi&gt;z&lt;/mi&gt;&lt;/math&gt; in that first equation and step the sequence forward; then
+      set it just above and just below 1 and watch how little the difference looks at first.&lt;/p&gt;&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+h.write_text(s)
+
+p = pathlib.Path(&#39;panels/09-finding-error/left.js&#39;)
+s = p.read_text()
+old = &#34;&#34;&#34;  const stage = createStage(root, { layers: [&#39;plot&#39;], aspect: &#39;wide&#39;, signal });
+  const zInput = el(&#39;input&#39;, { type: &#39;range&#39;, min: 0.5, max: 1.5, step: 0.001, value: z });
+  const zOut = el(&#39;output&#39;, {}, z.toFixed(3));
+&#34;&#34;&#34;
+new = &#34;&#34;&#34;  const stage = createStage(root, { layers: [&#39;plot&#39;], aspect: &#39;wide&#39;, signal });
+
+  // z is dragged where it is written, in e(i+1) = z·e(i). Local to the pane: the ratio is a
+  // property of a step, not an entry of the tuple.
+  const zSubs = new Set();
+  const zStore = {
+    get: () =&gt; ({ z }),
+    set(patch) {
+      if (!Number.isFinite(patch.z)) return { z };
+      const next = Math.min(Z_RANGE[1], Math.max(Z_RANGE[0], patch.z));
+      if (next !== z) { z = next; for (const fn of zSubs) fn({ z }, { z }); stage.invalidate(); }
+      return { z };
+    },
+    subscribe(fn, { immediate = true } = {}) {
+      zSubs.add(fn);
+      if (immediate) fn({ z }, { z });
+      return () =&gt; zSubs.delete(fn);
+    },
+    limits: { z: Z_RANGE },
+  };
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;  zInput.addEventListener(&#39;input&#39;, () =&gt; { z = Number(zInput.value); zOut.textContent = z.toFixed(3); update(); }, { signal });
+  const btn = (label, fn) =&gt; el(&#39;button&#39;, { class: &#39;btn&#39;, type: &#39;button&#39;, onclick: fn }, label);
+  root.append(controls(
+    el(&#39;label&#39;, { class: &#39;control&#39; }, el(&#39;span&#39;, { class: &#39;control-label&#39; }, el(&#39;span&#39;, {}, &#39;z, the ratio per step&#39;), zOut), zInput),
+    row(
+      btn(&#39;Step&#39;, () =&gt; { n = Math.min(MAX_STEPS, n + 1); update(); }),
+      btn(&#39;+10 steps&#39;, () =&gt; { n = Math.min(MAX_STEPS, n + 10); update(); }),
+      btn(&#39;Reset&#39;, () =&gt; { n = 10; update(); }),
+      btn(&#39;z = 1.05&#39;, () =&gt; { z = 1.05; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
+      btn(&#39;z = 0.95&#39;, () =&gt; { z = 0.95; zInput.value = z; zOut.textContent = z.toFixed(3); update(); }),
+    ),
+  ));
+&#34;&#34;&#34;
+new = &#34;&#34;&#34;  const btn = (label, fn) =&gt; el(&#39;button&#39;, { class: &#39;btn&#39;, type: &#39;button&#39;, onclick: fn }, label);
+  root.append(controls(
+    row(
+      btn(&#39;Step&#39;, () =&gt; { n = Math.min(MAX_STEPS, n + 1); update(); }),
+      btn(&#39;+10 steps&#39;, () =&gt; { n = Math.min(MAX_STEPS, n + 10); update(); }),
+      btn(&#39;Reset&#39;, () =&gt; { n = 10; update(); }),
+      btn(&#39;z = 1.05&#39;, () =&gt; zStore.set({ z: 1.05 })),
+      btn(&#39;z = 0.95&#39;, () =&gt; zStore.set({ z: 0.95 })),
+    ),
+  ));
+
+  const article = root.closest(&#39;article&#39;) ?? root;
+  bindScrub(article, zStore, { signal });
+  bindMath(article, zStore, { signal });
+&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;import { controls, row } from &#39;shared/ui/controls.js&#39;;&#34;&#34;&#34;
+new = &#34;&#34;&#34;import { controls, row } from &#39;shared/ui/controls.js&#39;;
+import { bindScrub } from &#39;shared/ui/scrub.js&#39;;
+import { bindMath } from &#39;shared/ui/livemath.js&#39;;&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+
+old = &#34;&#34;&#34;const MAX_STEPS = 140;   // &#34;a thousandfold after 140&#34; at 1.05&#34;&#34;&#34;
+new = &#34;&#34;&#34;const MAX_STEPS = 140;   // &#34;a thousandfold after 140&#34; at 1.05
+const Z_RANGE = [0.5, 1.5];&#34;&#34;&#34;
+assert old in s; s = s.replace(old, new, 1)
+p.write_text(s)
+print(&#39;ok&#39;)
+PY
+node --check panels/03-solving-for-x/left.js &amp;&amp; node --check panels/09-finding-error/left.js &amp;&amp; echo &#34;syntax ok&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-24-49-736Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-24-49-736Z" class="timestamp-link"><time datetime="2026-09-03T18:24:49.736Z" data-timestamp="2026-09-03T18:24:49.736Z">2026-09-03T18:24:49.736Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+syntax ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-55-754Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-55-754Z" class="timestamp-link"><time datetime="2026-09-03T18:24:55.754Z" data-timestamp="2026-09-03T18:24:55.754Z">2026-09-03T18:24:55.754Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-56-391Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-56-391Z" class="timestamp-link"><time datetime="2026-09-03T18:24:56.391Z" data-timestamp="2026-09-03T18:24:56.391Z">2026-09-03T18:24:56.391Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Caught a bug in my own edit — <code>bindMath</code>'s third parameter is <code>derive</code>, not options:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-24-59-128Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-24-59-128Z" class="timestamp-link"><time datetime="2026-09-03T18:24:59.128Z" data-timestamp="2026-09-03T18:24:59.128Z">2026-09-03T18:24:59.128Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UysBBqyrkvK7J6tNArjaFk">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Fix bindMath signature, check el usage</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+for f, store in [(&#39;panels/03-solving-for-x/left.js&#39;, &#39;tStore&#39;), (&#39;panels/09-finding-error/left.js&#39;, &#39;zStore&#39;)]:
+    p = pathlib.Path(f); s = p.read_text()
+    old = f&#34;bindMath(article, {store}, {{ signal }});&#34;
+    new = f&#34;bindMath(article, {store}, () =&gt; ({{}}), {{ signal }});&#34;
+    assert old in s, f
+    p.write_text(s.replace(old, new, 1))
+print(&#39;ok&#39;)
+PY
+grep -n &#34;bindMath(article&#34; panels/03-solving-for-x/left.js panels/09-finding-error/left.js; echo &#34;--- el still used? ---&#34;; grep -c &#34;el(&#34; panels/03-solving-for-x/left.js panels/09-finding-error/left.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-00-642Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-00-642Z" class="timestamp-link"><time datetime="2026-09-03T18:25:00.642Z" data-timestamp="2026-09-03T18:25:00.642Z">2026-09-03T18:25:00.642Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>ok
+panels/03-solving-for-x/left.js:126:  bindMath(article, tStore, () =&gt; ({}), { signal });
+panels/09-finding-error/left.js:86:  bindMath(article, zStore, () =&gt; ({}), { signal });
+--- el still used? ---
+panels/03-solving-for-x/left.js:2
+panels/09-finding-error/left.js:1</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-04-780Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-04-780Z" class="timestamp-link"><time datetime="2026-09-03T18:25:04.780Z" data-timestamp="2026-09-03T18:25:04.780Z">2026-09-03T18:25:04.780Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-05-829Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-05-829Z" class="timestamp-link"><time datetime="2026-09-03T18:25:05.829Z" data-timestamp="2026-09-03T18:25:05.829Z">2026-09-03T18:25:05.829Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UTWLmPkmsm6o6NapJRj8ez">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Audit all bindMath call signatures for the same bug</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;bindMath(&#34; panels/ | grep -v &#34;=&gt; \|() =&gt;\|function\|// &#34; | head; echo &#34;--- ^ any hit here is the same signature bug ---&#34;; grep -rn &#34;bindMath(&#34; panels/ | wc -l</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-05-875Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-05-875Z" class="timestamp-link"><time datetime="2026-09-03T18:25:05.875Z" data-timestamp="2026-09-03T18:25:05.875Z">2026-09-03T18:25:05.875Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>panels/12-higher-order-rk/left.js:86:  bindMath(article, store, slots, { signal, digits: 4 });
+panels/12-higher-order-rk/left.js:87:  bindMath(article, aux, slots, { signal, digits: 4 });
+panels/02-newtonian-physics/right.js:162:  bindMath(article, rot, derive, { signal });
+panels/02-newtonian-physics/right.js:163:  bindMath(article, scene, derive, { signal });
+panels/08-recap-real-time/left.js:172:  bindMath(article, store, slots, { signal });
+panels/08-recap-real-time/left.js:173:  bindMath(article, local, slots, { signal });
+panels/01-point-masses/right.js:160:  const offMath = bindMath(article, facade, undefined, { signal });
+panels/04-physical-stability/spine.js:178:  bindMath(article, store, verdictSlots, { signal });
+panels/04-physical-stability/spine.js:179:  bindMath(article, local, verdictSlots, { signal });
+panels/04-physical-stability/spine.js:180:  bindMath(article, aux, verdictSlots, { signal });
+--- ^ any hit here is the same signature bug ---
+      28</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-12-661Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-12-661Z" class="timestamp-link"><time datetime="2026-09-03T18:25:12.661Z" data-timestamp="2026-09-03T18:25:12.661Z">2026-09-03T18:25:12.661Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-13-318Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-13-318Z" class="timestamp-link"><time datetime="2026-09-03T18:25:13.318Z" data-timestamp="2026-09-03T18:25:13.318Z">2026-09-03T18:25:13.318Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All valid — those pass named functions. Now fixing README prose that still describes the sliders that are gone:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-13-334Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-13-334Z" class="timestamp-link"><time datetime="2026-09-03T18:25:13.334Z" data-timestamp="2026-09-03T18:25:13.334Z">2026-09-03T18:25:13.334Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01C1i2HLpQTouYNsWzU2mrKq">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find stale slider references in READMEs</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;slider&#34; panels/*/README.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-13-357Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-13-357Z" class="timestamp-link"><time datetime="2026-09-03T18:25:13.357Z" data-timestamp="2026-09-03T18:25:13.357Z">2026-09-03T18:25:13.357Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>panels/01-point-masses/README.md:11:  `slider` over `scene.paramStore(&#x27;body&#x27;)`, and `(x, y)` and `m` are live `data-var` slots in the
+panels/01-point-masses/README.md:22:  slider is the third way in. No readout: `x` and `y` were already implied by the body&#x27;s drawn
+panels/08-recap-real-time/README.md:14:  (pane-local store, log slider 1 … 10 M, default 500 000 — the essay&#x27;s &quot;a few milliseconds every
+panels/03-solving-for-x/README.md:11:  `dt` slider (0.0005 … 0.033 s, floored at `LIMITS.h` = 0.001 by the store) drives both.
+panels/03-solving-for-x/README.md:19:  slider&#x27;s own output, `x` and `v` are `drawText` in the corner of the strip that plots them
+panels/05-linearize/README.md:24:  No readout, and no second stage: the nonlinear-vs-linearized run and its parameter sliders
+panels/02-newtonian-physics/README.md:12:  draggable too (there is no separate mass slider). The scrubs and slots bind through one
+panels/12-higher-order-rk/README.md:13:  time (a local slider), against the exponential, with |Sₙ(hλ)| for the current spring. No
+panels/12-higher-order-rk/README.md:20:  `order` layers in one shader pass; a local slider highlights one order and its polynomial.
+panels/12-higher-order-rk/README.md:25:  of implicit runs across six step sizes against the exact curve; a discrete slider sets the
+panels/07-finding-eigenvalues/README.md:6:No pane in this panel has a slider. Every parameter is a `data-scrub` number inside the MathML
+panels/06-eigen-what-now/README.md:48:   used to leak into every later panel: the `c` slider on panels 7-13 landed on an overdamped
+panels/11-lets-break-it/README.md:7:  running against the exact solution, transport, an `h` slider, the integrator picker, and
+panels/11-lets-break-it/README.md:9:  slider and transport; the run strip; picker and presets in one row. No readout: the
+panels/10-explicit-euler/README.md:7:  on it in green or red, Rhodes&#x27; reading in the margins, sliders on `h`, `m`, `c`, `k`. No
+panels/10-explicit-euler/README.md:14:  a tangent walk reads better tall, and nothing else sits under it but one slider.
+panels/10-explicit-euler/README.md:17:  slider sets the store&#x27;s `h` and highlights that disk. No readout: only the highlighted h&#x27;s</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-28-124Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-28-124Z" class="timestamp-link"><time datetime="2026-09-03T18:25:28.124Z" data-timestamp="2026-09-03T18:25:28.124Z">2026-09-03T18:25:28.124Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01LgwikdEGig8KXYyu7AVuQw">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update stale README slider prose</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib, re
+
+edits = [
+ (&#39;panels/01-point-masses/README.md&#39;,
+  &#34;`m` is a label beside the dot and a\n  `slider` over `scene.paramStore(&#39;body&#39;)`, and `(x, y)` and `m` are live `data-var` slots in the&#34;,
+  &#34;`m` is a label beside the dot and a\n  scrubbable number in the prose over `scene.paramStore(&#39;body&#39;)`, and `(x, y)` and `m` are live `data-var` slots in the&#34;),
+ (&#39;panels/01-point-masses/README.md&#39;,
+  &#34;about the centre of mass, with the reference ray, the arc and the θ label on the canvas. A `θ`\n  slider is the third way in.&#34;,
+  &#34;about the centre of mass, with the reference ray, the arc and the θ label on the canvas.&#34;),
+ (&#39;panels/03-solving-for-x/README.md&#39;,
+  &#34;  `dt` slider (0.0005 … 0.033 s, floored at `LIMITS.h` = 0.001 by the store) drives both.&#34;,
+  &#34;  `dt` is a scrubbable number in the prose (0.001 … 0.033 s, the store&#39;s own `LIMITS.h` floor)\n  and drives both.&#34;),
+ (&#39;panels/03-solving-for-x/README.md&#39;,
+  &#34;  slider&#39;s own output, `x` and `v` are `drawText` in the corner of the strip that plots them&#34;,
+  &#34;  scrubbed `t` in the prose, `x` and `v` are `drawText` in the corner of the strip that plots them&#34;),
+ (&#39;panels/10-explicit-euler/README.md&#39;,
+  &#34;  on it in green or red, Rhodes&#39; reading in the margins, sliders on `h`, `m`, `c`, `k`. No&#34;,
+  &#34;  on it in green or red, Rhodes&#39; reading in the margins, `h`, `m`, `c`, `k` scrubbable in the prose. No&#34;),
+ (&#39;panels/10-explicit-euler/README.md&#39;,
+  &#34;  a tangent walk reads better tall, and nothing else sits under it but one slider.&#34;,
+  &#34;  a tangent walk reads better tall, and nothing sits under it: `h` is scrubbed in the prose.&#34;),
+ (&#39;panels/11-lets-break-it/README.md&#39;,
+  &#34;  running against the exact solution, transport, an `h` slider, the integrator picker, and&#34;,
+  &#34;  running against the exact solution, transport, a scrubbable `h` in the prose, the integrator picker, and&#34;),
+ (&#39;panels/11-lets-break-it/README.md&#39;,
+  &#34;  slider and transport; the run strip; picker and presets in one row.&#34;,
+  &#34;  scrubbed `h` and transport; the run strip; picker and presets in one row.&#34;),
+]
+for f, old, new in edits:
+    p = pathlib.Path(f); s = p.read_text()
+    if old not in s:
+        print(&#39;MISS&#39;, f, repr(old[:50])); continue
+    p.write_text(s.replace(old, new, 1))
+
+# panel 6: record that the spine&#39;s own damping is now scrubbed, not a hand-rolled range input
+p = pathlib.Path(&#39;panels/06-eigen-what-now/README.md&#39;); s = p.read_text()
+old = &#34;   pane exposes `localC` to `bindMath` through a small read-only store-shaped adapter; nothing\n   in this directory calls `store.set`.&#34;
+new = (&#34;   pane exposes `localC` through a small store-shaped adapter whose only writable key is\n&#34;
+       &#34;   `localC` itself (range `C_RANGE`), so `bindScrub` can drag it where the prose prints it\n&#34;
+       &#34;   and `bindMath` can read it; nothing in this directory calls the tuple&#39;s `store.set`.&#34;)
+if old in s: p.write_text(s.replace(old, new, 1))
+else: print(&#39;MISS panel6&#39;)
+
+# panel 9: the ratio is scrubbed now
+p = pathlib.Path(&#39;panels/09-finding-error/README.md&#39;); s = p.read_text()
+if &#39;ratio&#39; in s: print(&#39;panel9 README mentions ratio — check manually&#39;)
+print(&#39;done&#39;)
+PY
+grep -rn &#34;slider&#34; panels/*/README.md | grep -v &#34;07-finding\|sweep\|discrete slider\|local slider\|parameter sliders\|c` slider on panels&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-29-518Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-29-518Z" class="timestamp-link"><time datetime="2026-09-03T18:25:29.518Z" data-timestamp="2026-09-03T18:25:29.518Z">2026-09-03T18:25:29.518Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>(eval):50: unmatched &quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-41-718Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-41-718Z" class="timestamp-link"><time datetime="2026-09-03T18:25:41.718Z" data-timestamp="2026-09-03T18:25:41.718Z">2026-09-03T18:25:41.718Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017e6vGzZqfJzKiQsoEfxXGs">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update stale README slider prose</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+
+edits = [
+ (&#39;panels/01-point-masses/README.md&#39;,
+  &#34;`m` is a label beside the dot and a\n  `slider` over `scene.paramStore(&#39;body&#39;)`, and `(x, y)` and `m` are live `data-var` slots in the&#34;,
+  &#34;`m` is a label beside the dot and a\n  scrubbable number in the prose over `scene.paramStore(&#39;body&#39;)`, and `(x, y)` and `m` are live `data-var` slots in the&#34;),
+ (&#39;panels/01-point-masses/README.md&#39;,
+  &#34;about the centre of mass, with the reference ray, the arc and the theta label on the canvas. A `theta`\n  slider is the third way in.&#34;,
+  &#34;about the centre of mass, with the reference ray, the arc and the theta label on the canvas.&#34;),
+ (&#39;panels/03-solving-for-x/README.md&#39;,
+  &#34;  `dt` slider (0.0005 ... 0.033 s, floored at `LIMITS.h` = 0.001 by the store) drives both.&#34;,
+  &#34;  `dt` is a scrubbable number in the prose (0.001 ... 0.033 s, the store&#39;s own `LIMITS.h` floor)\n  and drives both.&#34;),
+ (&#39;panels/03-solving-for-x/README.md&#39;,
+  &#34;  slider&#39;s own output, `x` and `v` are `drawText` in the corner of the strip that plots them&#34;,
+  &#34;  scrubbed `t` in the prose, `x` and `v` are `drawText` in the corner of the strip that plots them&#34;),
+ (&#39;panels/10-explicit-euler/README.md&#39;,
+  &#34;  on it in green or red, Rhodes&#39; reading in the margins, sliders on `h`, `m`, `c`, `k`. No&#34;,
+  &#34;  on it in green or red, Rhodes&#39; reading in the margins, `h`, `m`, `c`, `k` scrubbable in the prose. No&#34;),
+ (&#39;panels/10-explicit-euler/README.md&#39;,
+  &#34;  a tangent walk reads better tall, and nothing else sits under it but one slider.&#34;,
+  &#34;  a tangent walk reads better tall, and nothing sits under it: `h` is scrubbed in the prose.&#34;),
+ (&#39;panels/11-lets-break-it/README.md&#39;,
+  &#34;  running against the exact solution, transport, an `h` slider, the integrator picker, and&#34;,
+  &#34;  running against the exact solution, transport, a scrubbable `h` in the prose, the integrator picker, and&#34;),
+ (&#39;panels/11-lets-break-it/README.md&#39;,
+  &#34;  slider and transport; the run strip; picker and presets in one row.&#34;,
+  &#34;  scrubbed `h` and transport; the run strip; picker and presets in one row.&#34;),
+]
+for f, old, new in edits:
+    p = pathlib.Path(f); s = p.read_text()
+    if old not in s:
+        print(&#39;MISS&#39;, f, old[:55]); continue
+    p.write_text(s.replace(old, new, 1))
+
+p = pathlib.Path(&#39;panels/06-eigen-what-now/README.md&#39;); s = p.read_text()
+old = &#34;   pane exposes `localC` to `bindMath` through a small read-only store-shaped adapter; nothing\n   in this directory calls `store.set`.&#34;
+new = (&#34;   pane exposes `localC` through a small store-shaped adapter whose one writable key is\n&#34;
+       &#34;   `localC` itself (range `C_RANGE`), so `bindScrub` can drag it where the prose prints it\n&#34;
+       &#34;   and `bindMath` can read it; nothing in this directory calls the tuple&#39;s `store.set`.&#34;)
+if old in s: p.write_text(s.replace(old, new, 1))
+else: print(&#39;MISS panel6&#39;)
+print(&#39;done&#39;)
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-43-378Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-43-378Z" class="timestamp-link"><time datetime="2026-09-03T18:25:43.378Z" data-timestamp="2026-09-03T18:25:43.378Z">2026-09-03T18:25:43.378Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>MISS panels/01-point-masses/README.md about the centre of mass, with the reference ray, the a
+MISS panels/03-solving-for-x/README.md   `dt` slider (0.0005 ... 0.033 s, floored at `LIMITS.h
+done</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-46-222Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-46-222Z" class="timestamp-link"><time datetime="2026-09-03T18:25:46.222Z" data-timestamp="2026-09-03T18:25:46.222Z">2026-09-03T18:25:46.222Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-49-709Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-49-709Z" class="timestamp-link"><time datetime="2026-09-03T18:25:49.709Z" data-timestamp="2026-09-03T18:25:49.709Z">2026-09-03T18:25:49.709Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TEZnkR3ccaFbAdQGSnqJgE">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Fix two README lines with unicode</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 - &lt;&lt;&#39;PY&#39;
+import pathlib
+p = pathlib.Path(&#39;panels/01-point-masses/README.md&#39;); s = p.read_text()
+old = &#34;the arc and the θ label on the canvas. A `θ`\n  slider is the third way in.&#34;
+new = &#34;the arc and the θ label on the canvas.&#34;
+if old in s: p.write_text(s.replace(old, new, 1)); print(&#39;p1 ok&#39;)
+else: print(&#39;p1 MISS&#39;)
+
+p = pathlib.Path(&#39;panels/03-solving-for-x/README.md&#39;); s = p.read_text()
+old = &#34;  `dt` slider (0.0005 … 0.033 s, floored at `LIMITS.h` = 0.001 by the store) drives both.&#34;
+new = &#34;  `dt` is a scrubbable number in the prose (0.001 … 0.033 s, the store&#39;s own `LIMITS.h`\n  floor) and drives both.&#34;
+if old in s: p.write_text(s.replace(old, new, 1)); print(&#39;p3 ok&#39;)
+else:
+    import re
+    for line in s.splitlines():
+        if &#39;dt&#39; in line and &#39;slider&#39; in line: print(&#39;actual:&#39;, repr(line))
+PY</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-51-123Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-51-123Z" class="timestamp-link"><time datetime="2026-09-03T18:25:51.123Z" data-timestamp="2026-09-03T18:25:51.123Z">2026-09-03T18:25:51.123Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>p1 ok
+p3 ok</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-53-074Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-53-074Z" class="timestamp-link"><time datetime="2026-09-03T18:25:53.074Z" data-timestamp="2026-09-03T18:25:53.074Z">2026-09-03T18:25:53.074Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Final verification across everything before the single commit:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-25-56-510Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-25-56-510Z" class="timestamp-link"><time datetime="2026-09-03T18:25:56.510Z" data-timestamp="2026-09-03T18:25:56.510Z">2026-09-03T18:25:56.510Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01VemLB8cAgW4pzphqeou3rG">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Full verification of the slider sweep</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">fail=0; for f in $(cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; git diff --name-only | grep &#39;\.js$&#39; | sed &#39;s|^app/||&#39;); do node --check &#34;$f&#34; || { echo &#34;FAIL $f&#34;; fail=1; }; done; echo &#34;syntax fail=$fail&#34;
+node --test &#34;shared/**/*.test.js&#34; 2&gt;&amp;1 | grep -E &#34;^. (tests|pass|fail)&#34;
+echo &#34;--- any slider( or range input left in panels ---&#34;
+grep -rn &#34;slider(\|type: &#39;range&#39;&#34; panels/ | grep -v README | sed &#39;s/:.*type/ range/&#39; </pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-25-58-846Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-25-58-846Z" class="timestamp-link"><time datetime="2026-09-03T18:25:58.846Z" data-timestamp="2026-09-03T18:25:58.846Z">2026-09-03T18:25:58.846Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>syntax fail=0
+ℹ tests 88
+ℹ pass 88
+ℹ fail 0
+--- any slider( or range input left in panels ---
+panels/13-variable-step-sizes/left.js range: &#x27;range&#x27;, min: 0, max: STEPS - 1, step: 1, value: at });
+panels/12-higher-order-rk/right-2.js range: &#x27;range&#x27;, min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
+panels/10-explicit-euler/right.js range: &#x27;range&#x27;, min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-10-091Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-10-091Z" class="timestamp-link"><time datetime="2026-09-03T18:26:10.091Z" data-timestamp="2026-09-03T18:26:10.091Z">2026-09-03T18:26:10.091Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UL69cMG58o6HTkMdtvcjv6">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the slider migration</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration &amp;&amp; git add app/panels app/shared/ui/scrub.js &amp;&amp; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+every pane: the equation is the control, not a slider under it
+
+Every parameter slider in the app becomes a draggable number where the symbol is written.
+No slider survives: not the shared slider() helper, and not the hand-rolled range inputs
+that a grep for slider( never saw — panel 6&#39;s spine damping, panel 3&#39;s instant t, panel 9&#39;s
+ratio z. The three that remain are index selectors over a bundle, doing sweepStrip&#39;s job,
+not parameter controls.
+
+Where a pane had no equation for its parameter, it gets the one the parameter belongs to,
+never a decorative wrapper: the epsilon-tube&#39;s own inequality on panel 4, T(tx,ty)·R(θ)·S(s)
+on panel 6&#39;s left, R(hλ) where the disk verdict already lived on panel 10.
+
+scrub.js gains an opt-in data-snap. Panel 4&#39;s damping had a stepped slider precisely so
+c = 0 was landable — the &#34;stable, but not asymptotically&#34; verdict is unreachable otherwise —
+and a free drag would step over it. A node without the attribute takes the same path it
+always did.
+
+Panel 6&#39;s spine keeps its own damping in a store-shaped adapter whose one writable key is
+localC, so the number can be dragged where the prose prints it and the tuple stays untouched.
+
+Co-Authored-By: Claude Opus 5 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01UXcipkXoFYJv4et7QXM5um
+EOF
+)&#34; &amp;&amp; git log --oneline -3 &amp;&amp; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-26-11-786Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-26-11-786Z" class="timestamp-link"><time datetime="2026-09-03T18:26:11.786Z" data-timestamp="2026-09-03T18:26:11.786Z">2026-09-03T18:26:11.786Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>e33457d every pane: the equation is the control, not a slider under it
+a46cbf5 title page wired in as row 0: #/0 is the landing route, mounted by main.js outside the manifest
+32a13a5 fix controls()/row(): pass children as an array, not one nested arg
+?? notes.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-17-705Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-17-705Z" class="timestamp-link"><time datetime="2026-09-03T18:26:17.705Z" data-timestamp="2026-09-03T18:26:17.705Z">2026-09-03T18:26:17.705Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-18-449Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-18-449Z" class="timestamp-link"><time datetime="2026-09-03T18:26:18.449Z" data-timestamp="2026-09-03T18:26:18.449Z">2026-09-03T18:26:18.449Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Two commits landed from you while I worked (<code>a46cbf5</code> title page, <code>32a13a5</code> a <code>controls()</code>/<code>row()</code> fix). Let me make sure my panes match that fixed signature:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-19-115Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-19-115Z" class="timestamp-link"><time datetime="2026-09-03T18:26:19.115Z" data-timestamp="2026-09-03T18:26:19.115Z">2026-09-03T18:26:19.115Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TtQW7JX5E4Ra255HSynWJC">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Inspect the user&#39;s controls/row fix</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git show 32a13a5 --stat &amp;&amp; git show 32a13a5 -- app/shared/ui/controls.js | tail -25</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-26-19-177Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-26-19-177Z" class="timestamp-link"><time datetime="2026-09-03T18:26:19.177Z" data-timestamp="2026-09-03T18:26:19.177Z">2026-09-03T18:26:19.177Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>commit 32a13a56e3b265a96b73a7c46f0ec193d17e9179
+Author: Benjamin Jordan &lt;benjamin@thegoldenmule.com&gt;
+Date:   Thu Sep 3 13:23:02 2026 -0500
+
+    fix controls()/row(): pass children as an array, not one nested arg
+    
+    controls(...children) and row(...children) were calling el(&#x27;div&#x27;, attrs, children)
+    instead of el(&#x27;div&#x27;, attrs, ...children). Since el() also collects its children via
+    rest args, this wrapped an already-collected array one level too deep; el&#x27;s
+    children.flat() (depth 1) couldn&#x27;t fully unwrap a caller-supplied array argument
+    (e.g. controls(rows, ...) where rows is itself an array of row elements), leaving
+    a nested array that Node.append() stringified to &quot;[object HTMLDivElement]&quot; instead
+    of appending the nodes.
+    
+    Reproduced on panel 2&#x27;s spine, where controls(rows, ...) renders the force toggles.
+
+ app/shared/ui/controls.js | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+    fix controls()/row(): pass children as an array, not one nested arg
+    
+    controls(...children) and row(...children) were calling el(&#x27;div&#x27;, attrs, children)
+    instead of el(&#x27;div&#x27;, attrs, ...children). Since el() also collects its children via
+    rest args, this wrapped an already-collected array one level too deep; el&#x27;s
+    children.flat() (depth 1) couldn&#x27;t fully unwrap a caller-supplied array argument
+    (e.g. controls(rows, ...) where rows is itself an array of row elements), leaving
+    a nested array that Node.append() stringified to &quot;[object HTMLDivElement]&quot; instead
+    of appending the nodes.
+    
+    Reproduced on panel 2&#x27;s spine, where controls(rows, ...) renders the force toggles.
+
+diff --git a/app/shared/ui/controls.js b/app/shared/ui/controls.js
+index 44c7882..b140164 100644
+--- a/app/shared/ui/controls.js
++++ b/app/shared/ui/controls.js
+@@ -110,5 +110,5 @@ export function readout({ label } = {}) {
+   };
+ }
+ 
+-export const controls = (...children) =&gt; el(&#x27;div&#x27;, { class: &#x27;controls&#x27; }, children);
+-export const row = (...children) =&gt; el(&#x27;div&#x27;, { class: &#x27;controls-row&#x27; }, children);
++export const controls = (...children) =&gt; el(&#x27;div&#x27;, { class: &#x27;controls&#x27; }, ...children);
++export const row = (...children) =&gt; el(&#x27;div&#x27;, { class: &#x27;controls-row&#x27; }, ...children);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-25-522Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-25-522Z" class="timestamp-link"><time datetime="2026-09-03T18:26:25.522Z" data-timestamp="2026-09-03T18:26:25.522Z">2026-09-03T18:26:25.522Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-26-215Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-26-215Z" class="timestamp-link"><time datetime="2026-09-03T18:26:26.215Z" data-timestamp="2026-09-03T18:26:26.215Z">2026-09-03T18:26:26.215Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The user found a real latent bug there — <code>controls()</code> double-wrapped its children array, which page 2's <code>controls(rows, …)</code> call exposed. Their fix is correct and my work sits on top. Final static check that no import went stale:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-29-070Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-29-070Z" class="timestamp-link"><time datetime="2026-09-03T18:26:29.070Z" data-timestamp="2026-09-03T18:26:29.070Z">2026-09-03T18:26:29.070Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01KqYXgp9gToYKvkr23HBAbW">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify every panel import resolves on disk</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">missing=0
+for f in $(find panels -name &#39;*.js&#39;); do
+  grep -o &#34;from &#39;\(shared\|panels\)/[^&#39;]*&#39;&#34; &#34;$f&#34; 2&gt;/dev/null | sed &#34;s/from &#39;//;s/&#39;//&#34; | while read -r m; do
+    [ -f &#34;$m&#34; ] || echo &#34;MISSING $m  (in $f)&#34;
+  done
+  grep -o &#34;from &#39;\./[^&#39;]*&#39;&#34; &#34;$f&#34; 2&gt;/dev/null | sed &#34;s|from &#39;\./||;s/&#39;//&#34; | while read -r m; do
+    [ -f &#34;$(dirname &#34;$f&#34;)/$m&#34; ] || echo &#34;MISSING ./$m  (in $f)&#34;
+  done
+done
+echo &#34;--- import check done ---&#34;
+curl -s -o /dev/null -w &#34;app boots: %{http_code}\n&#34; http://127.0.0.1:8766/shared/main.js</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-26-30-553Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-26-30-553Z" class="timestamp-link"><time datetime="2026-09-03T18:26:30.553Z" data-timestamp="2026-09-03T18:26:30.553Z">2026-09-03T18:26:30.553Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>bfs: error: panels: No such file or directory.
+--- import check done ---
+app boots: 200</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-35-023Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-35-023Z" class="timestamp-link"><time datetime="2026-09-03T18:26:35.023Z" data-timestamp="2026-09-03T18:26:35.023Z">2026-09-03T18:26:35.023Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TCm6ZRFtBFSNVh4mVoQZyY">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify panel imports resolve</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app &amp;&amp; for f in $(find panels -name &#39;*.js&#39;); do
+  grep -o &#34;from &#39;\(shared\|panels\)/[^&#39;]*&#39;&#34; &#34;$f&#34; | sed &#34;s/from &#39;//;s/&#39;//&#34; | while read -r m; do
+    [ -f &#34;$m&#34; ] || echo &#34;MISSING $m  (in $f)&#34;
+  done
+  grep -o &#34;from &#39;\./[^&#39;]*&#39;&#34; &#34;$f&#34; | sed &#34;s|from &#39;\./||;s/&#39;//&#34; | while read -r m; do
+    [ -f &#34;$(dirname &#34;$f&#34;)/$m&#34; ] || echo &#34;MISSING ./$m  (in $f)&#34;
+  done
+done; echo &#34;--- all panel imports resolve ---&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-03T18-26-37-109Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-03T18-26-37-109Z" class="timestamp-link"><time datetime="2026-09-03T18:26:37.109Z" data-timestamp="2026-09-03T18:26:37.109Z">2026-09-03T18:26:37.109Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- all panel imports resolve ---</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-48-413Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-48-413Z" class="timestamp-link"><time datetime="2026-09-03T18:26:48.413Z" data-timestamp="2026-09-03T18:26:48.413Z">2026-09-03T18:26:48.413Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Both sweeps are in, one commit each.</p>
+<p><strong><code>4a2d6e6</code> — readouts.</strong> All 24 gone, nothing live left in any pane. Numbers rehomed, not deleted: panel 9's measured ratio and doubling time and panel 13's step-controller tally — the two <code>docs/idea.md</code> treats as the beat itself — came across intact. What got dropped was duplication (six-row tables the nested disks already draw). <code>--stage-max</code> went <code>−21rem</code> → <code>−18rem</code>, not the full 8rem reclaim, because most panes still stack controls under the stage.</p>
+<p><strong><code>e33457d</code> — sliders.</strong> Every parameter slider is now a dragged number where the symbol is written.</p>
+<p>The part worth your attention: the agent's <code>grep "slider("</code> found 25 sites and reported "no survivors" — but <strong>three hand-rolled <code>&lt;input type=range&gt;</code> controls never matched that grep</strong>, including page 6's spine damping, which is the control you specifically asked for last round. I found them on verification and converted the three that are genuine parameters (page 6's <code>c</code>, page 3's instant <code>t</code>, page 9's ratio <code>z</code>). Three range inputs remain by design — they're index selectors over a bundle, doing <code>sweepStrip</code>'s job rather than setting a parameter.</p>
+<p>I also caught a bug in my own edit before committing: I'd passed <code>{ signal }</code> as <code>bindMath</code>'s third argument, which is <code>derive</code>, so it would have thrown on first update. Fixed, and I audited all 28 <code>bindMath</code> call sites for the same mistake — the rest are fine.</p>
+<p><code>scrub.js</code> gained one opt-in <code>data-snap</code>. Page 4's damping needed it: that slider had <code>step: 0.05</code> precisely so <code>c = 0</code> was landable, and its three-way verdict is unreachable otherwise. Nodes without the attribute take the identical old code path. 88 tests pass, every panel import resolves.</p>
+<p>Two things I did <strong>not</strong> touch: <code>app/title/</code> and your <code>controls()</code>/<code>row()</code> fix — which was a real latent double-wrap bug in shared code that my page-2 agent's <code>controls(rows, …)</code> call happened to expose. <code>notes.md</code> is still untracked.</p></div></div></div>
+<div class="message user" id="msg-2026-09-03T18-26-48-523Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-03T18-26-48-523Z" class="timestamp-link"><time datetime="2026-09-03T18:26:48.523Z" data-timestamp="2026-09-03T18:26:48.523Z">2026-09-03T18:26:48.523Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Stop hook feedback:</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-03T18-26-53-840Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-03T18-26-53-840Z" class="timestamp-link"><time datetime="2026-09-03T18:26:53.840Z" data-timestamp="2026-09-03T18:26:53.840Z">2026-09-03T18:26:53.840Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>TL;DR</strong></p>
+<p>Two commits, as asked:</p>
+<ul>
+<li><strong><code>4a2d6e6</code></strong> — all 24 readouts removed. Numbers rehomed into prose/canvas, not deleted; only genuine duplication dropped. <code>--stage-max</code> <code>−21rem</code> → <code>−18rem</code>.</li>
+<li><strong><code>e33457d</code></strong> — every parameter slider is now a dragged number in its equation.</li>
+</ul>
+<p><strong>Three things I caught on verification:</strong>
+1. The agent reported "no slider survivors" — but its <code>grep "slider("</code> missed three hand-rolled <code>&lt;input type=range&gt;</code>, including page 6's spine damping (the control you asked about last round). Converted them myself.
+2. A bug in <em>my own</em> edit: passed <code>{signal}</code> as <code>bindMath</code>'s <code>derive</code> arg. Fixed, then audited all 28 call sites.
+3. Three range inputs left deliberately — index selectors over a bundle, not parameters.</p>
+<p><code>scrub.js</code> got one opt-in <code>data-snap</code> so page 4's <code>c = 0</code> stays landable. 88 tests pass, all imports resolve.</p>
+<p>Untouched: <code>app/title/</code>, your <code>controls()</code>/<code>row()</code> fix, <code>notes.md</code>.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-006.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<span class="current">7</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

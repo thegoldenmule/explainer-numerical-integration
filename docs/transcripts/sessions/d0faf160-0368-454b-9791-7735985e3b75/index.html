@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - Index</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Claude Code transcript</h1>
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+            </div>
+        </div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+        <p style="color: var(--text-muted); margin-bottom: 24px;">22 prompts · 439 messages · 137 tool calls · 0 commits · 7 pages</p>
+        
+<div class="index-item"><a href="page-001.html#msg-2026-09-03T16-39-12-596Z"><div class="index-item-header"><span class="index-item-number">#1</span><time datetime="2026-09-03T16:39:12.596Z" data-timestamp="2026-09-03T16:39:12.596Z">2026-09-03T16:39:12.596Z</time></div><div class="index-item-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2026-09-03T16-39-12-596Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-09-03T16:39:12.596Z" data-timestamp="2026-09-03T16:39:12.596Z">2026-09-03T16:39:12.596Z</time></div><div class="index-item-content"><p><command-name>/model</command-name>
+            <command-message>model</command-message>
+            <command-args>opus</command-args></p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2026-09-03T16-39-12-596Z"><div class="index-item-header"><span class="index-item-number">#3</span><time datetime="2026-09-03T16:39:12.596Z" data-timestamp="2026-09-03T16:39:12.596Z">2026-09-03T16:39:12.596Z</time></div><div class="index-item-content"><p><local-command-stdout>Set model to <code>Opus 5</code> and saved as your default for new sessions</local-command-stdout></p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2026-09-03T16-39-15-833Z"><div class="index-item-header"><span class="index-item-number">#4</span><time datetime="2026-09-03T16:39:15.833Z" data-timestamp="2026-09-03T16:39:15.833Z">2026-09-03T16:39:15.833Z</time></div><div class="index-item-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2026-09-03T16-39-15-833Z"><div class="index-item-header"><span class="index-item-number">#5</span><time datetime="2026-09-03T16:39:15.833Z" data-timestamp="2026-09-03T16:39:15.833Z">2026-09-03T16:39:15.833Z</time></div><div class="index-item-content"><p><command-name>/effort</command-name>
+            <command-message>effort</command-message>
+            <command-args>ultracode</command-args></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-03T16-39-15-833Z"><div class="index-item-header"><span class="index-item-number">#6</span><time datetime="2026-09-03T16:39:15.833Z" data-timestamp="2026-09-03T16:39:15.833Z">2026-09-03T16:39:15.833Z</time></div><div class="index-item-content"><p><local-command-stdout>Set effort level to ultracode (this session only): xhigh + dynamic workflow orchestration</local-command-stdout></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-03T16-40-46-191Z"><div class="index-item-header"><span class="index-item-number">#7</span><time datetime="2026-09-03T16:40:46.191Z" data-timestamp="2026-09-03T16:40:46.191Z">2026-09-03T16:40:46.191Z</time></div><div class="index-item-content"><p>Spawn parallel subagents: one for each page mentioned in notes.md. Each subagent should fix the spine, right, and left panels according to the notes. Collect enough context for them, and as they exit the main agent should commit their work serially. If they need to change core code then they should exitr and say so rather than changing it.</p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-03T16-40-46-192Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2026-09-03T16:40:46.192Z" data-timestamp="2026-09-03T16:40:46.192Z">2026-09-03T16:40:46.192Z</time></div><div class="index-item-content"><p><command-message>workflow-authoring</command-message>
+<command-name>workflow-authoring</command-name>
+<skill-format>true</skill-format></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-09-03T16-40-46-192Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-09-03T16:40:46.192Z" data-timestamp="2026-09-03T16:40:46.192Z">2026-09-03T16:40:46.192Z</time></div><div class="index-item-content"><h1>Workflow authoring reference</h1>
+<p>A workflow structures work across many agents — to be comprehensive (decompose and cover in parallel), to be confident (independent perspectives and adversarial checks before committing), or to take on scale one context can't hold (migrations, audits, broad sweeps). The script is where you encode that structure: what fans out, what verifies, what synthesizes.</p>
+<p>When you do call it, the right move is often <strong>hybrid</strong>: scout inline first (list the files, find the channels, scope the diff) to discover the work-list, then call Workflow to pipeline over it. You don't need to know the shape before the <em>task</em> — only before the <em>orchestration step</em>.</p>
+<p>Common single-phase workflows you can chain across turns:
+- <strong>Understand</strong> — parallel readers over relevant subsystems → structured map
+- <strong>Design</strong> — judge panel of N independent approaches → scored synthesis
+- <strong>Review</strong> — dimensions → find → adversarially verify (the review-changes example)
+- <strong>Research</strong> — multi-modal sweep → deep-read → synthesize
+- <strong>Migrate</strong> — discover sites → transform each (worktree isolation) → verify</p>
+<p>For larger work, run several in sequence — read each result before deciding the next phase. You stay in the loop; each workflow is one well-scoped fan-out.</p>
+<p><strong>Ultracode.</strong> When a system-reminder confirms ultracode is on, that opt-in is standing: author and run a workflow for every substantive task by default. The goal is the most exhaustive, correct answer you can produce — token cost is not a constraint. For multi-phase work (understand → design → implement → review), that often means several workflows in sequence — one per phase — so you stay in the loop between them. The quality patterns below (adversarial verify, multi-modal sweep, completeness critic, loop-until-dry) are the tools; pick what fits the task. Lean toward orchestrating with workflows and adversarially verifying your findings — unless the work is trivial or already verified. Solo only on conversational turns or trivial mechanical edits. When a reminder says ultracode is off, revert to the opt-in rule in the Workflow tool description.</p>
+<p>Pass the script inline via <code>script</code> — do not Write it to a file first. Every invocation automatically persists its script to a file under the session directory and returns the path in the tool result. To iterate on a workflow, edit that file with Write/Edit and re-invoke Workflow with <code>{scriptPath: "&lt;path&gt;"}</code> instead of resending the full script.</p>
+<p>Every script must begin with <code>export const meta = {...}</code>:
+  export const meta = {
+    name: 'find-flaky-tests',
+    description: 'Find flaky tests and propose fixes',   // one-line, shown in permission dialog
+    phases: [                                            // one entry per phase() call
+      { title: 'Scan', detail: 'grep test logs for retries' },
+      { title: 'Fix', detail: 'one agent per flaky test' },
+    ],
+  }
+  // script body starts here — use agent()/parallel()/pipeline()/phase()/log()
+  phase('Scan')
+  const flaky = await agent('grep CI logs for retry markers', {schema: FLAKY_SCHEMA})
+  ...</p>
+<p>The <code>meta</code> object must be a PURE LITERAL — no variables, function calls, spreads, or template interpolation. Required fields: <code>name</code>, <code>description</code>. Optional: <code>whenToUse</code> (shown in the workflow list), <code>phases</code>. Use the SAME phase titles in meta.phases as in phase() calls — titles are matched exactly; a phase() call with no matching meta entry just gets its own progress group. Add <code>model</code> to a phase entry when that phase uses a specific model override.</p>
+<p>Script body hooks:
+- agent(prompt: string, opts?: {label?: string, phase?: string, schema?: object, model?: string, effort?: string, isolation?: 'worktree', agentType?: string}): Promise<any> — spawn a subagent. Without schema, returns its final text as a string. With schema (a JSON Schema), the subagent is forced to call a StructuredOutput tool and agent() returns the validated object — no parsing needed. Returns null if the user skips the agent mid-run or the subagent dies on a terminal API error after retries (filter with .filter(Boolean)). opts.label overrides the display label. opts.phase explicitly assigns this agent to a progress group (use this inside pipeline()/parallel() stages to avoid races on the global phase() state — same phase string → same group box). opts.model overrides the model for this agent call. Default to omitting it — the agent inherits the main-loop model (the resolved session model), which is almost always correct. Only set it when you're highly confident a different tier fits the task; when unsure, omit. opts.effort overrides the reasoning effort for this agent call ('low' | 'medium' | 'high' | 'xhigh' | 'max') — omit to inherit the session effort; use 'low' for cheap mechanical stages and higher tiers only for the hardest verify/judge stages. opts.isolation: 'worktree' runs the agent in a fresh git worktree — EXPENSIVE (~200-500ms setup + disk per agent), use ONLY when agents mutate files in parallel and would otherwise conflict; the worktree is auto-removed if unchanged. opts.agentType uses a custom subagent type (e.g. 'general-purpose', 'code-reviewer') instead of the default workflow subagent — resolved from the same registry as the Agent tool; composes with schema (the custom agent's system prompt gets a StructuredOutput instruction appended).
+- pipeline(items, stage1, stage2, ...): Promise<any[]> — run each item through all stages independently, NO barrier between stages. Item A can be in stage 3 while item B is still in stage 1. This is the DEFAULT for multi-stage work. Wall-clock = slowest single-item chain, not sum-of-slowest-per-stage. Every stage callback receives (prevResult, originalItem, index) — use originalItem/index in later stages to label work without threading context through stage 1's return value. A stage that throws drops that item to <code>null</code> and skips its remaining stages.
+- parallel(thunks: Array&lt;() =&gt; Promise<any>&gt;): Promise<any[]> — run tasks concurrently. This is a BARRIER: awaits all thunks before returning. A thunk that throws (or whose agent errors) resolves to <code>null</code> in the result array — the call itself never rejects, so <code>.filter(Boolean)</code> before using the results. Use ONLY when you genuinely need all results together.
+- log(message: string): void — emit a progress message to the user (shown as a narrator line above the progress tree)
+- phase(title: string): void — start a new phase; subsequent agent() calls are grouped under this title in the progress display
+- args: any — the value passed as Workflow's <code>args</code> input, verbatim (undefined if not provided). Pass arrays/objects as actual JSON values in the tool call, NOT as a JSON-encoded string — <code>args: ["a.ts", "b.ts"]</code>, not <code>args: "[\"a.ts\", ...]"</code> (a stringified list reaches the script as one string, so <code>args.filter</code>/<code>args.map</code> throw). Use this to parameterize named workflows — e.g. pass a research question, target path, or config object directly instead of via a side-channel file.
+- budget: {total: number|null, spent(): number, remaining(): number} — the turn's token target from the user's "+500k"-style directive. <code>budget.total</code> is null if no target was set. <code>budget.spent()</code> returns output tokens spent this turn across the main loop and all workflows — the pool is shared, not per-workflow. <code>budget.remaining()</code> returns <code>max(0, total - spent())</code>, or <code>Infinity</code> if no target. The target is a HARD ceiling, not advisory: once <code>spent()</code> reaches <code>total</code>, further <code>agent()</code> calls throw. Use for dynamic loops: <code>while (budget.total &amp;&amp; budget.remaining() &gt; 50_000) { ... }</code>, or static scaling: <code>const FLEET = budget.total ? Math.floor(budget.total / 100_000) : 5</code>.
+- workflow(nameOrRef: string | {scriptPath: string}, args?: any): Promise<any> — run another workflow inline as a sub-step and return whatever it returns. Pass a name to invoke a saved workflow (same registry as {name: "..."}), or {scriptPath} to run a script file you Wrote earlier. The child shares this run's concurrency cap, agent counter, abort signal, and token budget — its agents appear under a "▸ name" group in /workflows and its tokens count toward budget.spent(). The args param becomes the child's <code>args</code> global. Nesting is one level only: workflow() inside a child throws. Throws on unknown name / unreadable scriptPath / child syntax error; catch to handle gracefully.</p>
+<p>Subagents are told their final text IS the return value (not a human-facing message), so they return raw data. For structured output, use the schema option — validation happens at the tool-call layer so the model retries on mismatch.</p>
+<p>Workflow agents can reach all session-connected MCP tools via ToolSearch — schemas load on demand per agent. Caveat: interactively-authenticated MCP servers (e.g. claude.ai) may be absent in headless/cron runs.</p>
+<p>Scripts are plain JavaScript, NOT TypeScript — type annotations (<code>: string[]</code>), interfaces, and generics fail to parse. The script body runs in an async context — use await directly. Standard JS built-ins (JSON, Math, Array, etc.) are available — EXCEPT <code>Date.now()</code>/<code>Math.random()</code>/argless <code>new Date()</code>, which throw (they would break resume); pass timestamps in via <code>args</code>, stamp results after the workflow returns, and for randomness vary the agent prompt/label by index. No filesystem or Node.js API access.</p>
+<p>DEFAULT TO pipeline(). Only reach for a barrier (parallel between stages) when you genuinely need ALL prior-stage results together.</p>
+<p>A barrier is correct ONLY when stage N needs cross-item context from all of stage N-1:
+- Dedup/merge across the full result set before expensive downstream work
+- Early-exit if the total count is zero ("0 bugs found → skip verification entirely")
+- Stage N's prompt references "the other findings" for comparison</p>
+<p>A barrier is NOT justified by:
+- "I need to flatten/map/filter first" — do it inside a pipeline stage: pipeline(items, stageA, r =&gt; transform([r]).flat(), stageB)
+- "The stages are conceptually separate" — that's what pipeline() models. Separate stages ≠ synchronized stages.
+- "It's cleaner code" — barrier latency is real. If 5 finders run and the slowest takes 3× the fastest, a barrier wastes 2/3 of the fast finders' idle time.</p>
+<p>Smell test: if you wrote
+  const a = await parallel(...)
+  const b = transform(a)        // flatten, map, filter — no cross-item dependency
+  const c = await parallel(b.map(...))
+that middle transform doesn't need the barrier. Rewrite as a pipeline with the transform inside a stage. When in doubt: pipeline.</p>
+<p>Concurrent agent() calls are capped at min(16, available CPUs - 2) per workflow — excess calls queue and run as slots free up. You can still pass 100 items to parallel()/pipeline() and they all complete; only ~10 run at any moment. Total agent count across a workflow's lifetime is capped at 1000 — a runaway-loop backstop set far above any real workflow. A single parallel()/pipeline() call accepts at most 4096 items; passing more is an explicit error, not a silent truncation.</p>
+<p>When a barrier IS correct — dedup across all findings before expensive verification:
+  const all = await parallel(DIMENSIONS.map(d =&gt; () =&gt; agent(d.prompt, {schema: FINDINGS_SCHEMA})))
+  const deduped = dedupeByFileAndLine(all.filter(Boolean).flatMap(r =&gt; r.findings))  // &lt;-- genuinely needs ALL at once
+  const verified = await parallel(deduped.map(f =&gt; () =&gt; agent(verifyPrompt(f), {schema: VERDICT_SCHEMA})))</p>
+<p>Loop-until-count pattern — accumulate to a target:
+  const bugs = []
+  while (bugs.length &lt; 10) {
+    const result = await agent("Find bugs in this codebase.", {schema: BUGS_SCHEMA})
+    bugs.push(...result.bugs)
+    log(<code>${bugs.length}/10 found</code>)
+  }</p>
+<p>Loop-until-budget pattern — scale depth to the user's "+500k" directive. Guard on budget.total: with no target set, remaining() is Infinity and the loop would run straight to the 1000-agent cap.
+  const bugs = []
+  while (budget.total &amp;&amp; budget.remaining() &gt; 50_000) {
+    const result = await agent("Find bugs in this codebase.", {schema: BUGS_SCHEMA})
+    bugs.push(...result.bugs)
+    log(<code>${bugs.length} found, ${Math.round(budget.remaining()/1000)}k remaining</code>)
+  }</p>
+<p>Composing patterns — exhaustive review (find → dedup vs seen → diverse-lens panel → loop-until-dry):
+  const seen = new Set(), confirmed = []
+  let dry = 0
+  while (dry &lt; 2) {                                              // loop-until-dry
+    const found = (await parallel(FINDERS.map(f =&gt; () =&gt;          // barrier: collect all finders this round
+      agent(f.prompt, {phase: 'Find', schema: BUGS})))).filter(Boolean).flatMap(r =&gt; r.bugs)
+    const fresh = found.filter(b =&gt; !seen.has(key(b)))           // dedup vs ALL seen — plain code, not an agent
+    if (!fresh.length) { dry++; continue }
+    dry = 0; fresh.forEach(b =&gt; seen.add(key(b)))
+    const judged = await parallel(fresh.map(b =&gt; () =&gt;           // every fresh bug judged concurrently...
+      parallel(['correctness','security','repro'].map(lens =&gt; () =&gt;   // ...each by 3 distinct lenses
+        agent(<code>Judge "${b.desc}" via the ${lens} lens — real?</code>, {phase: 'Verify', schema: VERDICT})))
+        .then(vs =&gt; ({ b, real: vs.filter(Boolean).filter(v =&gt; v.real).length &gt;= 2 }))))
+    confirmed.push(...judged.filter(v =&gt; v.real).map(v =&gt; v.b))
+  }
+  return confirmed
+  // dedup vs <code>seen</code>, NOT <code>confirmed</code> — else judge-rejected findings reappear every round and it never converges.</p>
+<p>Quality patterns — common shapes; pick by task and compose freely:
+- Adversarial verify: spawn N independent skeptics per finding, each prompted to REFUTE. Kill if ≥majority refute. Prevents plausible-but-wrong findings from surviving.
+    const votes = await parallel(Array.from({length: 3}, () =&gt; () =&gt;
+      agent(<code>Try to refute: ${claim}. Default to refuted=true if uncertain.</code>, {schema: VERDICT})))
+    const survives = votes.filter(Boolean).filter(v =&gt; !v.refuted).length &gt;= 2
+- Perspective-diverse verify: when a finding can fail in more than one way, give each verifier a distinct lens (correctness, security, perf, does-it-reproduce) instead of N identical refuters — diversity catches failure modes redundancy can't.
+- Judge panel: generate N independent attempts from different angles (e.g. MVP-first, risk-first, user-first), score with parallel judges, synthesize from the winner while grafting the best ideas from runners-up. Beats one-attempt-iterated when the solution space is wide.
+- Loop-until-dry: for unknown-size discovery (bugs, issues, edge cases), keep spawning finders until K consecutive rounds return nothing new. Simple counters (while count &lt; N) miss the tail.
+- Multi-modal sweep: parallel agents each searching a different way (by-container, by-content, by-entity, by-time). Each is blind to what the others surface; useful when one search angle won't find everything.
+- Completeness critic: a final agent that asks "what's missing — modality not run, claim unverified, source unread?" What it finds becomes the next round of work.
+- No silent caps: if a workflow bounds coverage (top-N, no-retry, sampling), <code>log()</code> what was dropped — silent truncation reads as "covered everything" when it didn't.</p>
+<p>Scale to what the user asked for. "find any bugs" → a few finders, single-vote verify. "thoroughly audit this" or "be comprehensive" → larger finder pool, 3–5 vote adversarial pass, synthesis stage. When unsure, lean toward thoroughness for research/review/audit requests and toward brevity for quick checks.</p>
+<p>These patterns aren't exhaustive — compose novel harnesses when the task calls for it (tournament brackets, self-repair loops, staged escalation, whatever fits).</p>
+<p>Use this tool for multi-step orchestration where control flow should be deterministic (loops, conditionals, fan-out) rather than model-driven.</p>
+<h2>Resume</h2>
+<p>The tool result includes a runId. To resume after a pause, kill, or script edit, relaunch with Workflow({scriptPath, resumeFromRunId}) — the longest unchanged prefix of agent() calls returns cached results instantly; the first edited/new call and everything after it runs live. Same script + same args → 100% cache hit. Before diagnosing why a completed workflow returned an empty or unexpected result, Read <transcriptDir>/journal.jsonl — it records each agent's actual return value; do not assume cached results are non-empty. Date.now()/Math.random()/new Date() are unavailable in scripts (they would break this) — stamp results after the workflow returns, or pass timestamps via args. Fallback when no journal is available: Read agent-<id>.jsonl files in the transcript directory and hand-author a continuation script.</p></div></a><div class="index-item-stats"><span>28 bash · 8 agent</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><h1>Workflow authoring reference</h1>
+<p>A workflow structures work across many agents — to be comprehensive (decompose and cover in parallel), to be confident (independent perspectives and adversarial checks before committing), or to take on scale one context can't hold (migrations, audits, broad sweeps). The script is where you encode that structure: what fans out, what verifies, what synthesizes.</p>
+<p>When you do call it, the right move is often <strong>hybrid</strong>: scout inline first (list the files, find the channels, scope the diff) to discover the work-list, then call Workflow to pipeline over it. You don't need to know the shape before the <em>task</em> — only before the <em>orchestration step</em>.</p>
+<p>Common single-phase workflows you can chain across turns:
+- <strong>Understand</strong> — parallel readers over relevant subsystems → structured map
+- <strong>Design</strong> — judge panel of N independent approaches → scored synthesis
+- <strong>Review</strong> — dimensions → find → adversarially verify (the review-changes example)
+- <strong>Research</strong> — multi-modal sweep → deep-read → synthesize
+- <strong>Migrate</strong> — discover sites → transform each (worktree isolation) → verify</p>
+<p>For larger work, run several in sequence — read each result before deciding the next phase. You stay in the loop; each workflow is one well-scoped fan-out.</p>
+<p><strong>Ultracode.</strong> When a system-reminder confirms ultracode is on, that opt-in is standing: author and run a workflow for every substantive task by default. The goal is the most exhaustive, correct answer you can produce — token cost is not a constraint. For multi-phase work (understand → design → implement → review), that often means several workflows in sequence — one per phase — so you stay in the loop between them. The quality patterns below (adversarial verify, multi-modal sweep, completeness critic, loop-until-dry) are the tools; pick what fits the task. Lean toward orchestrating with workflows and adversarially verifying your findings — unless the work is trivial or already verified. Solo only on conversational turns or trivial mechanical edits. When a reminder says ultracode is off, revert to the opt-in rule in the Workflow tool description.</p>
+<p>Pass the script inline via <code>script</code> — do not Write it to a file first. Every invocation automatically persists its script to a file under the session directory and returns the path in the tool result. To iterate on a workflow, edit that file with Write/Edit and re-invoke Workflow with <code>{scriptPath: "&lt;path&gt;"}</code> instead of resending the full script.</p>
+<p>Every script must begin with <code>export const meta = {...}</code>:
+  export const meta = {
+    name: 'find-flaky-tests',
+    description: 'Find flaky tests and propose fixes',   // one-line, shown in permission dialog
+    phases: [                                            // one entry per phase() call
+      { title: 'Scan', detail: 'grep test logs for retries' },
+      { title: 'Fix', detail: 'one agent per flaky test' },
+    ],
+  }
+  // script body starts here — use agent()/parallel()/pipeline()/phase()/log()
+  phase('Scan')
+  const flaky = await agent('grep CI logs for retry markers', {schema: FLAKY_SCHEMA})
+  ...</p>
+<p>The <code>meta</code> object must be a PURE LITERAL — no variables, function calls, spreads, or template interpolation. Required fields: <code>name</code>, <code>description</code>. Optional: <code>whenToUse</code> (shown in the workflow list), <code>phases</code>. Use the SAME phase titles in meta.phases as in phase() calls — titles are matched exactly; a phase() call with no matching meta entry just gets its own progress group. Add <code>model</code> to a phase entry when that phase uses a specific model override.</p>
+<p>Script body hooks:
+- agent(prompt: string, opts?: {label?: string, phase?: string, schema?: object, model?: string, effort?: string, isolation?: 'worktree', agentType?: string}): Promise<any> — spawn a subagent. Without schema, returns its final text as a string. With schema (a JSON Schema), the subagent is forced to call a StructuredOutput tool and agent() returns the validated object — no parsing needed. Returns null if the user skips the agent mid-run or the subagent dies on a terminal API error after retries (filter with .filter(Boolean)). opts.label overrides the display label. opts.phase explicitly assigns this agent to a progress group (use this inside pipeline()/parallel() stages to avoid races on the global phase() state — same phase string → same group box). opts.model overrides the model for this agent call. Default to omitting it — the agent inherits the main-loop model (the resolved session model), which is almost always correct. Only set it when you're highly confident a different tier fits the task; when unsure, omit. opts.effort overrides the reasoning effort for this agent call ('low' | 'medium' | 'high' | 'xhigh' | 'max') — omit to inherit the session effort; use 'low' for cheap mechanical stages and higher tiers only for the hardest verify/judge stages. opts.isolation: 'worktree' runs the agent in a fresh git worktree — EXPENSIVE (~200-500ms setup + disk per agent), use ONLY when agents mutate files in parallel and would otherwise conflict; the worktree is auto-removed if unchanged. opts.agentType uses a custom subagent type (e.g. 'general-purpose', 'code-reviewer') instead of the default workflow subagent — resolved from the same registry as the Agent tool; composes with schema (the custom agent's system prompt gets a StructuredOutput instruction appended).
+- pipeline(items, stage1, stage2, ...): Promise<any[]> — run each item through all stages independently, NO barrier between stages. Item A can be in stage 3 while item B is still in stage 1. This is the DEFAULT for multi-stage work. Wall-clock = slowest single-item chain, not sum-of-slowest-per-stage. Every stage callback receives (prevResult, originalItem, index) — use originalItem/index in later stages to label work without threading context through stage 1's return value. A stage that throws drops that item to <code>null</code> and skips its remaining stages.
+- parallel(thunks: Array&lt;() =&gt; Promise<any>&gt;): Promise<any[]> — run tasks concurrently. This is a BARRIER: awaits all thunks before returning. A thunk that throws (or whose agent errors) resolves to <code>null</code> in the result array — the call itself never rejects, so <code>.filter(Boolean)</code> before using the results. Use ONLY when you genuinely need all results together.
+- log(message: string): void — emit a progress message to the user (shown as a narrator line above the progress tree)
+- phase(title: string): void — start a new phase; subsequent agent() calls are grouped under this title in the progress display
+- args: any — the value passed as Workflow's <code>args</code> input, verbatim (undefined if not provided). Pass arrays/objects as actual JSON values in the tool call, NOT as a JSON-encoded string — <code>args: ["a.ts", "b.ts"]</code>, not <code>args: "[\"a.ts\", ...]"</code> (a stringified list reaches the script as one string, so <code>args.filter</code>/<code>args.map</code> throw). Use this to parameterize named workflows — e.g. pass a research question, target path, or config object directly instead of via a side-channel file.
+- budget: {total: number|null, spent(): number, remaining(): number} — the turn's token target from the user's "+500k"-style directive. <code>budget.total</code> is null if no target was set. <code>budget.spent()</code> returns output tokens spent this turn across the main loop and all workflows — the pool is shared, not per-workflow. <code>budget.remaining()</code> returns <code>max(0, total - spent())</code>, or <code>Infinity</code> if no target. The target is a HARD ceiling, not advisory: once <code>spent()</code> reaches <code>total</code>, further <code>agent()</code> calls throw. Use for dynamic loops: <code>while (budget.total &amp;&amp; budget.remaining() &gt; 50_000) { ... }</code>, or static scaling: <code>const FLEET = budget.total ? Math.floor(budget.total / 100_000) : 5</code>.
+- workflow(nameOrRef: string | {scriptPath: string}, args?: any): Promise<any> — run another workflow inline as a sub-step and return whatever it returns. Pass a name to invoke a saved workflow (same registry as {name: "..."}), or {scriptPath} to run a script file you Wrote earlier. The child shares this run's concurrency cap, agent counter, abort signal, and token budget — its agents appear under a "▸ name" group in /workflows and its tokens count toward budget.spent(). The args param becomes the child's <code>args</code> global. Nesting is one level only: workflow() inside a child throws. Throws on unknown name / unreadable scriptPath / child syntax error; catch to handle gracefully.</p>
+<p>Subagents are told their final text IS the return value (not a human-facing message), so they return raw data. For structured output, use the schema option — validation happens at the tool-call layer so the model retries on mismatch.</p>
+<p>Workflow agents can reach all session-connected MCP tools via ToolSearch — schemas load on demand per agent. Caveat: interactively-authenticated MCP servers (e.g. claude.ai) may be absent in headless/cron runs.</p>
+<p>Scripts are plain JavaScript, NOT TypeScript — type annotations (<code>: string[]</code>), interfaces, and generics fail to parse. The script body runs in an async context — use await directly. Standard JS built-ins (JSON, Math, Array, etc.) are available — EXCEPT <code>Date.now()</code>/<code>Math.random()</code>/argless <code>new Date()</code>, which throw (they would break resume); pass timestamps in via <code>args</code>, stamp results after the workflow returns, and for randomness vary the agent prompt/label by index. No filesystem or Node.js API access.</p>
+<p>DEFAULT TO pipeline(). Only reach for a barrier (parallel between stages) when you genuinely need ALL prior-stage results together.</p>
+<p>A barrier is correct ONLY when stage N needs cross-item context from all of stage N-1:
+- Dedup/merge across the full result set before expensive downstream work
+- Early-exit if the total count is zero ("0 bugs found → skip verification entirely")
+- Stage N's prompt references "the other findings" for comparison</p>
+<p>A barrier is NOT justified by:
+- "I need to flatten/map/filter first" — do it inside a pipeline stage: pipeline(items, stageA, r =&gt; transform([r]).flat(), stageB)
+- "The stages are conceptually separate" — that's what pipeline() models. Separate stages ≠ synchronized stages.
+- "It's cleaner code" — barrier latency is real. If 5 finders run and the slowest takes 3× the fastest, a barrier wastes 2/3 of the fast finders' idle time.</p>
+<p>Smell test: if you wrote
+  const a = await parallel(...)
+  const b = transform(a)        // flatten, map, filter — no cross-item dependency
+  const c = await parallel(b.map(...))
+that middle transform doesn't need the barrier. Rewrite as a pipeline with the transform inside a stage. When in doubt: pipeline.</p>
+<p>Concurrent agent() calls are capped at min(16, available CPUs - 2) per workflow — excess calls queue and run as slots free up. You can still pass 100 items to parallel()/pipeline() and they all complete; only ~10 run at any moment. Total agent count across a workflow's lifetime is capped at 1000 — a runaway-loop backstop set far above any real workflow. A single parallel()/pipeline() call accepts at most 4096 items; passing more is an explicit error, not a silent truncation.</p>
+<p>When a barrier IS correct — dedup across all findings before expensive verification:
+  const all = await parallel(DIMENSIONS.map(d =&gt; () =&gt; agent(d.prompt, {schema: FINDINGS_SCHEMA})))
+  const deduped = dedupeByFileAndLine(all.filter(Boolean).flatMap(r =&gt; r.findings))  // &lt;-- genuinely needs ALL at once
+  const verified = await parallel(deduped.map(f =&gt; () =&gt; agent(verifyPrompt(f), {schema: VERDICT_SCHEMA})))</p>
+<p>Loop-until-count pattern — accumulate to a target:
+  const bugs = []
+  while (bugs.length &lt; 10) {
+    const result = await agent("Find bugs in this codebase.", {schema: BUGS_SCHEMA})
+    bugs.push(...result.bugs)
+    log(<code>${bugs.length}/10 found</code>)
+  }</p>
+<p>Loop-until-budget pattern — scale depth to the user's "+500k" directive. Guard on budget.total: with no target set, remaining() is Infinity and the loop would run straight to the 1000-agent cap.
+  const bugs = []
+  while (budget.total &amp;&amp; budget.remaining() &gt; 50_000) {
+    const result = await agent("Find bugs in this codebase.", {schema: BUGS_SCHEMA})
+    bugs.push(...result.bugs)
+    log(<code>${bugs.length} found, ${Math.round(budget.remaining()/1000)}k remaining</code>)
+  }</p>
+<p>Composing patterns — exhaustive review (find → dedup vs seen → diverse-lens panel → loop-until-dry):
+  const seen = new Set(), confirmed = []
+  let dry = 0
+  while (dry &lt; 2) {                                              // loop-until-dry
+    const found = (await parallel(FINDERS.map(f =&gt; () =&gt;          // barrier: collect all finders this round
+      agent(f.prompt, {phase: 'Find', schema: BUGS})))).filter(Boolean).flatMap(r =&gt; r.bugs)
+    const fresh = found.filter(b =&gt; !seen.has(key(b)))           // dedup vs ALL seen — plain code, not an agent
+    if (!fresh.length) { dry++; continue }
+    dry = 0; fresh.forEach(b =&gt; seen.add(key(b)))
+    const judged = await parallel(fresh.map(b =&gt; () =&gt;           // every fresh bug judged concurrently...
+      parallel(['correctness','security','repro'].map(lens =&gt; () =&gt;   // ...each by 3 distinct lenses
+        agent(<code>Judge "${b.desc}" via the ${lens} lens — real?</code>, {phase: 'Verify', schema: VERDICT})))
+        .then(vs =&gt; ({ b, real: vs.filter(Boolean).filter(v =&gt; v.real).length &gt;= 2 }))))
+    confirmed.push(...judged.filter(v =&gt; v.real).map(v =&gt; v.b))
+  }
+  return confirmed
+  // dedup vs <code>seen</code>, NOT <code>confirmed</code> — else judge-rejected findings reappear every round and it never converges.</p>
+<p>Quality patterns — common shapes; pick by task and compose freely:
+- Adversarial verify: spawn N independent skeptics per finding, each prompted to REFUTE. Kill if ≥majority refute. Prevents plausible-but-wrong findings from surviving.
+    const votes = await parallel(Array.from({length: 3}, () =&gt; () =&gt;
+      agent(<code>Try to refute: ${claim}. Default to refuted=true if uncertain.</code>, {schema: VERDICT})))
+    const survives = votes.filter(Boolean).filter(v =&gt; !v.refuted).length &gt;= 2
+- Perspective-diverse verify: when a finding can fail in more than one way, give each verifier a distinct lens (correctness, security, perf, does-it-reproduce) instead of N identical refuters — diversity catches failure modes redundancy can't.
+- Judge panel: generate N independent attempts from different angles (e.g. MVP-first, risk-first, user-first), score with parallel judges, synthesize from the winner while grafting the best ideas from runners-up. Beats one-attempt-iterated when the solution space is wide.
+- Loop-until-dry: for unknown-size discovery (bugs, issues, edge cases), keep spawning finders until K consecutive rounds return nothing new. Simple counters (while count &lt; N) miss the tail.
+- Multi-modal sweep: parallel agents each searching a different way (by-container, by-content, by-entity, by-time). Each is blind to what the others surface; useful when one search angle won't find everything.
+- Completeness critic: a final agent that asks "what's missing — modality not run, claim unverified, source unread?" What it finds becomes the next round of work.
+- No silent caps: if a workflow bounds coverage (top-N, no-retry, sampling), <code>log()</code> what was dropped — silent truncation reads as "covered everything" when it didn't.</p>
+<p>Scale to what the user asked for. "find any bugs" → a few finders, single-vote verify. "thoroughly audit this" or "be comprehensive" → larger finder pool, 3–5 vote adversarial pass, synthesis stage. When unsure, lean toward thoroughness for research/review/audit requests and toward brevity for quick checks.</p>
+<p>These patterns aren't exhaustive — compose novel harnesses when the task calls for it (tournament brackets, self-repair loops, staged escalation, whatever fits).</p>
+<p>Use this tool for multi-step orchestration where control flow should be deterministic (loops, conditionals, fan-out) rather than model-driven.</p>
+<h2>Resume</h2>
+<p>The tool result includes a runId. To resume after a pause, kill, or script edit, relaunch with Workflow({scriptPath, resumeFromRunId}) — the longest unchanged prefix of agent() calls returns cached results instantly; the first edited/new call and everything after it runs live. Same script + same args → 100% cache hit. Before diagnosing why a completed workflow returned an empty or unexpected result, Read <transcriptDir>/journal.jsonl — it records each agent's actual return value; do not assume cached results are non-empty. Date.now()/Math.random()/new Date() are unavailable in scripts (they would break this) — stamp results after the workflow returns, or pass timestamps via args. Fallback when no journal is available: Read agent-<id>.jsonl files in the transcript directory and hand-author a continuation script.</p></div></div><button class="expand-btn">Show more</button></div></div>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>All eight agents are running in parallel, one per page, each scoped to its own <code>app/panels/NN-*</code> directory so their commits won't collide.</p>
+<p>Two things I settled up front and committed myself, because they were shared-code decisions that would otherwise have bounced multiple agents back:</p>
+<ul>
+<li><strong><code>c122798</code></strong> — committed your working-tree change to panel 3's spine (4 s window, narrowed <code>dt</code> range) on its own, so the panel-3 pass builds on it instead of quietly swallowing or reverting it.</li>
+<li><strong><code>00cd5a3</code></strong> — the scene's default body was at rest at the origin. Drag is <code>−c·v</code> and the spring is <code>−k·x</code>, so two of the four force arrows were literally zero vectors on arrival. That is the root of both "each parameter should be draggable with good defaults, not 0" (page 2) and "defaults such that you can see them all" (page 5). Body now starts at <code>x = [1, 0.5], v = [0, 2]</code>; the scene test was updated and all 88 tests pass.</li>
+</ul>
+<p>Each agent is forbidden from touching <code>shared/</code>, <code>styles/</code>, <code>index.html</code>, and <code>docs/</code> — if a note needs one of those it stops that item and reports the exact change, and I'll apply it. I also kept them all out of the chrome-devtools MCP, since eight agents against one Chrome profile would deadlock; the browser pass is mine once the commits land.</p>
+<p>Two notes I pre-resolved in their briefs rather than letting them guess: page 7's "no values give a positive real component" is structural (<code>Re(λ) = −c/2m</code> and the tuple clamps <code>c ≥ 0</code>), so that agent is building a pane-local negative-<code>c</code> store rather than widening shared limits; and page 4's left-pane deletion needs a manifest edit, which the agent will report and I'll make.</p>
+<p>I'll commit each panel as its agent exits.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-09-03T16-59-21-015Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-09-03T16:59:21.015Z" data-timestamp="2026-09-03T16:59:21.015Z">2026-09-03T16:59:21.015Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>abdca490297754a90</task-id>
+<tool-use-id>toolu_01CcZQw28dzyj7KBHj8b7SUf</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/abdca490297754a90.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix page 4 panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>## 1. Files changed / created / deleted</p>
+<p>Changed:
+- <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/04-physical-stability/spine.html</code>
+- <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/04-physical-stability/spine.js</code>
+- <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/04-physical-stability/README.md</code></p>
+<p>Deleted (plain <code>rm</code>, no git command):
+- <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/04-physical-stability/left.html</code>
+- <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/04-physical-stability/left.js</code></p>
+<p>Untouched: <code>right.html</code>, <code>right.js</code> (its <code>slider(store, 'c')</code> writes a non-negative tuple <code>c</code>, which is legal), everything under <code>app/shared/</code>, <code>app/styles/</code>, <code>docs/</code>.</p>
+<h2>2. Note items</h2>
+<ul>
+<li>Link to Eberly's book — <strong>done</strong>. <code>&amp;lt;a href="https://www.sciencedirect.com/book/monograph/9781558607408/game-physics"&amp;gt;Game Physics&amp;lt;/a&amp;gt; by David Eberly</code>, matching the essay's wording. No new CSS: <code>base.css</code> already styles <code>a</code>.</li>
+<li>Quote italicized — <strong>done</strong>. <code>&amp;lt;em&amp;gt;</code> wraps the quoted sentence only (opening quote mark to closing), attribution outside it, inside the existing <code>&amp;lt;blockquote&amp;gt;</code>. <code>base.css</code> has no <code>blockquote</code>/<code>em</code>/<code>.prose</code> rule, so this is browser default italic, nothing added.</li>
+<li>"The visualization is useless: you can't actually pick unstable values" — <strong>done</strong>. Damping is now pane-local and runs negative; the picture, verdict, and escape marker all flip.</li>
+<li>Left pane removed — <strong>done</strong> (files deleted, README updated). Manifest change is pending on the orchestrator, see §3.</li>
+</ul>
+<h2>3. Shared-code / CSS changes I need but did not make</h2>
+<ol>
+<li><strong>Required.</strong> <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/shared/manifest.js</code>, the <code>index: 4</code> entry:
+   <code>js
+   left:  { title: 'What “close” means' },   →   left: null,</code>
+   Until that lands, <code>#/4/left</code> renders the "not built yet" placeholder and logs two 404s. The panel README already states <code>left: null</code> as the intent — it is pending, not applied.</li>
+<li><strong>Optional, not blocking.</strong> <code>app/shared/aux.js</code> has no documented key for this pane's damping, so the local <code>c</code> resets to the tuple's <code>c</code> on remount (leave panel 4 for 6, come back). Panel 6's spine behaves identically, so this matches the established pattern. If the user wants it to persist, the shared change would be an <code>AUX_DEFAULTS</code>/<code>AUX_LIMITS</code> key (e.g. <code>panel4c: 0.1</code>, <code>[-2, 50]</code>) with a comment block entry, plus swapping the local store for <code>aux</code> in <code>spine.js</code>.</li>
+</ol>
+<p>No CSS change needed; everything uses existing classes.</p>
+<h2>4. Interpretations / design decisions</h2>
+<ul>
+<li><strong>Local damping.</strong> A per-mount <code>createStore({ c }, { limits: { c: [-2, 50] }, validate: throws, presets: {} })</code>. Limits are <code>[−2, 50]</code> as suggested so re-seeding from the tuple can never silently clamp; the slider is given explicit <code>min: −2, max: 10</code> (the useful stretch) with <code>step: 0.05</code> so <code>c = 0</code> is landable by drag and arrow key — otherwise a <code>step: 'any'</code> drag lands on ±0.003 and the middle "stable but not asymptotically" verdict would be unreachable.</li>
+<li><strong>Seeding.</strong> Seeded from the tuple's <code>c</code> at mount; re-seeded only on a tuple patch that contains <code>c</code> (panel 6's <code>ensureLocalC</code> pattern, keyed on tuple <code>c</code> instead of <code>m/k</code>). Never written back — the tuple <code>c</code> slider was removed from this pane entirely, so the pane makes zero store writes.</li>
+<li><strong>Everything is drawn from the local system.</strong> <code>{ ...s, c: localC }</code> drives the exact solution, the ε-tube, and all six neighbours — not just the neighbours.</li>
+<li><strong>How the reader is told it's a what-if:</strong> (a) a prose paragraph ("A real spring's damping is never negative … The damping slider here is therefore <em>this pane's own</em> … never written back"); (b) the slider label "this pane's own c (damping): drag it below 0"; (c) a <code>.label</code> line in the readout naming the tuple's untouched value: "the damping above is this pane's own … The spring's actual c = 0.10 is untouched."</li>
+<li><strong>Making the unstable case unmistakable:</strong> neighbour polylines switch to <code>--unstable</code> when <code>c &amp;lt; 0</code>; a dashed vertical marker + label "leaves the tube at t = 0.09 s" at the first sample where any neighbour exceeds <code>ε · 1.001</code>; the verdict is a three-way flip on the sign of <code>Re λ = −c/2m</code> (<code>asymptotically stable</code> / <code>stable, but not asymptotically</code> / <code>unstable: N of 6 neighbors have left the tube</code>), with <code>Re λ</code> printed numerically as the hook into panel 7.</li>
+<li><strong><code>SLACK = 1.001</code></strong> on the exit test: at <code>c = 0</code> the neighbours ride the tube edge by construction, and float rounding would otherwise register a spurious escape.</li>
+<li><strong>y-range.</strong> <code>1.2 · min(max(amp + ε, farthestNeighbour), 3 · (ampQ + ε))</code> where <code>ampQ</code> is the exact solution's amplitude over the first quarter of the 6 s window. An unstable case grows by <code>e^{|c|T/2m}</code> (×400 at <code>c = −2, m = 1</code>), which would squash the tube to nothing; capping at 3× the readable early amplitude keeps the tube legible (band ≈ 1.5–15 % of plot height across the whole <code>c</code>/ε range, checked numerically) and lets the runaway exit the top of the frame, which is what leaving looks like.</li>
+<li><strong>Prose sequencing.</strong> I deliberately did <em>not</em> introduce <code>Re λ = −c/2m</code> in the spine prose (λ isn't named until panels 6–7, and the essay doesn't use it here); it lives in the readout only. The essay's own paragraphs stay contiguous and unedited.</li>
+<li><strong><code>k = 0</code> edge case.</strong> A free particle (<code>c = 0, k = 0</code>) has neighbours drift away linearly. The <code>c === 0</code> branch now reads the measured escape count and reports <code>unstable: Re λ = 0, but with k = 0 there is no restoring force either…</code> rather than claiming Lyapunov stability.</li>
+<li><strong>No second stage.</strong> I considered a <code>d(t)</code> strip to recover the deleted left pane's idea, but <code>wide</code> (16:9) + <code>strip</code> (3:1) ≈ 0.9 × the viz width in height, plus controls and readout, risks internal scrolling against <code>--stage-max</code>. One stage + escape marker + verdict does the job.</li>
+</ul>
+<h2>5. Verification</h2>
+<ul>
+<li><code>node --check panels/04-physical-stability/spine.js</code> — OK. <code>node --check panels/04-physical-stability/right.js</code> — OK. (No other <code>.js</code> in the directory; the two <code>left.*</code> files are gone.)</li>
+<li><code>node --test "shared/**/*.test.js"</code> — <strong>88 pass, 0 fail</strong>.</li>
+<li><code>spine.html</code> and <code>right.html</code> each parse as a single well-formed <code>&amp;lt;article&amp;gt;</code> with exactly one <code>&amp;lt;div class="viz"&amp;gt;&amp;lt;/div&amp;gt;</code>.</li>
+<li>All nine <code>shared/…</code> import paths in the directory resolve to files on disk (including the new <code>shared/state.js</code>).</li>
+<li><code>grep -rn "04-physical-stability/left" app/</code> — no matches. <code>grep -rn "04-physical-stability" app/ docs/</code> outside the panel directory returns only the manifest line noted in §3.</li>
+<li>The pane-local store was exercised under Node: limits clamp at −2/50, negative values are held, unknown keys throw, patches notify correctly.</result>
+<usage><subagent_tokens>117174</subagent_tokens><tool_uses>41</tool_uses><duration_ms>601156</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>8 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Page 4 committed</strong> (<code>ca4e814</code>).</p>
+<p>Its substantive finding was the one I'd anticipated: <code>Re(λ) = −c/2m</code> with the tuple clamping <code>c ≥ 0</code> meant the panel could never draw the unstable case it exists to explain. The spine now keeps its own damping (limits <code>[−2, 50]</code>, seeded from the tuple, never written back), so neighbours actually leave the ε-tube, with the first escape marked on the plot and a three-way verdict on the sign of <code>Re λ</code>. Quote is italicised and linked to Eberly's book.</p>
+<p>The left pane is gone — and the agent's reasoning for why it deserved to go is better than "the user said so": plotting <code>d(t)</code> for one neighbour under a clamped <code>c ≥ 0</code>, it could only ever draw a line that flattens, never one that climbs. I made the two changes it wasn't allowed to: <code>left: null</code> in the manifest and the matching entry in <code>docs/idea.md</code>, including the flow diagram. 88 tests still pass.</p>
+<p>The other seven are still working — pages 1, 2, 3 and 5 already have changes on disk. I'll commit each as it exits.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-09-03T17-02-13-622Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-09-03T17:02:13.622Z" data-timestamp="2026-09-03T17:02:13.622Z">2026-09-03T17:02:13.622Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ab1d81dc125b17b45</task-id>
+<tool-use-id>toolu_01XkZkSmniy4eC5ZNgnbtxM1</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/ab1d81dc125b17b45.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix page 5 panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. All work confined to <code>app/panels/05-linearize/</code>; no git commands run.</p>
+<h2>1. Files changed</h2>
+<p>Modified (6): <code>app/panels/05-linearize/spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>right.js</code>, <code>right.html</code>, <code>README.md</code>.
+Untouched: <code>left.html</code>. None created, none deleted. <strong>Not committed</strong> — the task's no-git rule overrides CLAUDE.md's incremental-commit rule.</p>
+<h2>2. Note items</h2>
+<ul>
+<li>Spine / arrows distinguishable + no cross-toggle rescale — <strong>done</strong>.</li>
+<li>Spine / remove "the bridge to Part II" box — <strong>done</strong> (behaviour kept).</li>
+<li>Left / remove the bars — <strong>done</strong>.</li>
+<li>Right / keep top graph + "terms kept" under it, bigger; drop its readout — <strong>done</strong>.</li>
+<li>Right / delete second graph and parameter drag controls — <strong>done</strong>.</li>
+<li>Spine / "defaults such that you can see them all" — <strong>partial</strong>: all four are visible <em>when on</em>, but wind ships <code>on: false</code> from shared code (see §3).</li>
+</ul>
+<h2>3. Shared change needed, not made</h2>
+<p><code>app/shared/scene.js</code>, in <code>defaultScene()</code>:</p>
+<pre><code class="language-js">createForce('wind', { on: false }),   // → createForce('wind'),
+</code></pre>
+<p>Wind defaults off, so panel 5 opens with three arrows, not four. I did <strong>not</strong> flip it in <code>resume()</code>: the scene is shared with panels 1 and 2, and a pane must not leave shared state changed as a side effect of being visited. Blocks nothing else.</p>
+<p>No CSS change needed — the row swatches use the existing <code>.swatch</code> class with an inline <code>background: var(--token)</code>.</p>
+<h2>4. Interpretations / choices</h2>
+<p><strong>Arrow scale.</strong> Replaced the "largest active force" linear scale (the bug: spring at <code>k=100, x=1</code> is ~112 units, ~125× drag, so toggling it rescaled everything) with a <strong>static log map</strong> — <code>spine.js</code> <code>LEN = { LO: 0.05, HI: 500, MIN: 0.2, MAX: 0.75 }</code>, four decades → plot units. An arrow's length depends on <em>nothing but its own</em> <code>|F|</code>, so toggles, body drags and <code>k</code> scrubs never move another arrow. <strong>No drag-freeze exists or is needed</strong> — I deliberately did not add one. At the defaults: spring 111.8→0.661, net 112.4→0.661, wind 1.0→0.379, gravity 0.90→0.373, drag 0.20→0.283 plot units (view is <code>halfW: 3</code>, y ∈ [−1, 1], strip aspect unchanged). Spring and net coincide at the defaults because the net <em>is</em> essentially the spring there. The <code>= (fx, fy)</code> value beside each equation is still the literal force.</p>
+<p>Two supporting fixes: active arrows are drawn <strong>longest-first</strong> (gravity and drag are near-collinear at the defaults, so the shorter one must land on top), and each carries its name at the tip.</p>
+<p><strong>Colours</strong> (all existing tokens, no hex literals): <code>wind → --axis</code>, <code>gravity → --stable</code>, <code>drag → --accent</code>, <code>spring → --approx</code>; net force <code>--fg</code> at <code>globalAlpha 0.5</code>, width 4, drawn first so the coloured arrows sit over it; look-ahead path moved <code>--exact → --muted</code> because <code>--exact</code> and <code>--accent</code> are the same blue (#2455c8). A swatch in each force row keys the colour to its equation, and the prose says so.
+<strong>Cross-panel note:</strong> I deliberately did <em>not</em> import <code>panels/02-newtonian-physics/arrows.js</code> (another agent is editing it right now — it shows as modified in <code>git status</code>). Panel 2 still carries the old <code>wind --accent / gravity --axis / drag --muted / spring --region-edge</code> map, so the two panels are now inconsistent; reconcile once both land.</p>
+<p><strong>M/C/K:</strong> nothing moved. They were already MathML — the <code>ASSEMBLY</code> block in <code>.viz</code> (filled by the facade <code>bindMath</code>) and the prose <code>M x″ + C x′ + K x = 0</code> (filled by the store <code>bindMath</code>). Only the monospace readout was cut. <code>unsubTuple</code> was dropped with it because the readout was its only consumer.</p>
+<p><strong>Right pane:</strong> the Taylor graph is now the pane's only stage, <code>aspect: 'square'</code> (the viewport-capped default) at full width, with the sweep strip in a <code>.controls</code> div directly beneath. Added one on-canvas caption line ("a constant: m g" / "linear in δ…" / "past δ¹…") — the teaching point from the deleted readout, on the graph rather than in a box. Trimmed the two prose paragraphs that instructed the reader to use the deleted simulation, and added a pointer to scrubbing <code>r</code> on the spine: with the y₀ slider gone the mass's distance is clamped to <code>r₀ ± 1</code>, so scrubbing <code>r₀</code> is now the strong lever for showing the series peel away.</p>
+<p><strong>Out of my bounds:</strong> <code>docs/idea.md</code> §5 still describes the right pane's "payoff beat" (nonlinear run vs linearized verdict), which no longer exists. Needs an edit.</p>
+<h2>5. <code>pushToTuple</code></h2>
+<p>Confirmed. <code>spine.js</code> line 228 is byte-identical to before:</p>
+<pre><code class="language-js">resume() { active = true; scene.pushToTuple(); refresh(); },
+</code></pre>
+<p>plus the on-screen-only <code>push()</code> inside the <code>scene.subscribe</code> handler, and <code>pause()</code> clearing <code>active</code>. Never called from <code>mount()</code>.</p>
+<h2>6. Verification</h2>
+<p><code>node --check</code> passes on <code>spine.js</code>, <code>left.js</code>, <code>right.js</code>. <code>node --test "shared/**/*.test.js"</code> → <strong>88 tests, 88 pass, 0 fail</strong>. All three HTMLs are one <code>&amp;lt;article&amp;gt;</code> with exactly one <code>&amp;lt;div class="viz"&amp;gt;&amp;lt;/div&amp;gt;</code>. Every <code>shared/...</code> import path across the three files resolves on disk; orphaned imports (<code>readout</code>, <code>controls</code>, <code>row</code>, <code>slider</code>, <code>simulate</code>, <code>stabilityReport</code>, <code>netForce</code>, <code>assemble</code>, <code>fmt</code>) removed, and <code>ARROW_LEN</code>, <code>s0</code>, <code>muted</code>, <code>unsubTuple</code>, <code>xStack</code> are gone.</result>
+<usage><subagent_tokens>133189</subagent_tokens><tool_uses>46</tool_uses><duration_ms>733391</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>10 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Page 5 committed</strong> (<code>06d5236</code>).</p>
+<p>The "toggling one off changes another entirely" bug was exactly what I'd guessed from reading <code>arrowScale</code>: the scale normalised to the largest <em>active</em> force, and the spring at <code>k=100, x=1</code> is ~112 units against gravity's 0.9 — so switching the spring off rescaled everything else. Arrow length is now a static log map of each force's own magnitude, so an arrow moves only when its own force does.</p>
+<p>Three shared changes the agent correctly refused to make itself, which I applied:</p>
+<ul>
+<li><strong>Force colours are now tokens.</strong> The agent had reached for <code>--stable</code> (green) and <code>--approx</code> (red) for gravity and spring, which are load-bearing colours everywhere else in the piece — green means stable, red means the integrator's polyline. I added <code>--force-wind/gravity/drag/spring</code> to <code>base.css</code> with matching <code>.swatch</code> classes. That also removed an inline <code>style=</code> attribute, which violates the no-CSS-in-panels rule.</li>
+<li><strong>Wind now defaults on.</strong> It shipped <code>on: false</code>, so page 5 opened with three arrows, not four — the agent flagged it rather than flipping it in <code>resume()</code>, which was the right call since panels 1 and 2 share that scene.</li>
+<li><strong><code>docs/idea.md</code> §5</strong> no longer promises a "payoff beat" that got cut with the second graph. I noted panel 11 as the candidate home rather than quietly dropping it.</li>
+</ul>
+<p>One thing to flag: panel 2's <code>arrows.js</code> still carries the old colour map, so pages 2 and 5 disagree on force colours right now. Its agent is mid-flight in that file, so I'll reconcile it onto the new tokens when it lands.</p>
+<p>Six still running. 88 tests pass.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-09-03T17-04-37-580Z"><div class="index-item-header"><span class="index-item-number">#12</span><time datetime="2026-09-03T17:04:37.580Z" data-timestamp="2026-09-03T17:04:37.580Z">2026-09-03T17:04:37.580Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a247cf9c9d5ace7b5</task-id>
+<tool-use-id>toolu_01VbcyGWqk4mBmjgz8H36frq</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/a247cf9c9d5ace7b5.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix page 3 panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Panel 3 is done.</p>
+<h2>1. Files changed</h2>
+<p>Modified, all under <code>/Users/benjaminjordan/projects/thegoldenmule/explainer-numerical-integration/app/panels/03-solving-for-x/</code>:
+- <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>, <code>right.html</code>, <code>README.md</code></p>
+<p>Created: none. Deleted: none. Nothing outside the panel directory was touched (other dirty files in <code>git status</code> belong to sibling agents).</p>
+<h2>2. Note items</h2>
+<ul>
+<li><strong>Spine, error graph under the top graph</strong> — done. A second <code>strip</code> stage plots <code>|x_approx(tᵢ) − x_exact(tᵢ)|</code> at every integrator sample, same <code>tMin: 0 / tMax: SPAN = 4</code>, same <code>t</code> array, same <code>markers/maxMarkers: 2000</code> as the top plot, so markers appear/vanish at the same <code>dt</code> on both.</li>
+<li><strong>Hover selects a dot and highlights the error value</strong> — done. Hover <em>and</em> drag now pick, on <strong>both</strong> canvases; the picked step gets a dashed time line plus dots on both graphs; <code>step i of N:  |error| = …</code> is drawn on the strip and <code>t = … s</code> on the top plot.</li>
+<li><strong>Remove the entire "one instant" box</strong> — done. See §4.</li>
+<li><strong>Right: bigger, more visible graph titles</strong> — done.</li>
+<li><strong>Right: Wikipedia link</strong> — done.</li>
+</ul>
+<h2>3. Shared changes I did NOT make</h2>
+<p><strong>(a) Optional CSS, would let a <code>wide</code> top plot come back</strong> — <code>app/styles/controls.css</code>:</p>
+<pre><code class="language-css">.stage.wide, .stage.strip { max-height: var(--stage-max); }
+</code></pre>
+<p>Without it, <code>.stage.wide</code> + <code>.stage.strip</code> overflows <code>.pane-body</code> (which clips, not scrolls) at 1920×1080: 67.8rem of content into ~56.3rem. That is why I used two strips (see §4).</p>
+<p><strong>(b) FYI, not mine, non-blocking</strong> — <code>app/shared/state.js</code> has <code>LIMITS.h = [0.001, 0.5]</code>, but the dt slider (from commit c122798) declares <code>min: 0.0005</code>. The store floors <code>h</code> at 0.001, so the slider's bottom third is inert: the thumb can sit at 0.0005 while <code>h</code> is 0.001. If 0.0005 is meant to be real, <code>LIMITS.h[0]</code> must drop to 0.0005. I left the slider as-is per "build on it, do not revert".</p>
+<h2>4. Interpretations</h2>
+<ul>
+<li><strong>What the "one instant" box was</strong>: <code>const out = readout({ label: 'one instant' })</code> in <code>spine.js</code>, its <code>root.append(out.el)</code>, and both <code>out.set(...)</code> branches (the picked-sample line and the <code>N steps … max |error| …  touch the curve</code> summary). The <code>readout</code> and <code>el</code> imports went with it. <strong>No control was removed</strong> — the dt slider drives the plot, not the readout. Its numbers were rehomed: <code>t</code> / <code>step i of N</code> / <code>|error|</code> onto the canvases via <code>drawText</code>; step count and max error into the prose as <code>&amp;lt;mn data-var="steps"&amp;gt;</code> / <code>&amp;lt;mn data-var="maxerr"&amp;gt;</code> slots filled by the existing <code>bindMath</code>.</li>
+<li><strong>Linear vs log</strong>: <strong>log</strong>, via <code>drawTrajectory({ yLog: true, y: [lo, hi] })</code>. Window is <code>lo = max(smallest positive error, peak·1e⁻⁹)·0.5</code>, <code>hi = peak·3</code>. I probed all five methods at dt = 0.033 / 0.008 / 0.0005 with the demo parameters: realistic windows come out <strong>2.7–6.6 decades</strong>, and the floor clamp exists only so a near-zero dip between two error oscillations cannot stretch the axis to sixteen decades. Linear would have shown a flat line and a cliff. Error line keeps the default red, matching panel 9's error strip.</li>
+<li><strong>Top stage aspect</strong>: I changed it from <code>wide</code> to <code>strip</code>. <code>wide</code> + <code>strip</code> is the pattern the brief named, but the arithmetic at 1920×1080 puts it ~11rem past the fold and <code>.pane-body { overflow: hidden }</code> clips it — a regression versus today's single <code>wide</code> + readout. Two strips fit at 1280, 1440, 1920 and 2560, and match panel 9's spine, which pairs the same content (run above its error). <strong>Trade: the hero plot is 3:1 instead of 16:9</strong> — at 1440 that is ~13.5rem tall instead of ~22.8rem. Reversible in one line if (a) above lands.</li>
+<li><strong>Canvas titles</strong>: I also titled the <em>two spine</em> graphs, which was not asked but is needed once there are two stacked plots. All four titles across both panes are now <code>drawText(..., { size: 15, color: cssVar('--fg'), dx: 34, dy: 19 })</code> with the underlying <code>yLabel: null</code>, so there is no small duplicate label — this matches the house pattern already committed for this panel's left pane (6ed2fcd). Wording: spine <code>x(t): exact vs approximation</code> / <code>|error| per step  (log)</code>; right <code>ODE: one number, x(t)</code> / <code>PDE: a whole shape, u(x, t)</code> (previously 11px <code>--tick</code> <code>x (one number)</code> / <code>u (a shape)</code>, the ones called out as hard to read).</li>
+<li><strong>Link</strong>: <code>&amp;lt;a href="https://en.wikipedia.org/wiki/Bonini%27s_paradox" target="_blank" rel="noopener noreferrer"&amp;gt;</code> — an ordinary anchor, but opened in a new tab deliberately: this is a hash-routed app whose tuple lives in the store, not the URL, so a same-tab navigation would throw away the reader's parameters and position.</li>
+</ul>
+<p>Also verified: hover picking scans only samples within <code>HIT_PX</code> horizontally (a few hundred instead of 8000); I proved it returns identical indices to a full scan over ~6,400 probe positions on both the linear and the log view at three step sizes. The pane still writes nothing to the tuple, adds no wheel listener, and passes <code>ctx.signal</code> to every listener.</p>
+<h2>5. Verification</h2>
+<ul>
+<li><code>node --check</code> passed on <code>spine.js</code>, <code>right.js</code>, <code>left.js</code>.</li>
+<li><code>node --test "shared/**/*.test.js"</code> → <strong>88 passed, 0 failed</strong>.</li>
+<li>All three HTML files: exactly one <code>&amp;lt;article&amp;gt;</code> and one <code>&amp;lt;div class="viz"&amp;gt;</code> each.</li>
+<li>Every <code>shared/...</code> import in all three panel modules resolves to a file on disk.</li>
+<li>No browser tool was used; the running server was left alone.</result>
+<usage><subagent_tokens>142967</subagent_tokens><tool_uses>50</tool_uses><duration_ms>945722</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>17 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Page 2 committed</strong> (<code>cd7e4fd</code>).</p>
+<p>The spine's readout is gone, replaced by what it was summarising: four force equations with draggable numbers, each reading out the vector it produces, plus <code>ΣF</code> and <code>a = ΣF / m</code> as live MathML. Its agent independently found the same arrow-scale bug page 5 had and fixed it the same way — a log map whose reference covers every force, on or off — with an inverse so tip-dragging still works.</p>
+<p>Three reconciliations I made on top, since this agent started before the shared changes landed:</p>
+<ul>
+<li><strong>Force colours</strong> moved onto the <code>--force-*</code> tokens, so pages 2 and 5 no longer disagree about which arrow is which.</li>
+<li><strong>Wind's <code>fy</code></strong> was the last parameter still reading 0 on arrival. Now <code>(2, 1)</code> — comparable to gravity's 0.9, so it reads without dwarfing anything.</li>
+<li><strong><code>docs/idea.md</code></strong> claimed the left pane shows "the same arrows the reviewer just dragged on the spine". That's no longer true and shouldn't be: a force can only be scaled along the direction its model gives it — gravity has one parameter and always points at the attractor — so a vector refresher needs two arrows that turn freely. The agent made that call correctly and flagged that the doc contradicted it; I updated the doc rather than the code.</li>
+</ul>
+<p>One deliberate non-change: page 1 now ships an L in <code>body.js</code> and offered it to page 2's torque pane, which still draws a rectangle. Adopting it means rederiving the moment of inertia, which is real work outside these notes — noting it as follow-up rather than doing it unasked.</p>
+<p>Four still running (6, 7, 8 — and page 6's README shows it's deep in a rewrite). 88 tests pass.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-004.html#msg-2026-09-03T17-09-34-852Z"><div class="index-item-header"><span class="index-item-number">#13</span><time datetime="2026-09-03T17:09:34.852Z" data-timestamp="2026-09-03T17:09:34.852Z">2026-09-03T17:09:34.852Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ac060d047ce59b686</task-id>
+<tool-use-id>toolu_01BMrfuLRLSrwasJg4XJaKGF</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/ac060d047ce59b686.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix page 7 panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Panel 7 is rebuilt. Report:</p>
+<h2>1. Files</h2>
+<p><strong>Created</strong>
+- <code>app/panels/07-finding-eigenvalues/local.js</code> — <code>localDamping(store, { range, signal })</code>, a store-shaped facade (<code>{ get, set, subscribe, limits }</code>) whose <code>c</code> is the pane's own copy over its own range and is never written to the tuple; <code>m</code>/<code>k</code> forward to the tuple by explicit whitelist. An external write to the tuple's <code>c</code> re-seeds the local copy.</p>
+<p><strong>Modified</strong>
+- <code>app/panels/07-finding-eigenvalues/spine.html</code>, <code>spine.js</code>
+- <code>app/panels/07-finding-eigenvalues/left.html</code>, <code>left.js</code>
+- <code>app/panels/07-finding-eigenvalues/right.html</code>, <code>right.js</code>
+- <code>app/panels/07-finding-eigenvalues/README.md</code></p>
+<p><strong>Deleted</strong> — nothing; the left pane's top graph was cut in place (see item 4).</p>
+<p>Nothing outside <code>app/panels/07-finding-eigenvalues/</code> was touched. No git state-changing commands run.</p>
+<h2>2. Note items</h2>
+<table>
+<thead>
+<tr>
+<th>Note</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spine: no sliders, equation has draggable values</td>
+<td><strong>done</strong> — both <code>m</code> slots, both <code>c</code> slots and <code>k</code> are <code>data-scrub</code> inside the <code>λ = …</code> block; <code>bindScrub</code> + <code>bindMath</code> on the <code>&amp;lt;article&amp;gt;</code>. The only remaining control is a "reset c to the spring's 0.10" button.</td>
+</tr>
+<tr>
+<td>Spine: no values give a positive real component</td>
+<td><strong>done</strong> — pane-local <code>c</code> over <code>[−5, 30]</code>; at <code>c &amp;lt; 0</code>, <code>Re λ = −c/2m &amp;gt; 0</code>, both roots cross into a shaded right half-plane drawn on its own canvas layer. Verified numerically: <code>c = −3, m = 1, k = 100 → λ = 1.5 ± 9.887i</code>.</td>
+</tr>
+<tr>
+<td>Left: remove the top graph</td>
+<td><strong>done</strong> — see item 4 for exactly what came out.</td>
+</tr>
+<tr>
+<td>Left: sliders out, equation numbers draggable</td>
+<td><strong>done</strong> — <code>c</code>, <code>m</code>, <code>k</code> scrub the tuple directly.</td>
+</tr>
+<tr>
+<td>Right: remove the "regime" readout</td>
+<td><strong>done</strong> — <code>readout()</code> gone; regime, discriminant, critical <code>c</code> and both roots are now live <code>data-var</code> slots in the prose, with a compact <code>c vs 2√(mk): regime</code> caption on the plane.</td>
+</tr>
+<tr>
+<td>Right: sliders out, equation numbers draggable</td>
+<td><strong>done</strong> — new display equation <code>c² − 4mk = (c)² − 4·m·k = disc</code> with all three scrubbable.</td>
+</tr>
+<tr>
+<td>Right: describe "critical" or drop the button</td>
+<td><strong>done, kept</strong> — a full paragraph defines critically damped (<code>c = 2√(mk) = ⟨live⟩</code>, discriminant zero, roots collide on the real axis, the boundary between overdamped and underdamped, fastest return without overshoot) <em>before</em> the button; a shortened version sits beside it; the button label carries the live value: <code>set c = 2√(mk) = 20.00</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Shared change I need but did not make</h2>
+<p><code>docs/idea.md</code>, the panel 7 entry (~line 268) still describes the left pane as:</p>
+<pre><code>- *Left, step down (real line, one number):* the quadratic formula on the real line with the
+  discriminant highlighted; then one complex number as a point, its real part, imaginary
+  part, and modulus.
+</code></pre>
+<p>The real line is gone at the user's request. Suggested wording: <em>"the quadratic formula with the discriminant highlighted on the plane — the centre −c/2m and the ±√(c²−4mk)/2m that carries the roots away from it; then one complex number as a point, its real part, imaginary part, and modulus."</em> The spine and right entries still match what is built. No <code>shared/</code> or CSS change was needed — <code>LIMITS.c</code> was not touched.</p>
+<h2>4. Interpretations</h2>
+<p><strong>Exactly what I removed from <code>left.js</code>:</strong> the real-line strip stage — <code>createStage(root, { layers: ['line'], aspect: 'strip' })</code> and its whole <code>line.onDraw</code> (old lines 18–86: the horizontal axis with ticks and the "real line" label, the ±√|disc|/2m bracket drawn on the line when real and as dotted vertical stubs when not, and the <code>−c / 2m</code> and <code>√(…)/2m</code> captions), plus <code>line.invalidate()</code> and <code>store.subscribe(line.invalidate)</code> (old 120–121), the <code>viz-row</code> wrapper, and the two sliders. The plane went from <code>.stage.half</code> to a full square. The discriminant story it carried moved onto the plane, where the imaginary case is not a contradiction: a <code>--region-edge</code> marker at <code>−c/2m</code>, a thick segment from that centre to the root when the roots are real, the existing dashed drop relabelled as the offset when they are not, and a caption at the bottom-left (<code>c² − 4mk = −399.9 &amp;lt; 0 → ±10.00i: off the real axis</code>). A new paragraph in <code>left.html</code> names both halves with live numbers.</p>
+<p><strong>The negative-<code>c</code> design.</strong> Two <em>independent</em> pane-local copies, not one shared one: spine <code>[−5, 30]</code> linear (the crossing at zero is what matters, and log cannot cross zero); right <code>[0.05, 1000]</code> log (<code>data-log</code>, so resolution near <code>2√(mk)</code> stays usable — critical tops out at <code>2√(50·2000) ≈ 632</code> over the tuple's own limits, so it is always reachable). Both re-seed from the tuple whenever another panel writes <code>c</code>. The left pane reads and writes the tuple directly — no what-if there — so dragging <code>c</code> on the left overwrites both locals, which is intended.</p>
+<p><strong>How each pane signals the what-if:</strong> a trailing <code>&amp;lt;p class="muted"&amp;gt;</code> naming it in words with live numbers — spine: <em>"the <code>c</code> you drag here is this pane's own copy, ⟨local⟩, with its own range down to ⟨−5⟩; the spring the rest of the piece integrates keeps <code>c</code> = ⟨tuple⟩. <code>m</code> and <code>k</code> are the real spring's, and dragging them does change it."</em> Right: the same, framed as <em>"an overdamped view is a what-if, so it is never written back."</em> The spine's reset button also prints the spring's real <code>c</code> in its label.</p>
+<p>Smaller calls:
+- <code>c</code> is parenthesised in every substituted formula (<code>−(c)</code>, <code>(c)²</code>) so a negative value reads as a substitution rather than <code>−−3.00</code>.
+- The half-plane shade is a second canvas layer <em>under</em> cplane's; cplane is handed <code>layers: { plane: 'plane' }</code> so it never clears <code>shade</code>. Because <code>cx = 0</code>, the shaded region is always exactly the right half of the stage.
+- Right's log floor is <code>0.05</code>, so a tuple <code>c = 0</code> re-seeds to <code>0.05</code> there (a log drag cannot hold zero).
+- The right pane's <code>c</code> is local too, not just the spine's: CLAUDE.md names "an overdamped view" as a local-only case, and the old code's <code>c</code> slider + snap button both wrote the tuple and leaked an overdamped spring into panels 8–13.</p>
+<h2>5. Greps</h2>
+<pre><code>$ grep -n &quot;slider(&quot; panels/07-finding-eigenvalues/*.js
+(no matches)
+
+$ grep -n &quot;store.set&quot; panels/07-finding-eigenvalues/*.js
+panels/07-finding-eigenvalues/local.js:47:      if (Object.keys(shared).length) store.set(shared);
+</code></pre>
+<p>That one line is preceded by an explicit whitelist — <code>if ('m' in patch) shared.m = patch.m; if ('k' in patch) shared.k = patch.k;</code> — so no <code>c</code>, negative or otherwise, can reach the shared tuple. The only other <code>.set(</code> calls in the panel are <code>local.set(…)</code> / <code>facade.set(…)</code>, which route <code>c</code> to the local copy.</p>
+<h2>6. Verification</h2>
+<pre><code>node --check panels/07-finding-eigenvalues/local.js   pass
+node --check panels/07-finding-eigenvalues/spine.js   pass
+node --check panels/07-finding-eigenvalues/left.js    pass
+node --check panels/07-finding-eigenvalues/right.js   pass
+
+node --test &quot;shared/**/*.test.js&quot;   tests 88 | pass 88 | fail 0
+</code></pre>
+<p>Also checked: all three HTML files parse with exactly one <code>&amp;lt;article&amp;gt;</code>, exactly one <code>&amp;lt;div class="viz"&amp;gt;</code>, and no unclosed tags; every <code>data-var</code> name is supplied by state or by that pane's <code>derive</code>; every <code>shared/...</code> import path exists on disk; no orphaned imports in any of the four JS files. A Node harness exercised <code>local.js</code> against the real <code>createStore</code> — local clamping, <code>c</code> never reaching the tuple, <code>m</code>/<code>k</code> forwarding, external re-seed, <code>reset()</code>, patch shape (<code>{c: …}</code>, so <code>bindScrub</code>'s <code>key in patch</code> fires), and teardown all pass.</p>
+<p><strong>Not verified — no browser was used</strong> (per instructions). Layout risks for whoever has the browser: the spine went from <code>aspect: 'half'</code> to <code>'square'</code> and gained two paragraphs, so it is near the <code>--stage-max</code> "one square plus a readout" budget; the right pane gained two paragraphs and a <code>&amp;lt;p class="muted"&amp;gt;</code> in the <code>viz-row</code>'s second column beside the <code>.stage.half</code> plane; and scrub pointer/keyboard behaviour inside <code>&amp;lt;msup&amp;gt;</code>/<code>&amp;lt;mfrac&amp;gt;</code> is untested here (panel 5 does the same, so low risk).</result>
+<usage><subagent_tokens>178482</subagent_tokens><tool_uses>46</tool_uses><duration_ms>1107953</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>7 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Page 7 committed</strong> (<code>38582e6</code>).</p>
+<p>Every slider in the panel is gone — <code>m</code>, <code>c</code> and <code>k</code> are dragged inside the quadratic itself. The structural problem I'd flagged in the brief got a better fix than I specified: rather than one shared local store, the agent gave the spine and the right pane <em>separate</em> copies of <code>c</code>, because they need different scales — the spine linear over <code>[−5, 30]</code> since the crossing at zero is the whole point and a log scale can't cross zero, the right pane logarithmic so resolution near <code>2√(mk)</code> stays usable when sweeping the discriminant. <code>m</code> and <code>k</code> still reach the tuple by explicit whitelist; <code>c</code> never does.</p>
+<p>It also caught something I hadn't: the right pane's old <code>c</code> slider and snap button were <em>both</em> writing the tuple, leaking an overdamped spring into panels 8–13 — the same class of bug commit <code>a9a2e80</code> fixed for panel 6.</p>
+<p>Two judgement calls worth surfacing:</p>
+<ul>
+<li><strong>The left pane's real line is gone</strong>, which is more than "remove the top graph" strictly required. The reasoning holds up: once the discriminant goes negative the roots leave the real line, so that strip could only ever show half the story. The discriminant story moved onto the plane, where the imaginary case isn't a contradiction. I updated <code>docs/idea.md</code>, which still described the pane as "the quadratic formula on the real line".</li>
+<li><strong>The "critical" button stayed</strong>, with a paragraph defining critically damped before the word is used and the live value in the button label.</li>
+</ul>
+<p>Two agents left: pages 6 and 8. 88 tests pass.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-004.html#msg-2026-09-03T17-10-39-699Z"><div class="index-item-header"><span class="index-item-number">#14</span><time datetime="2026-09-03T17:10:39.699Z" data-timestamp="2026-09-03T17:10:39.699Z">2026-09-03T17:10:39.699Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a6489ab5d86ab1846</task-id>
+<tool-use-id>toolu_01DoysAPq3YG5ftAT1Ph2qxs</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/a6489ab5d86ab1846.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix page 8 panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Panel 8 is done.</p>
+<h2>1. Files changed</h2>
+<p>All under <code>app/panels/08-recap-real-time/</code> (no new files, none deleted):
+- <code>spine.js</code>, <code>spine.html</code>
+- <code>left.js</code>, <code>left.html</code>
+- <code>right.js</code>, <code>right.html</code>
+- <code>cost.js</code> (added <code>plotSpan</code>, <code>fmtCount</code>, <code>fmtSteps</code>)
+- <code>README.md</code></p>
+<h2>2. Note items</h2>
+<ul>
+<li><strong>Spine / remove the cost-and-error text area</strong> — done. <code>readout</code> gone. Cost lives on the budget bar's label (<code>physics per frame (0.5 steps × 16.1 ns): 8.1 ns of 16.67 ms</code>) and in the prose via <code>bindMath</code> (<code>perStepText</code>, <code>frameCost</code>, <code>frame</code>, <code>stepText</code>); the live error is <code>drawText</code> in the plot's top-right, with <code>(off the chart)</code> and <code>--unstable</code> when the run leaves the frame.</li>
+<li><strong>Spine / flat, over-damped picture</strong> — done. Window is now <code>plotSpan(state, {cycles: 4})</code> (2.51 s on the defaults = exactly 4 cycles) and <code>y = ±1.25 × running max|exact|</code>, so the exact curve fills 80% of the half-height and Euler's divergence is visible from t ≈ 0 to ≈ 1 s before it leaves the frame. Added a <code>presets(store, {demo, essay})</code> row (reader-pressed only).</li>
+<li><strong>Left / remove the text area</strong> — done. <code>readout</code> gone; all numbers are on the canvas + prose slots.</li>
+<li><strong>Left / times too low to matter</strong> — done, via the object multiplier (the stronger option, as instructed; I did not remove units). Pane-local <code>createStore({objects, fps})</code>, log slider 1 … 10 M, default 500 000. Slice = <code>count × steps-per-frame × per-step</code>, drawn at true scale on a millisecond axis with the 16.7 ms budget line; past the budget the axis stretches (capped at 4 × frame) and the overrun line goes red.</li>
+<li><strong>Right / remove the text area</strong> — done. <code>readout</code> gone; <code>h</code>, cost, and error are <code>drawText</code> in the plot's top-right.</li>
+<li><strong>Right / more engaging function</strong> — done. Same two fixes as the spine: <code>plotSpan(cycles: 5)</code> (3.14 s) and <code>yMax = 1.35 × exact amplitude</code> instead of <code>max(1, 2.5·amp)</code>. <code>SPREAD</code>/<code>COUNT</code> untouched.</li>
+</ul>
+<h2>3. Diagnosis of the flat-line spine</h2>
+<p>Two causes, both real:</p>
+<ol>
+<li><strong>An upstream tuple leak, at the time the note was written.</strong> Panel 7's right pane had a "critical damping" button doing <code>store.set({ c: 2√(mk) })</code> → <code>c = 20</code> on the demo tuple. That is exactly critical: the exact solution is 0.0404 at t = 0.5 s and 0.0005 at t = 1 s, and Euler is <em>stable</em> there, so both curves settle to zero and panel 8 shows a dead flat line. That matches "so much dampening" literally. <strong>That leak is already closed upstream</strong> by the concurrent panel-7 rewrite (<code>panels/07-finding-eigenvalues/local.js</code>: "c stays here; only m and k are forwarded to the tuple"). The preset row is still justified — <code>panels/11-lets-break-it/left.js:44</code> writes <code>(m, c, k)</code> via <code>paramsFromEigenvalue</code> and the reader can scroll back up.</li>
+<li><strong>Panel 8's own drawing, present on the plain defaults.</strong> The tuple is <em>barely</em> damped (λ = −0.05 ± 10i, ζ = 0.005), so damping was never the mechanism. The picture was empty because: <code>SPAN = 6 s</code> with <code>tMax = max(6, player.t)</code> means the plot holds under a second of data at the far left on arrival; <code>y</code> was pinned to <code>[-3, 3]</code> so the exact curve is one sixth of the plot height at 9.5 cycles across; and Euler at h = 1/30 grows 5.25%/step and leaves ±3 at t = 0.93 s, so the red trace disappears within a second and never returns as the window slides. Fixed by the window/range changes above.</li>
+</ol>
+<p>Side benefit: <code>left.js</code> no longer constructs a <code>createPlayer</code>, which used to fire <code>store.set({ t: 0 }, { silent: true })</code> from an off-screen <code>mount()</code>.</p>
+<h2>4. Shared-code / CSS changes needed</h2>
+<p>None. Everything used existing classes (<code>.controls</code>, <code>.controls-row</code>, <code>.control</code>, <code>.btn</code>, <code>.stage.wide</code>, <code>.stage.strip</code>, <code>.prose</code>, <code>.muted</code>) and existing <code>shared/</code> helpers. <code>cost.js</code> gained one new import, <code>shared/math/system.js</code> (<code>eigenvalues</code>), which exists.</p>
+<h2>5. Ambiguous calls</h2>
+<ul>
+<li><strong>Object-count default = 500 000, not 1 000.</strong> A measured Euler spring step is 16.1 ns, so 1 000 objects is 0.05% of a frame — still an invisible sliver, i.e. the same complaint. 500 000 gives 4.03 ms at h = 1/30, which is the essay's own phrase ("a physics simulation that may take a few milliseconds every frame", Part II line 30). The frame fills at ~2.1 M objects at h = 1/30 and ~124 k at h = 0.002; the canvas prints that break-even number so the reader knows where to drag.</li>
+<li>I dropped the old "magnified slice" band. Magnification is the trick the note objects to; the true-scale band now carries the point alone.</li>
+<li>Honesty label drawn under the arithmetic: "one measured spring step, charged to every object — a real body costs more, never less". No fabricated per-object multiplier.</li>
+<li>Callouts are bare <code>drawText</code> with no background plate, right-aligned in the top-right so they clear <code>drawGrid</code>'s left-hand tick labels — deliberately not a box.</li>
+<li>Known, accepted: the essay preset clamps the spine window to 12 s (~1.9 cycles), so the plot is sparse for its first ~10 s after an explicit press. On the demo case, all nine right-pane runs leave ±1.35 within 3.1 s — that is the physics (Euler is unstable at every h for this oscillator) and was equally true before; the essay preset gives the hugging bundle.</li>
+</ul>
+<h2>6. Grep output</h2>
+<pre><code>$ grep -n &quot;store.set&quot; panels/08-recap-real-time/*.js
+(no matches)
+
+$ grep -n &quot;\.set(\|\.preset(\|\.reset(&quot; panels/08-recap-real-time/*.js
+panels/08-recap-real-time/left.js:135:    class: 'btn', type: 'button', 'data-fps': f, onclick: () =&amp;gt; local.set({ fps: f }),
+panels/08-recap-real-time/right.js:91:      onSelect: i =&amp;gt; aux.set({ highlight: i }),
+</code></pre>
+<p><code>local</code> is the pane-local object-count/fps store, <code>aux</code> is the shared highlight store — neither is the tuple. The only tuple writes are reader-initiated: the <code>h</code> sliders and the shared <code>presets()</code> helper (<code>store.preset(name)</code> on click). Nothing writes <code>m</code>, <code>c</code>, <code>k</code> or <code>t</code> on mount or resume.</p>
+<h2>7. Verification</h2>
+<ul>
+<li><code>node --check</code> passed on all four: <code>cost.js</code>, <code>left.js</code>, <code>right.js</code>, <code>spine.js</code>.</li>
+<li><code>node --test "shared/**/*.test.js"</code> → 88 tests, 88 pass, 0 fail.</li>
+<li>Each of <code>spine.html</code>, <code>left.html</code>, <code>right.html</code>: exactly one <code>&amp;lt;article&amp;gt;</code> and one <code>&amp;lt;div class="viz"&amp;gt;&amp;lt;/div&amp;gt;</code>; zero <code>readout</code> references.</li>
+<li>All 15 distinct <code>shared/...</code> import paths resolve on disk; an automated unused-import scan reports no orphans in any of the four modules.</li>
+<li>No browser tooling was used; the running server was left alone.</result>
+<usage><subagent_tokens>172996</subagent_tokens><tool_uses>53</tool_uses><duration_ms>1139528</duration_ms></usage>
+</task-notification></li>
+</ul></div></a><div class="index-item-stats"><span>4 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Page 8 committed</strong> (<code>c59ce51</code>). Seven of eight done; page 6 is the last one running.</p>
+<p>Its diagnosis of the flat line is the most interesting result so far, because it found <strong>two</strong> causes and only one was page 8's fault:</p>
+<ol>
+<li><strong>An upstream leak.</strong> Page 7's right pane had a "critical damping" button doing <code>store.set({ c: 2√(mk) })</code> → <code>c = 20</code> on the demo tuple. That's exactly critical, so both curves settle to zero and page 8 renders a dead flat line — literally "so much dampening". Page 7's agent closed that leak independently, without either knowing about the other. Two agents converging on the same root cause from opposite ends is good evidence it's real.</li>
+<li><strong>Page 8's own drawing</strong>, present even on clean defaults: a fixed 6 s window held under a second of data on arrival, <code>y</code> was pinned to ±3 so the curve was a sixth of the plot height across nine cycles, and Euler left that box within a second. Damping was never the mechanism — the demo case is barely damped at ζ = 0.005.</li>
+</ol>
+<p>One deliberate departure from your note worth flagging: you suggested multiplying by "like 1000" objects. The agent measured a spring step at 16.1 ns, which makes 1000 objects 0.05% of a frame — still the invisible sliver you were complaining about. It defaulted to 500k (~4 ms of a 16.7 ms frame, matching the essay's own "a few milliseconds every frame") with a slider from 1 to 10M, and prints the count at which the budget breaks. It also dropped the old magnified slice, on the grounds that magnification was the trick making the picture unconvincing in the first place.</p>
+<p>88 tests pass. Once page 6 lands I'll do the browser pass across all eight panels and their side panes.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-03T17-14-28-726Z"><div class="index-item-header"><span class="index-item-number">#15</span><time datetime="2026-09-03T17:14:28.726Z" data-timestamp="2026-09-03T17:14:28.726Z">2026-09-03T17:14:28.726Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a5b04ef80ed59818e</task-id>
+<tool-use-id>toolu_01MkJAQixFDenoEyrniGGzm9</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/a5b04ef80ed59818e.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Fix page 6 panes" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Everything is on disk; <code>node --check</code> and <code>node --test</code> both pass.</p>
+<h2>1. Files</h2>
+<table>
+<thead>
+<tr>
+<th>file</th>
+<th>action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/panels/06-eigen-what-now/spine.html</code></td>
+<td>rewritten (prose trimmed, readout copy relocated)</td>
+</tr>
+<tr>
+<td><code>app/panels/06-eigen-what-now/spine.js</code></td>
+<td>rewritten</td>
+</tr>
+<tr>
+<td><code>app/panels/06-eigen-what-now/left.html</code></td>
+<td>rewritten</td>
+</tr>
+<tr>
+<td><code>app/panels/06-eigen-what-now/left.js</code></td>
+<td>rewritten</td>
+</tr>
+<tr>
+<td><code>app/panels/06-eigen-what-now/right.js</code></td>
+<td>edited (readout removed)</td>
+</tr>
+<tr>
+<td><code>app/panels/06-eigen-what-now/affine.js</code></td>
+<td><strong>new</strong> — homogeneous 3×3 helpers + <code>drawAffineGrid</code></td>
+</tr>
+<tr>
+<td><code>app/panels/06-eigen-what-now/README.md</code></td>
+<td>updated</td>
+</tr>
+</tbody>
+</table>
+<p><code>right.html</code> unchanged (its prose still matches). Nothing outside the panel directory was touched. No git commands run.</p>
+<h2>2. Note items</h2>
+<ul>
+<li><strong>Left — one matrix, three controls</strong> — done. Six live <code>&amp;lt;mn&amp;gt;</code> entries of a homogeneous 3×3 (bottom row pinned <code>[0 0 1]</code>) are output; translate x/y, rotate θ, scale s are the input, composed <code>M = T·R·S</code>. Entries the active control writes highlight while it is pressed. Shape-under-the-matrix viz kept, now affine (the origin moves, and the third column is drawn as an arrow).</li>
+<li><strong>Spine — remove bottom readout</strong> — done, deleted entirely (<code>readout</code> import dropped).</li>
+<li><strong>Spine — show A, v (draggable), R</strong> — done. One display block <code>Â v = [matrix][v] = [R] = R</code> with live entries; <code>v</code> is the canvas drag handle.</li>
+<li><strong>Spine — R as scaled eigenvector + remainder</strong> — done. <code>R = λ̂₁c₁û₁ + λ̂₂c₂û₂</code> as a display block, and on the canvas the two pieces are drawn head-to-tail from the origin to <code>R</code> (with <code>v</code>'s own two pieces dashed underneath). Landing on a direction makes the second piece zero.</li>
+<li><strong>Spine — keep (x, v/ω) framing + pane-local overdamped c</strong> — done, <code>a9a2e80</code>'s invariant preserved verbatim (<code>ensureLocalC</code>, recomputed only on tuple <code>m</code>/<code>k</code> change).</li>
+<li><strong>Right — remove "highlighted value" readout</strong> — done; <code>readout</code> import, <code>fmtLam</code> and the <code>CRITICAL</code> θ* spoiler removed. Sweep strip and bundles untouched; the verdict line moved to <code>drawText</code>.</li>
+</ul>
+<h2>3. Shared/CSS change I want but did not make</h2>
+<p><code>mathbackground</code> paints only the glyph box — no padding, no radius — so the left pane's highlight will read as a tight colour block rather than a chip. If you want the nicer version, add to <code>app/styles/controls.css</code>:</p>
+<pre><code class="language-css">/* a matrix entry the active control is writing (panel 6 left) */
+.mn-hi { background: var(--accent-soft); color: var(--accent); padding: 0 0.15em; border-radius: 2px; }
+</code></pre>
+<p>Then <code>left.js</code>'s <code>paint()</code> becomes <code>node.classList.toggle('mn-hi', …)</code> instead of the two <code>setAttribute</code> calls. Nothing else needed.</p>
+<h2>4. Interpretations I chose</h2>
+<ul>
+<li><strong>Uniform scale, one slider</strong> — the note's "when I drag scale, the two diagonal values highlight" only holds for a single <code>s</code>.</li>
+<li><strong>Homogeneous 3×3, not 2×2 + t</strong> — makes "the translation column" a real thing to highlight; bottom row is fixed <code>[0 0 1]</code> and the prose says so.</li>
+<li><strong>Scale's highlight is θ-dependent</strong>: two diagonals when <code>sin θ ≈ 0</code>, all four of the block otherwise (because <code>s</code> multiplies <code>sin θ</code> too). Deterministic from θ, never from drag history, so it cannot flicker; matches the user's example exactly at the default θ = 0. Prose states the sharing.</li>
+<li><strong>Highlight semantics</strong>: armed on <code>pointerdown</code>/<code>keydown</code> on the control group, cleared on window <code>pointerup</code>/<code>pointercancel</code>/<code>keyup</code> — i.e. while pressed, not while focused.</li>
+<li><strong>Split is the eigenbasis one</strong> (<code>v = c₁û₁ + c₂û₂</code>), not an orthogonal projection — that is what makes the two pieces add up exactly to <code>R</code>. <code>decompose()</code> returns <code>null</code> for a complex pair, the defective root at critical, and a degenerate basis; the canvas says which.</li>
+<li><strong>Stage aspect changed <code>wide</code> → <code>half</code></strong> on both spine and left (square plane, precedent: panels 7/10/11/12). 16:9 clipped the steep second eigen-direction. Left additionally uses <code>.viz-row</code> (stage | matrix + controls) — the panel-12-spine pattern — to keep the column short.</li>
+<li><strong>Prose was trimmed</strong> on both panes. <code>.pane-body</code> is <code>overflow: hidden</code>, so growth is silently clipped; <code>spine.html</code> is 2017 chars vs 1907 before, <code>left.html</code> 1968 vs 1751. The units/local-damping numbers moved into a <code>&amp;lt;small class="muted"&amp;gt;</code> line under the equations in the viz, beside the matrix they describe. Essay-verbatim paragraphs are unchanged.</li>
+</ul>
+<h2>5. Tuple-write proof</h2>
+<pre><code>$ grep -n &quot;store.set\|tuple.set&quot; panels/06-eigen-what-now/*.js
+(no matches — nothing in this panel writes the shared tuple)
+</code></pre>
+<p>Also audited: <code>store.preset</code> / <code>store.reset</code> absent. The spine exposes <code>localC</code> to <code>bindMath</code> through a small read-only store-shaped adapter (<code>get</code>/<code>subscribe</code> only, no <code>set</code>); the left's sliders drive a <code>createStore</code> instance named <code>local</code>.</p>
+<h2>6. Checks</h2>
+<pre><code>node --check panels/06-eigen-what-now/affine.js   OK
+node --check panels/06-eigen-what-now/left.js     OK
+node --check panels/06-eigen-what-now/right.js    OK
+node --check panels/06-eigen-what-now/spine.js    OK
+node --test &quot;shared/**/*.test.js&quot;   88 pass, 0 fail
+</code></pre>
+<p>Additionally: HTML parser check on all three <code>.html</code> files and on both JS-generated MathML fragments (well-formed, one <code>&amp;lt;article&amp;gt;</code>, exactly one <code>.viz</code>); import audit (every <code>shared/…</code> path exists, every named import is exported, no unused imports); and a Node smoke test of <code>decompose</code> + <code>affine.js</code> — <code>p₁+p₂ = v</code>, <code>q₁+q₂ = Av</code>, landing on <code>û₁</code> gives <code>c₂ = 0</code>, and a 4000-step sweep of ζ through critical produced zero non-finite values.</p>
+<p><strong>Not verified in a browser</strong> (per instructions). The two things I could not check are the <code>mathbackground</code>/<code>mathcolor</code> rendering and the exact pane heights — the height budgets were computed against <code>--stage-max</code> and <code>.pane-body { overflow: hidden }</code> and land ~25-40px under budget at an 800px viewport.</result>
+<usage><subagent_tokens>198149</subagent_tokens><tool_uses>62</tool_uses><duration_ms>1432690</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>11 bash · 1 toolsearch</span>
+</div></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-03T17-15-37-846Z"><div class="index-item-header"><span class="index-item-number">#16</span><time datetime="2026-09-03T17:15:37.846Z" data-timestamp="2026-09-03T17:15:37.846Z">2026-09-03T17:15:37.846Z</time></div><div class="index-item-content"><p>[Request interrupted by user]</p></div></a></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-03T17-15-57-891Z"><div class="index-item-header"><span class="index-item-number">#17</span><time datetime="2026-09-03T17:15:57.891Z" data-timestamp="2026-09-03T17:15:57.891Z">2026-09-03T17:15:57.891Z</time></div><div class="index-item-content"><p>I don't need a browser pass, I am reviewing.</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Stopping there.</p>
+<p>One thing worth knowing before you look: <strong>the server on :8765 isn't rooted at <code>app/</code></strong> — <code>/</code> returns 200 but <code>shared/main.js</code> 404s, so the page won't boot against it. I left a correct one running at <strong>http://127.0.0.1:8766/</strong> (served from <code>app/</code>).</p>
+<h2>What landed — 9 commits</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>00cd5a3</code></td>
+<td>scene default body displaced + moving (shared)</td>
+</tr>
+<tr>
+<td><code>ca4e814</code></td>
+<td>page 4 — negative damping, quote linked, left pane cut</td>
+</tr>
+<tr>
+<td><code>06d5236</code></td>
+<td>page 5 — arrow rescale fix, force colour tokens</td>
+</tr>
+<tr>
+<td><code>f162086</code></td>
+<td>page 3 — error graph under the run, hover links both</td>
+</tr>
+<tr>
+<td><code>3c0ad28</code></td>
+<td>page 1 — draggable mass, real prose, rotating L</td>
+</tr>
+<tr>
+<td><code>cd7e4fd</code></td>
+<td>page 2 — forces as equations, readouts gone</td>
+</tr>
+<tr>
+<td><code>38582e6</code></td>
+<td>page 7 — no sliders, <code>c</code> runs negative</td>
+</tr>
+<tr>
+<td><code>c59ce51</code></td>
+<td>page 8 — four-period window, object multiplier</td>
+</tr>
+<tr>
+<td><code>d5ae5d9</code></td>
+<td>page 6 — matrix driven by three controls, R split</td>
+</tr>
+</tbody>
+</table>
+<p>Plus <code>c122798</code>, your working-tree panel-3 change committed on its own first.</p>
+<h2>Shared changes I made (agents were barred from these)</h2>
+<p><code>shared/scene.js</code> default body + wind on at <code>(2,1)</code>; <code>shared/manifest.js</code> panel 4 <code>left: null</code>; <code>styles/base.css</code> four <code>--force-*</code> tokens; <code>styles/controls.css</code> <code>.swatch.*</code> variants and <code>.mn-hi</code>; four <code>docs/idea.md</code> corrections (panel 4 left removed, panel 2 left now pane-local, panel 5's cut payoff beat, panel 7's cut real line).</p>
+<h2>Three departures from your notes, in case you disagree</h2>
+<ul>
+<li><strong>Page 8 object count defaults to 500k, not 1000</strong> — a measured spring step is 16.1 ns, so 1000 objects is 0.05% of a frame, still the invisible sliver you were objecting to.</li>
+<li><strong>Page 7's left pane lost the whole real line</strong>, not just the top graph — once the discriminant goes negative the roots leave that line.</li>
+<li><strong>Page 7 kept the "critical" button</strong> with a definition ahead of it, rather than dropping it.</li>
+</ul>
+<h2>Open, not done</h2>
+<p>Page 2's torque pane still draws a rectangle while page 1 now ships an L in <code>body.js</code> — adopting it means rederiving the moment of inertia, so I left it. Two agents also asked for shared hooks I declined mid-flight: a <code>hitTest</code> callback on <code>createDragHandles</code> (page 1 works around it with a point lattice) and an <code>aux</code> key for page 1's <code>θ</code>.</p>
+<p>88 tests pass; <code>notes.md</code> is still untracked.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-005.html#msg-2026-09-03T17-18-24-026Z"><div class="index-item-header"><span class="index-item-number">#18</span><time datetime="2026-09-03T17:18:24.026Z" data-timestamp="2026-09-03T17:18:24.026Z">2026-09-03T17:18:24.026Z</time></div><div class="index-item-content"><p>Spawn a subagent to remove any remaining text areas across all pages. If there is a graph that can be larger because the text area is removed, make it bigger. Only 1 commit for all changes.</p></div></a></div>
+<div class="index-item"><a href="page-006.html#msg-2026-09-03T17-18-35-405Z"><div class="index-item-header"><span class="index-item-number">#19</span><time datetime="2026-09-03T17:18:35.405Z" data-timestamp="2026-09-03T17:18:35.405Z">2026-09-03T17:18:35.405Z</time></div><div class="index-item-content"><p>Spawn a sonnet, high effort subagent to remove any remaining text areas across all pages. If there is a graph that can be larger because the text area is removed, make it bigger. Only 1 commit for all changes.</p></div></a><div class="index-item-stats"><span>4 bash · 1 workflow</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Sonnet agent running at high effort. Scope turned out larger than the earlier notes covered — <strong>24 readouts across 7 panels</strong>, including 9–13, which were never in <code>notes.md</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Panes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1, 3, 4</td>
+<td>2 each</td>
+</tr>
+<tr>
+<td>5</td>
+<td>left</td>
+</tr>
+<tr>
+<td>9, 10, 11, 13</td>
+<td>3 each</td>
+</tr>
+<tr>
+<td>12</td>
+<td>5 (spine, left, right ×3)</td>
+</tr>
+</tbody>
+</table>
+<p>Two things I built into the brief that the raw instruction doesn't cover:</p>
+<p><strong>Some of these readouts are the panel, not decoration.</strong> Panel 9's spine readout is named in <code>docs/idea.md</code> as the beat itself — the <em>measured</em> error ratio and the doubling time derived from it. Panel 13's carries the whole step-controller story: steps taken vs. fixed-<code>h</code>, rejections, where <code>h</code> peaks against the cap. Deleting those numbers would gut the panels, so the agent has to rehome every one — into live MathML slots in the prose via <code>bindMath</code>, or onto the canvas via <code>drawText</code> — following the pattern pages 2, 5, 6, 7 and 8 already established. It owes me a table of where each number went.</p>
+<p><strong><code>--stage-max</code> is the real lever for "make the graph bigger."</strong> It's <code>calc(100dvh - 21rem)</code>, and its own comment says 8rem of that is reserved for "a four-line readout under a square stage." With no readouts left anywhere, that allowance is wrong. I authorised raising it — but with a caution, because many panes still have sliders, sweep strips and equation blocks under the stage that were never covered by the 13rem chrome figure, and <code>.pane-body</code> clips rather than scrolls, so overshooting fails silently.</p>
+<p>I told it to leave <code>readout()</code> in <code>shared/ui/controls.js</code> and <code>.readout</code> in <code>controls.css</code> in place even once nothing calls them — that's a shared-API call, not a sweep decision.</p>
+<p>One commit when it's back, as you asked.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-006.html#msg-2026-09-03T17-21-02-948Z"><div class="index-item-header"><span class="index-item-number">#20</span><time datetime="2026-09-03T17:21:02.948Z" data-timestamp="2026-09-03T17:21:02.948Z">2026-09-03T17:21:02.948Z</time></div><div class="index-item-content"><p>Spawn a sonnet, high effort subagent to migrate any parameter sliders to dragged numbers in the equation. Just 1 commit for all of this.</p></div></a><div class="index-item-stats"><span>2 bash · 1 write</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>25 slider sites across 12 panes in 10 panels. One problem: <strong>the readout agent is editing most of those same files right now</strong> — panels 1, 3, 4, 5, 9, 10, 11, 12, 13 are in both scopes. Launching concurrently would have the two agents overwrite each other's edits. I'll write the brief now and fire it the moment the first lands.</p></div></div><button class="expand-btn">Show more</button></div></div>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Brief is written and ready to fire. <strong>I'm holding it until the readout sweep returns</strong>, because the two scopes overlap on almost every file — panels 1, 3, 4, 8, 9, 10, 11, 13 all appear in both. Two agents editing the same <code>spine.js</code> concurrently means whoever writes second wins and the other's work is silently gone.</p>
+<p><strong>25 sliders across 12 panes.</strong> The interesting part isn't the mechanical swap — it's that a scrub needs an equation to live in, and several panes don't have one. Panel 10's spine has four sliders (<code>m</code>, <code>c</code>, <code>k</code>, <code>h</code>) and its subject is <code>R(hλ)</code>, so there's a natural home. Others may not have one, and I've told the agent that a surviving slider is better than an invented equation — with the reasoning owed in its report.</p>
+<p>Two hazards I flagged specifically:</p>
+<ul>
+<li><strong>Panel 4's <code>c = 0</code> is load-bearing.</strong> That slider has <code>step: 0.05</code> precisely so zero is landable — the "stable, but not asymptotically" verdict is unreachable otherwise, and the three-way verdict that agent built last round depends on hitting exactly zero. <code>bindScrub</code> has no step quantisation, so a naive conversion silently breaks it.</li>
+<li><strong>Panel 6's left pane is deliberately inverted</strong> — you asked for three controls driving a read-only matrix, with entries highlighting while a control is held. Scrubs can preserve that (<code>bindScrub</code> sets <code>data-active</code> during a drag), but only if done on purpose.</li>
+</ul>
+<p>I gave it write access to exactly one shared file, <code>shared/ui/scrub.js</code>, and only to <em>add</em> an optional snap for the panel-4 case — additive, with existing nodes unchanged and the suite still green. Everything else in <code>shared/</code> stays mine.</p>
+<p>Both sweeps will be one commit each, as you asked.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-006.html#msg-2026-09-03T18-00-35-720Z"><div class="index-item-header"><span class="index-item-number">#21</span><time datetime="2026-09-03T18:00:35.720Z" data-timestamp="2026-09-03T18:00:35.720Z">2026-09-03T18:00:35.720Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>whq0xvv3h</task-id>
+<tool-use-id>toolu_01WTXBby4rrcYCa7rJZ5CJdR</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/whq0xvv3h.output</output-file>
+<status>completed</status></p>
+<summary>Dynamic workflow "Remove every remaining .readout box across all 13 panels, rehome its numbers, and enlarge the graphs that gain room" completed</summary>
+<p><result>"# Report\n\n## 1. Files changed, grouped by panel\n\n<strong>Panel 1</strong> — <code>panels/01-point-masses/{spine,right}.js</code>\n<strong>Panel 3</strong> — <code>panels/03-solving-for-x/{left,right}.js</code>\n<strong>Panel 4</strong> — <code>panels/04-physical-stability/{spine,right}.{js,html}</code>\n<strong>Panel 5</strong> — <code>panels/05-linearize/left.js</code>\n<strong>Panel 9</strong> — <code>panels/09-finding-error/{spine,left,right}.js</code>\n<strong>Panel 10</strong> — <code>panels/10-explicit-euler/{spine,left,right}.js</code>, <code>panels/10-explicit-euler/spine.html</code>\n<strong>Panel 11</strong> — <code>panels/11-lets-break-it/{spine,left,right}.js</code>\n<strong>Panel 12</strong> — <code>panels/12-higher-order-rk/{spine,left,right,right-2,right-3}.js</code>, <code>panels/12-higher-order-rk/left.html</code>\n<strong>Panel 13</strong> — <code>panels/13-variable-step-sizes/{spine,left,right}.js</code>\n<strong>Shared styles (mine to edit)</strong> — <code>app/styles/base.css</code> (<code>--stage-max</code>), <code>app/styles/controls.css</code> (new <code>.prose .stable</code>/<code>.prose .unstable</code> rule)\n<strong>READMEs updated</strong> — one per touched panel: <code>01,03,04,05,09,10,11,12,13/README.md</code> (11's and 12's also corrected stale \"not built\" claims for panes that are in fact built)\n\n## 2. Removed-readout table\n\n| Panel/pane | What the box said | Where each number lives now |\n|---|---|---|\n| 1 spine | x, y, m | Already fully duplicated by <code>drawText</code> beside the point + <code>bindMath</code> prose equation. Box deleted, nothing new needed. |\n| 1 right | x, y, θ, m | x/y already on canvas, θ already in the prose equation. <strong>m was nowhere else</strong> → added <code>drawText</code> near the centre-of-mass label. |\n| 3 left | t, x, v (=slope of x), a (=slope of v) | t already on the local slider's own output; x, v now <code>drawText</code> in each strip's top-right corner (opposite the title); a stays on its own canvas bar, now sized from a wrapper <code>&amp;lt;div&amp;gt;</code> instead of the removed box. |\n| 3 right | ODE state (x), PDE state (N numbers, max\|u\|) | Split onto the two strips it summarized: <code>x = …</code> on the ODE (mass) strip, <code>N numbers, max\\|u\\| = …</code> on the PDE (string) strip. |\n| 4 spine | verdict, Re λ, ε, farthest stray, distance+verdict at t=6s, local-c-vs-spring's-c note | Verdict/Re λ/maxDist/endDist(+in-out) → new live prose sentence, <code>bindMath</code> on all three stores, backed by a memoized <code>measure()</code> shared with the draw. ε already on its slider. Escaped-count and the local-c note dropped (redundant with the canvas markers and existing prose paragraph). |\n| 4 right | Re λ formula + sample count + dynamic label sentence | Each portrait's own label now reads <code>c = …, Re λ = …</code>. Sample-count dropped (decorative). The one new fact in the dynamic sentence (third portrait negates c locally) promoted to static prose; the rest was already covered by the Lyapunov definitions. |\n| 5 left | f(a)+f(b)=…, f(a+b)=…, verdict, cross-term/scaling restatement | Three arithmetic lines now <code>drawText</code> top-right on the plot, colored by verdict. Cross-term/scaling restatement dropped — already in the static MathML block above. |\n| 9 spine (the beat panel) | t, error, measured ratio z, doubling/halving time | Moved verbatim to <code>drawText</code> in the error strip's corner. Only the \"(= h·ln2/lnz = …)\" substitution dropped — the formula is already in the prose. |\n| 9 left | one-step arithmetic, n-step value, doubling/halving time | Same three lines, <code>drawText</code> on the plot, corner picked by sign of z (left when z&gt;1, right when z≤1). |\n| 9 right | decomposition, λ₁/\|R₁\|, λ₂/\|R₂\|, conjugate note, duplicate <code>why</code> message | Duplicate <code>why</code> dropped (already on canvas). λ₁,λ₂/\|R\| → corner of the left (modal-magnitude) sub-plot; decomposition + a₁,a₂ → corner of the right (reconstructed-x) sub-plot. |\n| 10 spine | verdict, \|1+hλ\|-derived time | Folded into the existing <code>bindMath</code> call that already fed <code>abs-r</code>; added <code>verdict</code>/<code>time</code> data-var slots to the same sentence. |\n| 10 left | step/t, x/exact, error+ratio | <code>drawText</code> top-right on the plot, 3 lines, colored to match the run curve. Stage <code>strip</code>→<code>wide</code>. |\n| 10 right | 6-row h/r/\|R\|/verdict table | Only the highlighted h's verdict kept, on the plane itself. Other 5 rows dropped — already visible in the nested disks. |\n| 11 spine | verdict/factor, predicted+measured doubling, t/x/exact | All 5 numbers → <code>drawText</code> in the run strip's corner, 3 lines. |\n| 11 left | λ, long descriptive sentence | λ → <code>drawText</code> in the run's corner (was shown nowhere else). Sentence shortened to a 1–2 word category; full definitions already in prose. |\n| 11 right | λ, kind, m/c/k mapping, \|R\|/ρ+verdict, step count | Mostly already duplicated on canvas/per-cell. m/c/k mapping and step count dropped — formula already in this file's header and the spine's prose. |\n| 12 spine | method verdict, t/x/exact | <code>drawText</code> in the run's corner. |\n| 12 left | Sₙ(z) polynomial, \|Sₙ(hλ)\| vs exact, verdict | Polynomial → <code>drawText</code> on the graph itself. \|Sₙ(hλ)\|/verdict → new prose sentence, <code>bindMath</code> on store+aux, reading n fresh from aux (not a closure var). |\n| 12 right | 4-order table (polynomial + \|S\| verdict) | Only the highlighted order kept, <code>drawText</code> on the plane. Other 3 dropped — already visible in the overlaid regions. |\n| 12 right-2 | 6-row h/x(T) table + exact row | Only the highlighted h's x(T) + exact kept, <code>drawText</code> in the run strip's corner. Other 5 dropped — bundle's spread already shows it. |\n| 12 right-3 | ρ/verdict, phase drift, amplitude comparison, duplicate k=0 message | Duplicate k=0 message dropped (already on canvas). Three real lines → <code>drawText</code> stacked under the run strip's title. |\n| 13 spine (step-controller panel) | target/steps/rejected/forced, h-peak+cap, max error, free-mode note | All 4 lines → <code>drawText</code> in the h(t) subplot's corner. Nothing dropped. |\n| 13 left | step arithmetic, local error, global error | Both → <code>drawText</code> top-right, colored to match the point each measures. |\n| 13 right (step-controller panel) | accept/reject/hPeak/error tally + last-step decision formula | Split across the two subplots that already exist: decision formula over the top (error-vs-target) subplot; tally over the bottom (h(t) bundle) subplot. Nothing dropped. |\n\n## 3. Layout changes\n\n- <strong>Aspect change:</strong> <code>10-explicit-euler/left.js</code> — <code>strip</code> → <code>wide</code>. Single stage, not one of the four two-stack panes; nothing sits under it but one slider now.\n- <strong><code>.viz-row</code> removed:</strong> none, ultimately. I initially dropped panel 11-right's viz-row (its second column had only the readout), but the advisor caught that standalone <code>.stage.half</code> loses the row's <code>min(48%, stage-max·0.62)</code> width cap — at 1280×800 with the new <code>--stage-max</code> that's ~1.35× taller than before, which doesn't leave room for the <code>wide</code> grid stage stacked beneath it. <strong>Reverted</strong>: the <code>.viz-row</code> wrapper stays with an empty second column.\n- <strong><code>--stage-max</code>:</strong> <code>calc(100dvh - 21rem)</code> → <code>calc(100dvh - 18rem)</code>. Reasoning: the old 8rem was a 4-line readout's budget; readouts are gone everywhere, but most panes still stack a slider row, transport, or MathML block under the stage that the 13rem chrome figure never accounted for, so only a few rem of the old 8rem is actually free. This only affects <code>.stage</code>/<code>.stage.half</code>'s literal size where <code>stage-max·0.62</code> is the binding constraint (wide/strip stages are width-driven, unaffected); it self-limits with viewport height by construction. Comment in <code>base.css</code> updated to match.\n- <strong>New CSS:</strong> <code>.prose .stable</code>/<code>.prose .unstable</code> in <code>controls.css</code> — required because three panes (4-spine, 10-spine, 12-left) now bind colored <code>&amp;lt;span class=\"stable\"&amp;gt;</code>/<code>class=\"unstable\"&amp;gt;</code> verdict Nodes directly into prose via <code>bindMath</code>, and nothing outside <code>.readout</code> previously styled those classes.\n\n## 4. Dropped content (not rehomed) — full list is in table above; summary of reasoning categories\n\n- <strong>Already duplicated on canvas/per-cell</strong> (10-right's 5 rows, 12-right's 3 rows, 12-right-2's 5 rows, 11-right's whole box, 9-right's duplicate <code>why</code>, 12-right-3's duplicate k=0 message).\n- <strong>Already stated elsewhere in this pane's own prose/header comment</strong> (4-spine's local-c note, 4-right's dynamic
+... (truncated 3237 chars, full result in /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/whq0xvv3h.output)</result>
+<diagnostics>Per-agent results: /Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/subagents/workflows/wf_1b1636b2-ecf/journal.jsonl — one {"type":"result",...} line per completed agent with its full return value.
+If the result above is empty or unexpected, Read this file BEFORE diagnosing — do not assume agents returned non-empty results.
+To re-run with edited post-processing: Workflow({scriptPath: '/Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration-app/d0faf160-0368-454b-9791-7735985e3b75/workflows/scripts/remove-remaining-readouts-wf_1b1636b2-ecf.js', resumeFromRunId: 'wf_1b1636b2-ecf'}) — agents whose (prompt, opts) are unchanged replay from cache.</diagnostics>
+<usage><agent_count>1</agent_count><agents_done>1</agents_done><agents_error>0</agents_error><agents_skipped>0</agents_skipped><agents_empty_result>0</agents_empty_result><subagent_tokens>458400</subagent_tokens><tool_uses>298</tool_uses><duration_ms>2409536</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>7 bash · 1 workflow</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Readout sweep committed</strong> (<code>4a2d6e6</code>) — all 24 boxes gone, zero live <code>readout()</code> calls in panels, 88 tests pass. <strong>Slider migration now running.</strong></p>
+<p>The rehoming held up where it mattered most: panel 9's measured ratio and doubling time, and panel 13's step-controller tally — the two <code>docs/idea.md</code> treats as the beat itself — moved across intact, nothing dropped. What did get dropped was duplication: six-row step-size tables whose rows the nested disks already draw, per-cell verdicts printed twice.</p>
+<p><code>--stage-max</code> went to <code>100dvh − 18rem</code>, not the full 8rem reclaim. The agent's reasoning is right — most panes still stack a slider row or MathML block under the stage that the 13rem "chrome" figure never counted, so only part of that budget was ever free.</p>
+<p>Worth noting: it also <strong>caught itself with an advisor call</strong>. It had dropped panel 11-right's <code>.viz-row</code> since the readout was the only thing in the second column, then found that a standalone <code>.stage.half</code> loses the row's <code>min(48%, stage-max·0.62)</code> width cap — at 1280×800 with the new <code>--stage-max</code> that's ~1.35× taller, which wouldn't leave room for the <code>wide</code> grid stage beneath it. It reverted and kept the wrapper with an empty column.</p>
+<p><strong>One thing that isn't mine and I haven't committed:</strong> an untracked <code>app/title/</code> appeared during the session — a standalone title page with a GIF-collage script, a <code>/* __GIF_LIST__ */</code> placeholder, and an empty <code>gifs/</code> directory. It's unrelated to anything I briefed, and its mtimes interleave with the agent's edits so I can't tell from timestamps alone whether it's yours. I left it untracked rather than folding it into the readout commit. Say the word if you want it committed or removed.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-007.html#msg-2026-09-03T18-21-16-205Z"><div class="index-item-header"><span class="index-item-number">#22</span><time datetime="2026-09-03T18:21:16.205Z" data-timestamp="2026-09-03T18:21:16.205Z">2026-09-03T18:21:16.205Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>wyjzfzy7c</task-id>
+<tool-use-id>toolu_01LW7x6TVJj8J8u46yEzTiJY</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/wyjzfzy7c.output</output-file>
+<status>completed</status></p>
+<summary>Dynamic workflow "Migrate every parameter slider to a draggable number inside the equation it belongs to" completed</summary>
+<p><result>"All clean. Final report:\n\n## 1. Files changed, grouped by panel\n\n- <strong>Panel 1</strong> (point-masses): <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>\n- <strong>Panel 2</strong> (newtonian-physics): <code>right.js</code>\n- <strong>Panel 3</strong> (solving-for-x): <code>spine.js</code>, <code>spine.html</code>\n- <strong>Panel 4</strong> (physical-stability): <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>, <code>right.html</code>\n- <strong>Panel 6</strong> (eigen-what-now): <code>left.js</code>, <code>left.html</code>\n- <strong>Panel 8</strong> (recap-real-time): <code>spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>left.html</code>\n- <strong>Panel 9</strong> (finding-error): <code>spine.js</code>, <code>spine.html</code>, <code>right.js</code>, <code>right.html</code>\n- <strong>Panel 10</strong> (explicit-euler): <code>spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>left.html</code>\n- <strong>Panel 11</strong> (lets-break-it): <code>spine.js</code>, <code>spine.html</code>\n- <strong>Panel 13</strong> (variable-step-sizes): <code>spine.js</code>, <code>spine.html</code>, <code>left.js</code>, <code>left.html</code>\n- <strong>Shared</strong>: <code>app/shared/ui/scrub.js</code> (additive only)\n\n## 2. Slider → equation table\n\n| Panel/pane | Parameter | Equation the number now lives in |\n|---|---|---|\n| 1 spine | m | <code>m = [m]</code> block equation |\n| 1 right | theta | <code>(x, y, θ) = (…, …, [θ])</code> (already scrubbable; only removed the redundant slider) |\n| 2 right | lever | <code>ΣF = (…) at d = [d]</code> |\n| 3 spine | h | <code>dt = [h] s</code> |\n| 4 spine | epsilon | new: <code>\\|x(t) − φ(t)\\| ≤ ε = [ε]</code>, the ε-tube's own defining inequality |\n| 4 spine | c (local) | <code>Re λ = −[c]/2m = [α]</code>, with <code>data-snap=\"0\"</code> |\n| 4 right | c (tuple) | <code>c = [c]</code> in \"Drag c … through zero\" |\n| 6 left | tx, ty, theta, s | new: <code>M = T([tx],[ty])·R([θ]°)·S([s])</code>, replacing the abstract <code>T·R·S</code> |\n| 8 spine | h | <code>h = [h] s</code> (frame-cost arithmetic) |\n| 8 left | h | <code>h = [h] s</code> (frame-cost arithmetic) |\n| 8 left | objects | <code>Charge that one step to [objects] of them…</code> (<code>&amp;lt;mtext&amp;gt;</code>, bindMath-owned text) |\n| 9 spine | h | new: <code>h = [h]</code> in \"change h and see it cross one\" |\n| 9 right | x0, v0 | new: <code>(x₀, v₀) = ([x0], [v0])</code>, \"Drag the state\" |\n| 9 right | h | new: <code>h = [h]</code>, \"Change h … or the method\" |\n| 10 spine | h | <code>h = [h]</code> in the disk verdict sentence (already present) |\n| 10 spine | m, c, k | new: <code>m = [m]</code>, <code>c = [c]</code>, <code>k = [k]</code> in \"Drag m, c, k\" |\n| 10 left | h | <code>\\|1 + [h](λ) \\| = [abs-r]</code>, the by-hand R(hλ) computation (already present) |\n| 11 spine | h | new: <code>h = [h]</code> in \"Drag h and the region rescales\" |\n| 13 spine | tol | new: <code>target local error = [tol]</code> |\n| 13 left | h | <code>h = [h] s</code> in \"Take one step of h\" (already present) |\n\nNo survivors: <code>grep -rn \"slider(\" app/panels/</code> returns nothing. (Panels 5 and 7 were already migrated before this session and are unchanged; panel 6 <strong>spine</strong>'s own damping control is a hand-rolled <code>localSlider()</code> defined inside that file — not <code>shared/ui/controls.js</code>'s <code>slider()</code> — so it never matched the grep and was never in the 25-site list; I left it untouched.)\n\n## 3. Panel 4 c=0 and panel 6 highlight\n\n<strong>Panel 4 c=0:</strong> Added an opt-in <code>data-snap=\"0\"</code> to <code>scrub.js</code> (see §4). During a drag/key move, if the candidate value is within one gesture-step of a snap target, or the move crosses it, the value snaps exactly to the target — except when already sitting on it, so the drag can leave 0 again. This was caught and fixed mid-review: my first version computed the capture tolerance from the move's own size but didn't exempt the already-snapped case, so every subsequent move computed a tolerance exactly equal to its own distance from 0 and re-snapped forever, trapping the reader at c=0. Fixed with a <code>v === target</code> skip. Re-verified by trace and by <code>node --test</code>.\n\nPanel 4's spine also needed a small facade (<code>scrub = { get, set, subscribe, limits }</code>) merging <code>local.c</code> and <code>aux.epsilon</code>, because <code>bindScrub</code> binds every <code>[data-scrub]</code> node under the article to one store — two different backing stores in one article would have crashed the aux node against <code>local</code>'s validator.\n\n<strong>Panel 6 highlight:</strong> Rewired the arm/disarm listeners from the (now-deleted) slider <code>&amp;lt;label&amp;gt;</code> containers onto the individual <code>&amp;lt;mn data-scrub&amp;gt;</code> nodes in the prose (<code>article.querySelector('[data-scrub=\"tx\"]')</code> etc.), keyed the same way as before (<code>{tx,ty}→translate group</code>, <code>{theta}→rotate</code>, <code>{s}→scale</code>). <code>pointerdown</code>/<code>keydown</code> arm, window-level <code>pointerup</code>/<code>pointercancel</code>/<code>keyup</code> disarm — identical mechanism, different target elements. Not implemented via <code>bindScrub</code>'s own <code>data-active</code>, because that attribute is only set on pointer drag, not keyboard, and the original slider-based highlight worked for both.\n\n## 4. <code>app/shared/ui/scrub.js</code> diff (backward compatible)\n\n<code>diff\n@@ -11,6 +11,13 @@\n // data-log attribute makes the drag multiplicative, for h and k. The text is written here\n // only when the element has no data-var, so it coexists with bindMath on the same\n // element: livemath owns the text, scrub owns the gesture.\n+//\n+// A data-snap=\"0\" (or a comma list, \"0,1\") makes those values landable exactly, the way a\n+// stepped &amp;lt;input type=range&amp;gt; guarantees its grid points: a move that would step past a\n+// snap value, or land within one step of it, is replaced with the snap value itself. The\n+// tolerance is the size of the gesture that produced the move, so a slow drag must still\n+// come close and a fast one cannot skip over the value entirely. Nodes without data-snap\n+// are unaffected — snaps is empty and move() returns exactly what it always did.\n \n import { fmt } from '../dom.js';\n \n@@ -41,6 +48,7 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps\n     const ownsText = !node.hasAttribute('data-var');\n     const clamp = v =&amp;gt; Math.min(hi, Math.max(lo, v));\n     const value = () =&amp;gt; store.get()[key];\n+    const snaps = node.dataset.snap != null ? node.dataset.snap.split(',').map(Number).filter(Number.isFinite) : [];\n \n     node.classList.add('scrub');\n     node.setAttribute('tabindex', '0');\n@@ -51,7 +59,16 @@ export function bindScrub(root, store, { signal, pixelsPerRange = 300, keySteps\n     // one unit of gesture: a pixel of drag or 1/keySteps of a key sweep, in the key's units\n     const perPixel = v =&amp;gt; (log ? Math.log(hi / lo) / pixelsPerRange : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / pixelsPerRange);\n     const perKey = v =&amp;gt; (log ? Math.log(hi / lo) / keySteps : (bounded ? (hi - lo) : Math.max(Math.abs(v), 1)) / keySteps);\n-    const move = (v, amount) =&amp;gt; clamp(log ? v * Math.exp(amount) : v + amount);\n+    const move = (v, amount) =&amp;gt; {\n+      const next = clamp(log ? v * Math.exp(amount) : v + amount);\n+      if (snaps.length === 0) return next;\n+      const tol = Math.max(Math.abs(next - v), 1e-9);   // this move's own size: the snap window\n+      for (const target of snaps) {\n+        if (v === target) continue;   // already on the detent: let this move leave it\n+        if (Math.abs(next - target) &amp;lt; tol || (v - target) * (next - target) &amp;lt;= 0) return target;\n+      }\n+      return next;\n+    };\n     const write = v =&amp;gt; { if (v !== value()) store.set({ [key]: v }); };\n \n     let drag = null;   // { id, lastX, v }\n</code>\n\nBackward compatible: <code>snaps</code> is empty unless a node has <code>data-snap</code>; <code>move()</code>'s first line is unchanged, and with <code>snaps.length === 0</code> it returns <code>next</code> immediately — bit-for-bit the old expression. Only <code>panels/04-physical-stability/spine.html</code>'s one <code>&amp;lt;mn data-snap=\"0\"&amp;gt;</code> exercises the new branch. <code>node --check</code> and <code>node --test \"shared/**/*.test.js\"</code> (88/88) both pass after the fix.\n\n## 5. New equations introduced, and justification\n\n- <strong>Panel 4 spine — ε-tube inequality</strong> <code>|x(t) − φ(t)| ≤ ε</code>: this <em>is</em> the panel's own subject (Eberly's physical-stability definition), already drawn as a shaded band on the plot; it had no MathML form anywhere in the prose. Not invented — lifted from the panel's own picture.\n- <strong>Panel 6 left — <code>M = T(tx,ty)·R(θ)·S(s)</code></strong>: the prose already named this composition symbolically (<code>T·R·S</code>, and in the code comments); I only added the numeric arguments. Matches the task's explicit suggestion.\n- **Pane
+... (truncated 2996 chars, full result in /private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/tasks/wyjzfzy7c.output)</result>
+<diagnostics>Per-agent results: /Users/benjaminjordan/.claude/projects/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/subagents/workflows/wf_8c321bbe-560/journal.jsonl — one {"type":"result",...} line per completed agent with its full return value.
+If the result above is empty or unexpected, Read this file BEFORE diagnosing — do not assume agents returned non-empty results.
+To re-run with edited post-processing: Workflow({scriptPath: '/private/tmp/claude-501/-Users-benjaminjordan-projects-thegoldenmule-explainer-numerical-integration/d0faf160-0368-454b-9791-7735985e3b75/scratchpad/sliders-to-scrubs.js', resumeFromRunId: 'wf_8c321bbe-560'}) — agents whose (prompt, opts) are unchanged replay from cache.</diagnostics>
+<usage><agent_count>1</agent_count><agents_done>1</agents_done><agents_error>0</agents_error><agents_skipped>0</agents_skipped><agents_empty_result>0</agents_empty_result><subagent_tokens>254575</subagent_tokens><tool_uses>159</tool_uses><duration_ms>1181029</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>27 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Both sweeps are in, one commit each.</p>
+<p><strong><code>4a2d6e6</code> — readouts.</strong> All 24 gone, nothing live left in any pane. Numbers rehomed, not deleted: panel 9's measured ratio and doubling time and panel 13's step-controller tally — the two <code>docs/idea.md</code> treats as the beat itself — came across intact. What got dropped was duplication (six-row tables the nested disks already draw). <code>--stage-max</code> went <code>−21rem</code> → <code>−18rem</code>, not the full 8rem reclaim, because most panes still stack controls under the stage.</p>
+<p><strong><code>e33457d</code> — sliders.</strong> Every parameter slider is now a dragged number where the symbol is written.</p>
+<p>The part worth your attention: the agent's <code>grep "slider("</code> found 25 sites and reported "no survivors" — but <strong>three hand-rolled <code>&lt;input type=range&gt;</code> controls never matched that grep</strong>, including page 6's spine damping, which is the control you specifically asked for last round. I found them on verification and converted the three that are genuine parameters (page 6's <code>c</code>, page 3's instant <code>t</code>, page 9's ratio <code>z</code>). Three range inputs remain by design — they're index selectors over a bundle, doing <code>sweepStrip</code>'s job rather than setting a parameter.</p>
+<p>I also caught a bug in my own edit before committing: I'd passed <code>{ signal }</code> as <code>bindMath</code>'s third argument, which is <code>derive</code>, so it would have thrown on first update. Fixed, and I audited all 28 <code>bindMath</code> call sites for the same mistake — the rest are fine.</p>
+<p><code>scrub.js</code> gained one opt-in <code>data-snap</code>. Page 4's damping needed it: that slider had <code>step: 0.05</code> precisely so <code>c = 0</code> was landable, and its three-way verdict is unreachable otherwise. Nodes without the attribute take the identical old code path. 88 tests pass, every panel import resolves.</p>
+<p>Two things I did <strong>not</strong> touch: <code>app/title/</code> and your <code>controls()</code>/<code>row()</code> fix — which was a real latent double-wrap bug in shared code that my page-2 agent's <code>controls(rows, …)</code> call happened to expose. <code>notes.md</code> is still untracked.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+
+        <dialog id="search-modal">
+            <div class="search-modal-header">
+                <input type="text" id="modal-search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="modal-search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+                <button id="modal-close-btn" type="button" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+            </div>
+            <div id="search-status"></div>
+            <div id="search-results"></div>
+        </dialog>
+        <script>
+(function() {
+    var totalPages = 7;
+    var searchBox = document.getElementById('search-box');
+    var searchInput = document.getElementById('search-input');
+    var searchBtn = document.getElementById('search-btn');
+    var modal = document.getElementById('search-modal');
+    var modalInput = document.getElementById('modal-search-input');
+    var modalSearchBtn = document.getElementById('modal-search-btn');
+    var modalCloseBtn = document.getElementById('modal-close-btn');
+    var searchStatus = document.getElementById('search-status');
+    var searchResults = document.getElementById('search-results');
+
+    if (!searchBox || !modal) return;
+
+    // Hide search on file:// protocol (doesn't work due to CORS restrictions)
+    if (window.location.protocol === 'file:') return;
+
+    // Show search box (progressive enhancement)
+    searchBox.style.display = 'flex';
+
+    // Gist preview support - detect if we're on gisthost.github.io or gistpreview.github.io
+    var hostname = window.location.hostname;
+    var isGistPreview = hostname === 'gisthost.github.io' || hostname === 'gistpreview.github.io';
+    var gistId = null;
+    var gistOwner = null;
+    var gistInfoLoaded = false;
+
+    if (isGistPreview) {
+        // Extract gist ID from URL query string like ?78a436a8a9e7a2e603738b8193b95410/index.html
+        var queryMatch = window.location.search.match(/^\?([a-f0-9]+)/i);
+        if (queryMatch) {
+            gistId = queryMatch[1];
+        }
+    }
+
+    async function loadGistInfo() {
+        if (!isGistPreview || !gistId || gistInfoLoaded) return;
+        try {
+            var response = await fetch('https://api.github.com/gists/' + gistId);
+            if (response.ok) {
+                var info = await response.json();
+                gistOwner = info.owner.login;
+                gistInfoLoaded = true;
+            }
+        } catch (e) {
+            console.error('Failed to load gist info:', e);
+        }
+    }
+
+    function getPageFetchUrl(pageFile) {
+        if (isGistPreview && gistOwner && gistId) {
+            // Use raw gist URL for fetching content
+            return 'https://gist.githubusercontent.com/' + gistOwner + '/' + gistId + '/raw/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function getPageLinkUrl(pageFile) {
+        if (isGistPreview && gistId) {
+            // Use gistpreview URL format for navigation links
+            return '?' + gistId + '/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function openModal(query) {
+        modalInput.value = query || '';
+        searchResults.innerHTML = '';
+        searchStatus.textContent = '';
+        modal.showModal();
+        modalInput.focus();
+        if (query) {
+            performSearch(query);
+        }
+    }
+
+    function closeModal() {
+        modal.close();
+        // Update URL to remove search fragment, preserving path and query string
+        if (window.location.hash.startsWith('#search=')) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    function updateUrlHash(query) {
+        if (query) {
+            // Preserve path and query string when adding hash
+            history.replaceState(null, '', window.location.pathname + window.location.search + '#search=' + encodeURIComponent(query));
+        }
+    }
+
+    function highlightTextNodes(element, searchTerm) {
+        var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        var nodesToReplace = [];
+
+        while (walker.nextNode()) {
+            var node = walker.currentNode;
+            if (node.nodeValue.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1) {
+                nodesToReplace.push(node);
+            }
+        }
+
+        nodesToReplace.forEach(function(node) {
+            var text = node.nodeValue;
+            var regex = new RegExp('(' + escapeRegex(searchTerm) + ')', 'gi');
+            var parts = text.split(regex);
+            if (parts.length > 1) {
+                var span = document.createElement('span');
+                parts.forEach(function(part) {
+                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                        var mark = document.createElement('mark');
+                        mark.textContent = part;
+                        span.appendChild(mark);
+                    } else {
+                        span.appendChild(document.createTextNode(part));
+                    }
+                });
+                node.parentNode.replaceChild(span, node);
+            }
+        });
+    }
+
+    function fixInternalLinks(element, pageFile) {
+        // Update all internal anchor links to include the page file
+        var links = element.querySelectorAll('a[href^="#"]');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href');
+            link.setAttribute('href', pageFile + href);
+        });
+    }
+
+    function processPage(pageFile, html, query) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var resultsFromPage = 0;
+
+        // Find all message blocks
+        var messages = doc.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            var text = msg.textContent || '';
+            if (text.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
+                resultsFromPage++;
+
+                // Get the message ID for linking
+                var msgId = msg.id || '';
+                var pageLinkUrl = getPageLinkUrl(pageFile);
+                var link = pageLinkUrl + (msgId ? '#' + msgId : '');
+
+                // Clone the message HTML and highlight matches
+                var clone = msg.cloneNode(true);
+                // Fix internal links to include the page file
+                fixInternalLinks(clone, pageLinkUrl);
+                highlightTextNodes(clone, query);
+
+                var resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result';
+                resultDiv.innerHTML = '<a href="' + link + '">' +
+                    '<div class="search-result-page">' + escapeHtml(pageFile) + '</div>' +
+                    '<div class="search-result-content">' + clone.innerHTML + '</div>' +
+                    '</a>';
+                searchResults.appendChild(resultDiv);
+            }
+        });
+
+        return resultsFromPage;
+    }
+
+    async function performSearch(query) {
+        if (!query.trim()) {
+            searchStatus.textContent = 'Enter a search term';
+            return;
+        }
+
+        updateUrlHash(query);
+        searchResults.innerHTML = '';
+        searchStatus.textContent = 'Searching...';
+
+        // Load gist info if on gistpreview (needed for constructing URLs)
+        if (isGistPreview && !gistInfoLoaded) {
+            searchStatus.textContent = 'Loading gist info...';
+            await loadGistInfo();
+            if (!gistOwner) {
+                searchStatus.textContent = 'Failed to load gist info. Search unavailable.';
+                return;
+            }
+        }
+
+        var resultsFound = 0;
+        var pagesSearched = 0;
+
+        // Build list of pages to fetch
+        var pagesToFetch = [];
+        for (var i = 1; i <= totalPages; i++) {
+            pagesToFetch.push('page-' + String(i).padStart(3, '0') + '.html');
+        }
+
+        searchStatus.textContent = 'Searching...';
+
+        // Process pages in batches of 3, but show results immediately as each completes
+        var batchSize = 3;
+        for (var i = 0; i < pagesToFetch.length; i += batchSize) {
+            var batch = pagesToFetch.slice(i, i + batchSize);
+
+            // Create promises that process results immediately when each fetch completes
+            var promises = batch.map(function(pageFile) {
+                return fetch(getPageFetchUrl(pageFile))
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Failed to fetch');
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        // Process and display results immediately
+                        var count = processPage(pageFile, html, query);
+                        resultsFound += count;
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    })
+                    .catch(function() {
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    });
+            });
+
+            // Wait for this batch to complete before starting the next
+            await Promise.all(promises);
+        }
+
+        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + totalPages + ' pages';
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', function() {
+        openModal(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            openModal(searchInput.value);
+        }
+    });
+
+    modalSearchBtn.addEventListener('click', function() {
+        performSearch(modalInput.value);
+    });
+
+    modalInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            performSearch(modalInput.value);
+        }
+    });
+
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Check for #search= in URL on page load
+    if (window.location.hash.startsWith('#search=')) {
+        var query = decodeURIComponent(window.location.hash.substring(8));
+        if (query) {
+            searchInput.value = query;
+            openModal(query);
+        }
+    }
+})();
+        </script>
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
