@@ -208,7 +208,10 @@ which `main.js` applies in `onRoute`.
 square stage. The ceiling alone cannot know what else a pane stacks in its column, so
 `shared/ui/fit.js` measures each mounted pane and writes `--fit` on its `.viz`; every stage
 width in `controls.css` is multiplied by that number, and the stages — never the controls or
-the prose — shrink together until the column clears the bottom of the viewport. `layout.css`
+the equations — shrink together until the column clears the bottom of the viewport. The same
+module fits the other column with `--prose-fit` on the `.prose`, which scales the type and the
+measure together (`--measure-chars` characters, read in `rem` at the root and in `em` inside a
+`.prose`) so the line length holds and only the column's height gives; it floors at 0.8. `layout.css`
 is the spine, rails, and pane mechanics and nothing else. `controls.css` styles the small
 vocabulary of inputs every panel uses (`.control`, `.readout`, `.stage`). Panels do not
 ship their own CSS; if a panel needs something new, it is added to `controls.css` so the

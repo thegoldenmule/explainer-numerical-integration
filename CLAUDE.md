@@ -112,5 +112,10 @@ CSS custom properties so canvases match the stylesheet.
   `shared/ui/fit.js` on every pane, which measures the column and writes `--fit` on the `.viz`.
   Every stage width in `controls.css` is multiplied by it, so a pane with more chrome than the
   ceiling assumes shrinks its stages instead of running off the bottom. New stage widths must
-  carry `* var(--fit, 1)`; only stages scale, never controls or prose. A pane with a square and
-  a strip uses `.stage.half` inside `.viz-row`, whose first column must stay definite.
+  carry `* var(--fit, 1)`; controls and equations never scale. A pane with a square and a strip
+  uses `.stage.half` inside `.viz-row`, whose first column must stay definite.
+- The prose column is fitted the same way by the same module, with `--prose-fit` on the
+  `.prose`: it scales the type and the measure together, so the line stays `--measure-chars`
+  characters wide (read in `rem` at the root, in `em` inside a `.prose`) and only the column's
+  height gives. It floors at 0.8; a pane that needs more than that clips, and the fix is to
+  write less, not to scale further.

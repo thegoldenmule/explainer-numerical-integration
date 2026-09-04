@@ -105,14 +105,20 @@ export function fitViz(article, viz) {
  */
 export function fitProse(article, prose) {
   let fit = Number(prose.style.getPropertyValue('--prose-fit')) || 1;
+  let ceiling = Infinity;                     // the smallest size measured over the budget
   for (let pass = 0; pass < PASSES; pass++) {
     const top = prose.getBoundingClientRect().top;
     const avail = article.getBoundingClientRect().bottom - top;
     const required = [...prose.children].reduce((m, c) => Math.max(m, c.getBoundingClientRect().bottom), top) - top;
     if (avail <= 0 || required <= 0) return;
     if (fit === 1 && required <= avail) return;
+    // a size that measured over is never worth trying again: text wraps in steps, so the
+    // near-linear solve can propose one, and without this the passes bounce between two
+    // buckets and can run out on the wrong one
+    if (required > avail) ceiling = Math.min(ceiling, fit);
     const wanted = required / fit;                                   // height at --prose-fit: 1
-    const next = clamp(Math.floor(avail / wanted / PROSE_STEP) * PROSE_STEP, MIN_PROSE, 1);
+    const next = clamp(Math.min(Math.floor(avail / wanted / PROSE_STEP) * PROSE_STEP,
+                                ceiling - PROSE_STEP), MIN_PROSE, 1);
     if (Math.abs(next - fit) < EPSILON) return;
     fit = next;
     if (fit === 1) prose.style.removeProperty('--prose-fit');
