@@ -52,6 +52,16 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .readout .stable { color: var(--stable); font-weight: 600; }
 .readout .unstable { color: var(--unstable); font-weight: 600; }
 
+/* The prose column, scaled to the page. `--prose-fit` is written by shared/ui/fit.js when the
+   text would otherwise run off the bottom of a short viewport (where `.pane-body`'s
+   `overflow: hidden` used to eat the last paragraph); it is 1, and this a no-op, for a pane
+   that fits. Type and measure shrink together — the measure in `em` here rather than the
+   root's `rem` — so the line stays 38 characters wide and only the column's height gives. */
+.prose {
+  font-size: calc(1rem * var(--prose-fit, 1));
+  --measure: calc(var(--measure-chars) * 1em);
+}
+
 /* verdict words bound into prose (bindMath), now that a verdict this color-coded no longer
    needs a readout box to live in */
 .prose .stable { color: var(--stable); font-weight: 600; }

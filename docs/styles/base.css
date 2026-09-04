@@ -44,7 +44,11 @@
   /* type */
   --font: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --measure: 38rem;
+  /* the measure is a character count, not a length: 38 characters of whatever type size the
+     block it applies to is set in. At the root that is 38rem; inside a `.prose` that fit.js has
+     scaled down it follows the type, so a shortened column keeps its line length. */
+  --measure-chars: 38;
+  --measure: calc(var(--measure-chars) * 1rem);
 
   --radius: 6px;
   /* The ceiling for one stage: the viewport less room for panel chrome (padding, meta, h2,
