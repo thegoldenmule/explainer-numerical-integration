@@ -108,5 +108,9 @@ CSS custom properties so canvases match the stylesheet.
   `c`, an overdamped view, a constant-force run) is computed locally, never written.
 - Live numbers in prose are `<mn data-var="…" data-digits="…">` slots filled by
   `bindMath(article, store, derive)`; pass the `<article>`, not `.viz`.
-- `--stage-max` budgets one square stage plus a readout. A pane with a square and a strip
-  uses `.stage.half` inside `.viz-row`, whose first column must stay definite.
+- `--stage-max` is the *ceiling* for one square stage, not the budget: the loader runs
+  `shared/ui/fit.js` on every pane, which measures the column and writes `--fit` on the `.viz`.
+  Every stage width in `controls.css` is multiplied by it, so a pane with more chrome than the
+  ceiling assumes shrinks its stages instead of running off the bottom. New stage widths must
+  carry `* var(--fit, 1)`; only stages scale, never controls or prose. A pane with a square and
+  a strip uses `.stage.half` inside `.viz-row`, whose first column must stay definite.

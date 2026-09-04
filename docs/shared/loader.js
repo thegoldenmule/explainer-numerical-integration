@@ -13,6 +13,7 @@
 
 import { el, fragment } from './dom.js';
 import { createLoop } from './gfx/loop.js';
+import { fitPane } from './ui/fit.js';
 
 const proseCache = new Map();
 
@@ -74,6 +75,8 @@ export async function mountPane({ store, entry, pane, depth = 1, container }) {
     if (!viz) { viz = el('div', { class: 'viz' }); (container.querySelector('article') ?? container).append(viz); }
     const ctx = { store, panel: entry, pane, depth, index: entry.index, loop, signal: abort.signal };
     instance = (await mod.mount?.(viz, ctx)) ?? {};
+    // the pane is built: measure what it actually asks for and scale its stages to the room
+    fitPane(container, abort.signal);
   } catch (err) {
     console.warn(`[loader] ${base}:`, err);
     container.classList.remove('loading');

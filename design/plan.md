@@ -204,8 +204,11 @@ which `main.js` applies in `onRoute`.
 
 ## Stylesheet
 
-`base.css` defines the tokens and the type scale, including `--stage-max`, the cap that
-keeps a square stage inside the viewport so a panel never scrolls internally. `layout.css`
+`base.css` defines the tokens and the type scale, including `--stage-max`, the ceiling for a
+square stage. The ceiling alone cannot know what else a pane stacks in its column, so
+`shared/ui/fit.js` measures each mounted pane and writes `--fit` on its `.viz`; every stage
+width in `controls.css` is multiplied by that number, and the stages — never the controls or
+the prose — shrink together until the column clears the bottom of the viewport. `layout.css`
 is the spine, rails, and pane mechanics and nothing else. `controls.css` styles the small
 vocabulary of inputs every panel uses (`.control`, `.readout`, `.stage`). Panels do not
 ship their own CSS; if a panel needs something new, it is added to `controls.css` so the
