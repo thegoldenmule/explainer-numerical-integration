@@ -18,7 +18,7 @@ const CGAP = 10, RGAP = 8;   // between columns, between rows
 const COLP = CW + CGAP, ROWP = CH + RGAP;
 const xAt = col => (col + 1) * COLP;   // col: -1 surface, 0 spine, 1..3 dive
 const MAP_W = xAt(3) + CW;
-const PAD = { top: 4, right: 6, bottom: 4, left: 24 };   // left margin carries the spine arrow
+const PAD = { top: 15, right: 6, bottom: 4, left: 24 };  // margins carry the two axis rules
 
 // The fake outline: one entry per row, saying which side nodes that row has. Shaped like the
 // real thing — most rows have a dive, many have a surface, one goes three deep, and the two
@@ -76,11 +76,24 @@ export function mount(root, { signal } = {}) {
     'aria-hidden': 'true',
   });
 
-  // the vertical axis, drawn in the left margin: one arrow the length of the column
+  // The two axes, annotated in the viewBox's margins. Down the left, one arrow the length of
+  // the column: the spine only goes one way. Across the top, a rule with a head at each end,
+  // broken to let its label sit in the gap: sideways goes both ways, and each head points at
+  // the aside that explains that direction.
+  const midX = (xAt(-1) + xAt(3) + CW) / 2;
+  const gap = 13;   // half the width the label needs in the rule
   svg.append(
-    node('path', { class: 'down', d: `M -8 3 V ${H - 5} m -2.5 -4 l 2.5 4 l 2.5 -4` }),
-    node('text', { class: 'down-label', transform: `rotate(-90 -15 ${H / 2})`, x: -15, y: H / 2, 'text-anchor': 'middle' },
+    node('path', { class: 'rule', d: `M -8 3 V ${H - 5} m -2.5 -4 l 2.5 4 l 2.5 -4` }),
+    node('text', { class: 'rule-label', transform: `rotate(-90 -15 ${H / 2})`, x: -15, y: H / 2, 'text-anchor': 'middle' },
       'the spine'),
+    node('path', {
+      class: 'rule',
+      d: `M ${xAt(-1) + CW / 2 + 4} -11.5 l -4 3 l 4 3`
+       + ` M ${xAt(-1) + CW / 2} -8.5 H ${midX - gap}`
+       + ` M ${midX + gap} -8.5 H ${xAt(3) + CW / 2}`
+       + ` m -4 -3 l 4 3 l -4 3`,
+    }),
+    node('text', { class: 'rule-label', x: midX, y: -8.5, 'text-anchor': 'middle' }, 'depth'),
   );
 
   // the ribbon the spine nodes sit on, so the middle column reads as one thread
