@@ -104,8 +104,9 @@
   .guide .map .cell.dive { fill: var(--accent-soft); stroke: var(--accent); stroke-opacity: 0.45; }
   .guide .map .cell.dive.d2 { fill: color-mix(in srgb, var(--accent-soft) 55%, var(--accent)); }
   .guide .map .cell.dive.d3 { fill: color-mix(in srgb, var(--accent-soft) 18%, var(--accent)); }
-  /* the node the reader is standing on */
-  .guide .map .cell.on { stroke: var(--fg); stroke-width: 1.6; stroke-opacity: 1; }
+  /* the node the reader is standing on, whether the tour put them there or a hover did */
+  .guide .map .cell.on,
+  .guide .map .cell:hover { stroke: var(--fg); stroke-width: 1.6; stroke-opacity: 1; }
 
   /* the spine reads as one thread; a tie is the sideways move off it */
   .guide .map .thread { stroke: var(--border-strong); stroke-width: 0.7; }
@@ -172,6 +173,6 @@
 
   <footer>
     <p class="caption"></p>
-    <p class="hint">Arrow keys, a touchpad swipe, or the dots on the edges — all the same move.</p>
+    <p class="hint">Hover the diagram to look around it yourself. Arrow keys, a touchpad swipe, or the dots on the edges — all the same move.</p>
   </footer>
 </section>

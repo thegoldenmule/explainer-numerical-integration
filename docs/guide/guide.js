@@ -95,7 +95,10 @@ export function mount(root, { signal } = {}) {
     const y = r * ROWP;
     const put = (col, cls) => {
       const x = xAt(col);
-      const cell = node('rect', { class: `cell ${cls}`, x, y, width: CW, height: CH, rx: 2.5 });
+      const cell = node('rect', {
+        class: `cell ${cls}`, x, y, width: CW, height: CH, rx: 2.5,
+        'data-row': r, 'data-col': col,
+      });
       svg.append(cell);
       cells.set(spot(r, col), { cell, cx: x + CW / 2, cy: y + CH / 2 });
     };
@@ -150,6 +153,24 @@ export function mount(root, { signal } = {}) {
     if (timer || still.matches) return;
     timer = setTimeout(tick, 500);
   }
+
+  // Hovering takes the wheel: the tour stops and the selection follows you around the shape.
+  // A node stands for no page in particular, so there is nothing to click through to — what a
+  // hover can still say is which move got you there, which is the whole subject of the page.
+  const columnCap = col =>
+    col < 0 ? ['←', 'A surface pane: one step back toward solid ground.']
+    : col === 0 ? ['↓', 'A step on the spine — the argument itself.']
+    : col === 1 ? ['→', 'A dive: one step deeper into that step.']
+    : ['→', `${col} steps deeper. Left brings you back out, one at a time.`];
+
+  svg.addEventListener('pointerover', e => {
+    const cell = e.target.closest?.('.cell');
+    if (!cell) return;
+    stopTour();
+    const col = Number(cell.dataset.col);
+    show({ row: Number(cell.dataset.row), col, cap: columnCap(col), lit: col < 0 ? 'surface' : col > 0 ? 'dive' : null });
+  }, { signal });
+  svg.addEventListener('pointerleave', () => startTour(), { signal });
 
   show({ row: TOUR_ROW, col: 0, cap: ['↓', 'Down the middle: the next step of the argument.'] });
   if (still.matches) {
