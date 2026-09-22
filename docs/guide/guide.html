@@ -1,0 +1,177 @@
+<!--
+  Guide page: the unnumbered row under the title, route #/guide. It explains the two axes of
+  the grid before the reader meets them — down the spine is the argument, sideways is depth.
+  main.js fetches this fragment into the guide cell and mounts ./guide.js on it; it is not a
+  manifest panel and does not go through the pane loader. Self-contained like the title:
+  its styles live here, scoped under .guide, and read only the tokens base.css defines.
+
+  The page is its own diagram. The map in the middle is the real grid, drawn from the
+  manifest by guide.js; the two explanations sit to its left and right, on the axis they
+  describe.
+-->
+<section class="guide" aria-label="How to move around">
+<style>
+  .guide {
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(0.75rem, 2vh, 1.75rem);
+    padding: clamp(1.5rem, 4vh, 3rem) clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 3vh, 2.25rem);
+    text-align: center;
+  }
+
+  /* ---- header ---- */
+  .guide h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+    letter-spacing: -0.02em;
+  }
+  .guide .lede {
+    margin: 0.45rem auto 0;
+    max-width: 52ch;
+    color: var(--muted);
+    font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+    text-wrap: balance;
+  }
+
+  /* ---- the three columns: surface, the map, dive ---- */
+  .guide .axes {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.15fr) minmax(10rem, 1fr);
+    align-items: center;
+    gap: clamp(1rem, 3vw, 3.5rem);
+    min-height: 0;
+  }
+
+  .guide .axis {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: center;
+    max-width: 24rem;
+    justify-self: center;
+    transition: opacity 0.35s;
+  }
+  .guide .axis .key {
+    display: inline-grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    box-shadow: 0 1px 0 var(--border);
+    transition: border-color 0.25s, background 0.25s, color 0.25s, scale 0.25s;
+  }
+  .guide .axis h2 {
+    margin: 0;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+  }
+  .guide .axis p {
+    margin: 0;
+    color: var(--muted);
+    font-size: clamp(0.82rem, 1vw, 0.95rem);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  .guide .axis .count {
+    margin-top: 0.15rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    color: var(--border-strong);
+  }
+
+  /* the axis the tour is currently demonstrating (guide.js toggles .lit) */
+  .guide .axis.lit .key { scale: 1.12; }
+  .guide .axis.surface.lit .key { border-color: var(--fg); color: var(--fg); }
+  .guide .axis.dive.lit .key { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .guide .axes:has(.axis.lit) .axis:not(.lit) { opacity: 0.45; }
+
+  /* ---- the map ---- */
+  .guide .map { min-height: 0; height: 100%; display: grid; place-items: center; }
+  .guide .map svg { display: block; width: 100%; height: 100%; }
+
+  /* a node is drawn as what it stands for: one full viewport, landscape */
+  .guide .map .cell {
+    fill: var(--surface);
+    stroke: var(--border-strong);
+    stroke-width: 0.9;
+    transition: fill 0.3s, stroke 0.3s, stroke-width 0.3s;
+  }
+  .guide .map .cell.surface { fill: none; stroke: var(--border); }
+  .guide .map .cell.dive { fill: var(--accent-soft); stroke: var(--accent); stroke-opacity: 0.45; }
+  .guide .map .cell.dive.d2 { fill: color-mix(in srgb, var(--accent-soft) 55%, var(--accent)); }
+  .guide .map .cell.dive.d3 { fill: color-mix(in srgb, var(--accent-soft) 18%, var(--accent)); }
+  /* the node the reader is standing on */
+  .guide .map .cell.on { stroke: var(--fg); stroke-width: 1.6; stroke-opacity: 1; }
+
+  /* the spine reads as one thread; a tie is the sideways move off it */
+  .guide .map .thread { stroke: var(--border-strong); stroke-width: 0.7; }
+  .guide .map .tie { stroke: var(--border); stroke-width: 0.7; }
+
+  /* the vertical axis, annotated in the viewBox's left margin */
+  .guide .map .down { stroke: var(--border-strong); stroke-width: 0.8; fill: none; }
+  .guide .map .down-label {
+    fill: var(--border-strong);
+    font-size: 5.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* the reader's position, hopping node to node */
+  .guide .map .token {
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate(43px, 55px);
+  }
+  .guide .map .token circle { fill: var(--fg); }
+  .guide .map .token circle.halo { fill: var(--bg); }
+
+  /* ---- footer: one live line, plus the standing instruction ---- */
+  .guide .caption {
+    margin: 0;
+    min-height: 1.6em;
+    font-size: clamp(0.85rem, 1.1vw, 1rem);
+    color: var(--fg);
+  }
+  .guide .caption .dir { font-family: var(--mono); color: var(--muted); margin-right: 0.45em; }
+  .guide .hint { margin: 0.3rem 0 0; color: var(--border-strong); font-size: 0.8rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .guide .map .token { transition: none; }
+    .guide .axis .key { transition: none; }
+  }
+</style>
+
+  <header>
+    <h1>How to move around</h1>
+    <p class="lede">Every page here sits on a grid. Down the middle is the argument, one step at a
+      time. Sideways is how deep you want to go on the step you are standing on.</p>
+  </header>
+
+  <div class="axes">
+    <aside class="axis surface">
+      <span class="key" aria-hidden="true">←</span>
+      <h2>Surface</h2>
+      <p>A step back toward solid ground: the thing this page assumes you remember, with fewer
+        moving parts and numbers you can check by hand.</p>
+      <p class="count" data-count="left"></p>
+    </aside>
+
+    <div class="map"></div>
+
+    <aside class="axis dive">
+      <span class="key" aria-hidden="true">→</span>
+      <h2>Dive</h2>
+      <p>A step further in: what the page gestures at but does not need. Another dimension,
+        a parameter swept, a method taken apart.</p>
+      <p class="count" data-count="right"></p>
+    </aside>
+  </div>
+
+  <footer>
+    <p class="caption"></p>
+    <p class="hint">Arrow keys, a touchpad swipe, or the dots on the edges — all the same move.</p>
+  </footer>
+</section>

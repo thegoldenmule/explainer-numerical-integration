@@ -1,30 +1,53 @@
 // Hash routes:  #/N   #/N/left   #/N/right   #/N/right/2   #/N/right/3
 // A depth suffix only ever follows `right` (panel 12's three-pane chain); `left` never
 // chains, and depth defaults to 1 when the suffix is absent. Anything else normalizes to
-// #/<first> (main.js passes 0, the title row). The router owns `current`; main.js reacts
-// in onRoute.
+// the first row. The router owns `current`; main.js reacts in onRoute.
+//
+// A row id is usually the panel number, but the unnumbered rows between and around the
+// panels are named instead (`#/guide`), so a row can be inserted into the vertical order
+// without renumbering the panels and breaking every deep link. The router therefore knows
+// the rows as an *ordered list of ids*, not a count: `order` is the spine top to bottom, and
+// `step(±1)` is what down and up mean.
 
 export function parseRoute(hash) {
-  const m = /^#\/(\d{1,2})(?:\/(left|right)(?:\/(\d+))?)?\/?$/.exec(hash || '');
+  const m = /^#\/(\d{1,2}|[a-z][a-z-]{0,23})(?:\/(left|right)(?:\/(\d+))?)?\/?$/.exec(hash || '');
   if (!m) return null;
-  return { index: Number(m[1]), side: m[2] || null, depth: m[3] ? Number(m[3]) : 1 };
+  return {
+    index: /^\d+$/.test(m[1]) ? Number(m[1]) : m[1],
+    side: m[2] || null,
+    depth: m[3] ? Number(m[3]) : 1,
+  };
 }
 
 export const formatRoute = ({ index, side, depth }) =>
   `#/${index}${side ? '/' + side + (depth > 1 ? '/' + depth : '') : ''}`;
 
 /**
- * createRouter({ count, first, canOpen(index, side, depth), onRoute(route, source) })
- *   first: the lowest index, and the route everything unparseable normalizes to (default 1)
+ * createRouter({ order, canOpen(index, side, depth), onRoute(route, source) })
+ *   order:  every row id, top to bottom. order[0] is the route everything unparseable
+ *           normalizes to, and `step` walks this list.
  *   source: 'initial' | 'hash' | 'scroll' | 'hscroll' | 'go'
  *   canOpen reports whether that exact depth exists for that side.
  */
-export function createRouter({ count, first = 1, canOpen = () => true, onRoute }) {
+export function createRouter({ order, canOpen = () => true, onRoute }) {
+  const first = order[0];
+  const numbered = order.filter(id => typeof id === 'number');
   let current = { index: first, side: null, depth: 1 };
+
+  // An unknown id is a typo or a stale link: a number clamps into the numbered rows (#/99 →
+  // the last panel), anything else goes home rather than guessing at a name.
+  function resolveRow(raw) {
+    if (order.includes(raw)) return raw;
+    const n = Number(raw);
+    if (Number.isFinite(n) && numbered.length) {
+      return Math.min(numbered.at(-1), Math.max(numbered[0], Math.trunc(n)));
+    }
+    return first;
+  }
 
   function normalize(route) {
     if (!route) return { index: first, side: null, depth: 1 };
-    const index = Math.min(count, Math.max(first, route.index | 0));
+    const index = resolveRow(route.index);
     let side = route.side || null;
     let depth = side ? Math.max(1, route.depth | 0 || 1) : 1;
     if (side) {
@@ -73,6 +96,8 @@ export function createRouter({ count, first = 1, canOpen = () => true, onRoute }
   return {
     go,
     back: () => go(current.index, null),
+    /** The row `delta` steps down the spine from the current one, clamped at both ends. */
+    step: delta => order[Math.min(order.length - 1, Math.max(0, order.indexOf(current.index) + delta))],
     get current() { return current; },
     start() {
       const route = normalize(parseRoute(location.hash));

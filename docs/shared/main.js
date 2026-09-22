@@ -20,13 +20,18 @@ const vignette = document.getElementById('vignette');
 const KIND = { left: 'Surface', right: 'Dive' };
 const SITE = 'Why physics engines blow up';
 
-// Row 0: the title page. Not a manifest entry; one cell, no side panes, mounted below from
-// title/ directly rather than through the pane manager. The last row, panelCount + 1, is its
-// bookend: the conclusion page, mounted the same way from conclusion/.
+// The three unnumbered rows. None is a manifest entry: each is one cell, no side panes,
+// mounted below from its own directory rather than through the pane manager. Row 0 is the
+// title, `guide` sits under it and explains the two axes before the reader meets them, and
+// panelCount + 1 is the closing page. `guide` is named rather than numbered so it could be
+// slid in between #/0 and #/1 without renumbering thirteen panels' deep links.
 const TITLE = 0;
 const TITLE_TEXT = 'Why do physics engines break?';
+const GUIDE = 'guide';
+const GUIDE_TEXT = 'How to move around';
 const END = panelCount + 1;
 const END_TEXT = 'Fin';
+const BOOKEND_TEXT = { [TITLE]: TITLE_TEXT, [GUIDE]: GUIDE_TEXT, [END]: END_TEXT };
 
 // Ordered list of panes for one manifest entry: an optional left, always spine, then the
 // right chain in order. Each item carries `id` (the file basename / cell key), `pane` (the
@@ -43,19 +48,26 @@ function paneList(entry) {
 }
 
 // ---- rows and cells ----
-const rows = new Map();   // index → row element
+const rows = new Map();   // row id → row element
+const rowId = new WeakMap();  // row element → row id, since a named row's id is not a number
 const cells = new Map();  // "index/id" → { cell, body, pane, depth }
 const key = (index, id) => `${index}/${id}`;
 
-{
+// One full-bleed cell and its rail dot, for a row that is not a manifest panel. Appended in
+// call order, so these bracket the manifest loop below.
+function addBookendRow(id, text) {
   const body = el('div', { class: 'pane-body' });
-  const cell = el('div', { class: 'pane pane-spine pane-title', 'data-index': TITLE, 'data-pane': 'spine', 'data-depth': 1 }, body);
-  const row = el('section', { class: 'panel', id: `panel-${TITLE}`, 'data-index': TITLE, 'aria-label': TITLE_TEXT }, cell);
-  cells.set(key(TITLE, 'spine'), { cell, body, pane: 'spine', depth: 1 });
-  rows.set(TITLE, row);
+  const cell = el('div', { class: 'pane pane-spine pane-title', 'data-index': id, 'data-pane': 'spine', 'data-depth': 1 }, body);
+  const row = el('section', { class: 'panel', id: `panel-${id}`, 'data-index': id, 'aria-label': text }, cell);
+  cells.set(key(id, 'spine'), { cell, body, pane: 'spine', depth: 1 });
+  rows.set(id, row);
+  rowId.set(row, id);
   spine.append(row);
-  rail.append(el('a', { href: `#/${TITLE}`, title: TITLE_TEXT, 'aria-label': TITLE_TEXT }));
+  rail.append(el('a', { href: `#/${id}`, title: text, 'aria-label': text }));
 }
+
+addBookendRow(TITLE, TITLE_TEXT);
+addBookendRow(GUIDE, GUIDE_TEXT);
 
 for (const entry of manifest) {
   const row = el('section', { class: 'panel', id: `panel-${entry.index}`, 'data-index': entry.index, 'aria-label': entry.title });
@@ -71,6 +83,7 @@ for (const entry of manifest) {
     cells.set(key(entry.index, p.id), { cell, body, pane: p.pane, depth: p.depth });
   }
   rows.set(entry.index, row);
+  rowId.set(row, entry.index);
   spine.append(row);
 
   rail.append(el('a', {
@@ -78,20 +91,12 @@ for (const entry of manifest) {
   }));
 }
 
-{
-  const body = el('div', { class: 'pane-body' });
-  const cell = el('div', { class: 'pane pane-spine pane-title', 'data-index': END, 'data-pane': 'spine', 'data-depth': 1 }, body);
-  const row = el('section', { class: 'panel', id: `panel-${END}`, 'data-index': END, 'aria-label': END_TEXT }, cell);
-  cells.set(key(END, 'spine'), { cell, body, pane: 'spine', depth: 1 });
-  rows.set(END, row);
-  spine.append(row);
-  rail.append(el('a', { href: `#/${END}`, title: END_TEXT, 'aria-label': END_TEXT }));
-}
+addBookendRow(END, END_TEXT);
 
 // ---- horizontal rail: one dot per pane of the current panel, rebuilt on every route ----
 function updateHrail(index, side, depth) {
   const entry = panelAt(index);
-  if (!entry) { hrail.replaceChildren(); return; }   // the title row: its footer is the guide
+  if (!entry) { hrail.replaceChildren(); return; }   // an unnumbered row: it has no panes to point at
   const activeId = side ? paneFileId(side, depth) : 'spine';
   hrail.replaceChildren(...paneList(entry).map(p => {
     const href = p.pane === 'spine' ? `#/${index}` : `#/${index}/${p.pane}${p.depth > 1 ? '/' + p.depth : ''}`;
@@ -152,9 +157,9 @@ function alignRow(index, side, depth, instant) {
 // every row starts on its spine pane, not its left pane
 for (const entry of manifest) alignRow(entry.index, null, 1, true);
 
-// ---- the title and conclusion pages ----
+// ---- the unnumbered pages: title, guide, conclusion ----
 // Each is fetched and mounted once at boot, in place; resumed only while its own row is on
-// screen so its collage never downloads or decodes behind another panel.
+// screen, so neither the collages nor the guide's animation run behind another panel.
 function mountBookend(index, text, dir) {
   return (async () => {
     const body = cells.get(key(index, 'spine')).body;
@@ -173,8 +178,11 @@ function mountBookend(index, text, dir) {
     }
   })();
 }
-const title = mountBookend(TITLE, TITLE_TEXT, 'title');
-const conclusion = mountBookend(END, END_TEXT, 'conclusion');
+const bookends = new Map([
+  [TITLE, mountBookend(TITLE, TITLE_TEXT, 'title')],
+  [GUIDE, mountBookend(GUIDE, GUIDE_TEXT, 'guide')],
+  [END, mountBookend(END, END_TEXT, 'conclusion')],
+]);
 
 // ---- router ----
 const panes = createPaneManager({ store, manifest, containerFor: (i, pane, depth) => cells.get(key(i, paneFileId(pane, depth))).body });
@@ -189,8 +197,7 @@ function setInert(index, activeId) {
 }
 
 const router = createRouter({
-  count: END,
-  first: TITLE,
+  order: [TITLE, GUIDE, ...manifest.map(e => e.index), END],
   canOpen: (index, side, depth) => {
     const entry = panelAt(index);
     if (!entry) return false;
@@ -201,7 +208,9 @@ const router = createRouter({
   onRoute({ index, side, depth }, source) {
     const entry = panelAt(index);
     const sideTitle = side ? (side === 'left' ? entry.left.title : entry.right[depth - 1].title) : null;
-    document.title = entry ? `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : ''} · ${SITE}` : (index === END ? END_TEXT : TITLE_TEXT);
+    document.title = entry
+      ? `${index}. ${entry.title}${sideTitle ? ` · ${sideTitle}` : ''} · ${SITE}`
+      : (index === TITLE ? TITLE_TEXT : `${BOOKEND_TEXT[index]} · ${SITE}`);
     for (const a of rail.children) {
       if (a.getAttribute('href') === `#/${index}`) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
     }
@@ -220,8 +229,7 @@ const router = createRouter({
 
     updateVignette(index);
     panes.activate(index, side, depth);
-    title.then(h => (index === TITLE ? h.resume() : h.pause()));
-    conclusion.then(h => (index === END ? h.resume() : h.pause()));
+    for (const [id, handle] of bookends) handle.then(h => (id === index ? h.resume() : h.pause()));
     last = { index, side, depth };
   },
 });
@@ -232,7 +240,7 @@ const verticalObserver = new IntersectionObserver(entries => {
   if (navigatingV || router.current.side) return;
   for (const e of entries) {
     if (e.isIntersecting && e.intersectionRatio >= 0.5) {
-      router.go(Number(e.target.dataset.index), null, 1, { replace: true, source: 'scroll' });
+      router.go(rowId.get(e.target), null, 1, { replace: true, source: 'scroll' });
     }
   }
 }, { root: spine, threshold: 0.5 });
@@ -286,9 +294,9 @@ window.addEventListener('keydown', e => {
     else if (!side && rightLen > 0) router.go(index, 'right', 1);
     e.preventDefault();
   } else if (!side && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'j')) {
-    router.go(index + 1); e.preventDefault();
+    router.go(router.step(1)); e.preventDefault();
   } else if (!side && (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'k')) {
-    router.go(index - 1); e.preventDefault();
+    router.go(router.step(-1)); e.preventDefault();
   }
 });
 
