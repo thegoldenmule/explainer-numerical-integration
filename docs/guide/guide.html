@@ -2,12 +2,12 @@
   Guide page: the unnumbered row under the title, route #/guide. It explains the two axes of
   the grid before the reader meets them — down the spine is the argument, sideways is depth.
   main.js fetches this fragment into the guide cell and mounts ./guide.js on it; it is not a
-  manifest panel and does not go through the pane loader. Self-contained like the title:
-  its styles live here, scoped under .guide, and read only the tokens base.css defines.
+  manifest panel and does not go through the pane loader. Self-contained like the title, and
+  like the title it imports nothing: its styles live here, scoped under .guide, and read only
+  the tokens base.css defines.
 
-  The page is its own diagram. The map in the middle is the real grid, drawn from the
-  manifest by guide.js; the two explanations sit to its left and right, on the axis they
-  describe.
+  The page is its own diagram. The middle is a wordless schematic of the grid, drawn by
+  guide.js; the two explanations sit to its left and right, on the axis each describes.
 -->
 <section class="guide" aria-label="How to move around">
 <style>
@@ -75,13 +75,6 @@
     line-height: 1.5;
     text-wrap: pretty;
   }
-  .guide .axis .count {
-    margin-top: 0.15rem;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.02em;
-    color: var(--border-strong);
-  }
 
   /* the axis the tour is currently demonstrating (guide.js toggles .lit) */
   .guide .axis.lit .key { scale: 1.12; }
@@ -147,7 +140,6 @@
       <h2>Surface</h2>
       <p>A step back toward solid ground: the thing this page assumes you remember, with fewer
         moving parts and numbers you can check by hand.</p>
-      <p class="count" data-count="left"></p>
     </aside>
 
     <div class="map"></div>
@@ -157,7 +149,6 @@
       <h2>Dive</h2>
       <p>A step further in: what the page gestures at but does not need. Another dimension,
         a parameter swept, a method taken apart.</p>
-      <p class="count" data-count="right"></p>
     </aside>
   </div>
 

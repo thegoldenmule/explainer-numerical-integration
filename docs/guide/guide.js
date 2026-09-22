@@ -11,8 +11,6 @@
 // down to the next step — lighting the aside that explains whichever one it is making. The
 // diagram carries no words of its own: the two asides are the caption.
 
-import { manifest, panelCount } from 'shared/manifest.js';
-
 // ---- geometry, in viewBox units ----
 // A node is a landscape rectangle because that is what it stands for: one full viewport.
 const CW = 22, CH = 14;      // node
@@ -115,12 +113,6 @@ export function mount(root, { signal } = {}) {
     node('circle', { r: 2.1 }));
   svg.append(token);
   host.replaceChildren(svg);
-
-  // ---- the two counts: real facts about the real outline, read off the manifest ----
-  const withLeft = manifest.filter(e => e.left).length;
-  const dives = manifest.reduce((n, e) => n + (e.right?.length ?? 0), 0);
-  root.querySelector('[data-count="left"]').textContent = `${withLeft} of the ${panelCount} steps have one`;
-  root.querySelector('[data-count="right"]').textContent = `${dives} in all, and one of them goes three deep`;
 
   let current = null;
   function show({ row, col }) {
