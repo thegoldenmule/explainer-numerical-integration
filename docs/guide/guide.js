@@ -7,8 +7,9 @@
 // three deeper nodes out to the right. It is deliberately wordless and deliberately not the
 // real outline, because the reader has not met the outline yet; the shape is the whole point.
 //
-// A token walks a short tour of the three moves (left to the surface, right into a dive, down
-// to the next step) while the caption under the diagram says which move it is making.
+// A token walks a short tour of the three moves — left to the surface, right into a dive,
+// down to the next step — lighting the aside that explains whichever one it is making. The
+// diagram carries no words of its own: the two asides are the caption.
 
 import { manifest, panelCount } from 'shared/manifest.js';
 
@@ -46,27 +47,26 @@ const node = (name, attrs = {}, ...kids) => {
 
 const spot = (row, col) => `${row}:${col}`;
 
-// The tour, as squares of the diagram plus how long to sit on each. `lit` highlights the
-// aside that explains the move being made.
+// The tour, as squares of the diagram plus how long to sit on each. A side node lights the
+// aside that explains it; the spine holds the pause between moves, with neither lit.
 const TOUR = [
-  { row: 1, col: 0, hold: 1500, cap: ['↓', 'Down the middle: the next step of the argument.'] },
-  { row: 2, col: 0, hold: 1500, cap: ['↓', 'Down the middle: the next step of the argument.'] },
-  { row: 3, col: 0, hold: 1600, cap: ['↓', 'Every step is a page of its own.'] },
-  { row: 3, col: -1, hold: 2800, lit: 'surface', cap: ['←', 'Left: back toward the surface — the refresher for this step.'] },
-  { row: 3, col: 0, hold: 1700, cap: ['→', 'And back to the middle. A side trip is a dead end; the way on is down.'] },
-  { row: 3, col: 1, hold: 2800, lit: 'dive', cap: ['→', 'Right: a step deeper into this one idea.'] },
-  { row: 3, col: 0, hold: 1500, cap: ['←', 'And back to the middle again.'] },
-  { row: 4, col: 0, hold: 1500, cap: ['↓', 'Down the middle: the next step of the argument.'] },
-  { row: 4, col: 1, hold: 1300, lit: 'dive', cap: ['→', 'Some ideas go deeper than one step.'] },
-  { row: 4, col: 2, hold: 1300, lit: 'dive', cap: ['→', 'Some ideas go deeper than one step.'] },
-  { row: 4, col: 3, hold: 2200, lit: 'dive', cap: ['→', 'One of them is three deep. Left brings you back out.'] },
-  { row: 4, col: 0, hold: 1500, cap: ['←', 'Back to the middle.'] },
-  { row: 5, col: 0, hold: 1500, cap: ['↓', 'Down the middle: the next step of the argument.'] },
+  { row: 1, col: 0, hold: 1500 },
+  { row: 2, col: 0, hold: 1500 },
+  { row: 3, col: 0, hold: 1600 },
+  { row: 3, col: -1, hold: 2800 },
+  { row: 3, col: 0, hold: 1700 },
+  { row: 3, col: 1, hold: 2800 },
+  { row: 3, col: 0, hold: 1500 },
+  { row: 4, col: 0, hold: 1500 },
+  { row: 4, col: 1, hold: 1300 },
+  { row: 4, col: 2, hold: 1300 },
+  { row: 4, col: 3, hold: 2200 },
+  { row: 4, col: 0, hold: 1500 },
+  { row: 5, col: 0, hold: 1500 },
 ];
 
 export function mount(root, { signal } = {}) {
   const host = root.querySelector('.map');
-  const caption = root.querySelector('.caption');
   const asides = {
     surface: root.querySelector('.axis.surface'),
     dive: root.querySelector('.axis.dive'),
@@ -123,18 +123,15 @@ export function mount(root, { signal } = {}) {
   root.querySelector('[data-count="right"]').textContent = `${dives} in all, and one of them goes three deep`;
 
   let current = null;
-  function show({ row, col, cap, lit }) {
+  function show({ row, col }) {
     const at = cells.get(spot(row, col));
     if (!at) return;
     if (current) current.cell.classList.remove('on');
     current = at;
     at.cell.classList.add('on');
     token.style.transform = `translate(${at.cx}px, ${at.cy}px)`;
-    const [dir, text] = cap;
-    caption.replaceChildren(
-      Object.assign(document.createElement('span'), { className: 'dir', textContent: dir }),
-      document.createTextNode(text),
-    );
+    // which column you are standing in is the whole message: the asides are the caption
+    const lit = col < 0 ? 'surface' : col > 0 ? 'dive' : null;
     for (const [name, aside] of Object.entries(asides)) aside.classList.toggle('lit', name === lit);
   }
 
@@ -155,27 +152,17 @@ export function mount(root, { signal } = {}) {
   }
 
   // Hovering takes the wheel: the tour stops and the selection follows you around the shape.
-  // A node stands for no page in particular, so there is nothing to click through to — what a
-  // hover can still say is which move got you there, which is the whole subject of the page.
-  const columnCap = col =>
-    col < 0 ? ['←', 'A surface pane: one step back toward solid ground.']
-    : col === 0 ? ['↓', 'A step on the spine — the argument itself.']
-    : col === 1 ? ['→', 'A dive: one step deeper into that step.']
-    : ['→', `${col} steps deeper. Left brings you back out, one at a time.`];
-
+  // A node stands for no page in particular, so there is nothing to click through to; moving
+  // the selection yourself, and watching which aside lights up, is the whole interaction.
   svg.addEventListener('pointerover', e => {
     const cell = e.target.closest?.('.cell');
     if (!cell) return;
     stopTour();
-    const col = Number(cell.dataset.col);
-    show({ row: Number(cell.dataset.row), col, cap: columnCap(col), lit: col < 0 ? 'surface' : col > 0 ? 'dive' : null });
+    show({ row: Number(cell.dataset.row), col: Number(cell.dataset.col) });
   }, { signal });
   svg.addEventListener('pointerleave', () => startTour(), { signal });
 
-  show({ row: TOUR_ROW, col: 0, cap: ['↓', 'Down the middle: the next step of the argument.'] });
-  if (still.matches) {
-    caption.replaceChildren('Left is the surface, right is a dive, down is the next step.');
-  }
+  show({ row: TOUR_ROW, col: 0 });
 
   return {
     pause: stopTour,
