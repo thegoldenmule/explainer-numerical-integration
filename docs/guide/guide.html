@@ -93,6 +93,8 @@
     stroke-width: 0.9;
     transition: fill 0.3s, stroke 0.3s, stroke-width 0.3s;
   }
+  /* the spine's nodes are the trunk: wider (guide.js) and drawn the most solidly */
+  .guide .map .cell.spine { stroke-width: 1.1; }
   .guide .map .cell.surface { fill: none; stroke: var(--border); }
   .guide .map .cell.dive { fill: var(--accent-soft); stroke: var(--accent); stroke-opacity: 0.45; }
   .guide .map .cell.dive.d2 { fill: color-mix(in srgb, var(--accent-soft) 55%, var(--accent)); }
@@ -101,11 +103,18 @@
   .guide .map .cell.on,
   .guide .map .cell:hover { stroke: var(--fg); stroke-width: 1.6; stroke-opacity: 1; }
 
-  /* the spine reads as one thread; a tie is the sideways move off it */
-  .guide .map .thread { stroke: var(--border-strong); stroke-width: 0.7; }
+  /* The spine's own thread is the vertical axis: it runs down behind the middle column,
+     showing in the gaps, and carries on out of the bottom of the diagram. A tie is the
+     sideways move off it. */
+  .guide .map .thread {
+    stroke: var(--border-strong);
+    stroke-width: 0.9;
+    fill: none;
+    stroke-linejoin: round;
+  }
   .guide .map .tie { stroke: var(--border); stroke-width: 0.7; }
 
-  /* the two axes, annotated in the viewBox's margins */
+  /* the sideways axis, annotated across the viewBox's top margin */
   .guide .map .rule { stroke: var(--border-strong); stroke-width: 0.8; fill: none; stroke-linejoin: round; }
   .guide .map .rule-label {
     fill: var(--border-strong);
@@ -118,7 +127,7 @@
   /* the reader's position, hopping node to node */
   .guide .map .token {
     transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translate(43px, 55px);
+    transform: translate(49px, 73px);
   }
   .guide .map .token circle { fill: var(--fg); }
   .guide .map .token circle.halo { fill: var(--bg); }
