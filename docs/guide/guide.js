@@ -24,9 +24,9 @@ const xAt = col => col < 0 ? 0
   : SIDE_W + CGAP + SPINE_W + CGAP + (col - 1) * (SIDE_W + CGAP);
 const cxAt = col => xAt(col) + wAt(col) / 2;
 const MAP_W = xAt(3) + SIDE_W;
-// The bottom margin is where the spine's thread runs on out of the diagram; the top carries
-// the depth rule. The sides need nothing but air.
-const PAD = { top: 15, right: 6, bottom: 17, left: 6 };
+// The bottom margin is where the spine's thread runs on out of the diagram. Nothing else
+// lives outside the nodes, so the other three are air.
+const PAD = { top: 4, right: 6, bottom: 17, left: 6 };
 
 // The fake outline: one entry per row, saying which side nodes that row has. Shaped like the
 // real thing — most rows have a dive, many have a surface, one goes three deep, and the two
@@ -84,26 +84,10 @@ export function mount(root, { signal } = {}) {
     'aria-hidden': 'true',
   });
 
-  // The sideways axis, across the top: a rule with a head at each end, broken to let its
-  // label sit in the gap. Sideways goes both ways, and each head reaches toward the aside
-  // that explains that direction.
-  const midX = cxAt(-1) + (cxAt(3) - cxAt(-1)) / 2;
-  const gap = 13;   // half the width the label needs in the rule
-  svg.append(
-    node('path', {
-      class: 'rule',
-      d: `M ${cxAt(-1) + 4} -11.5 l -4 3 l 4 3`
-       + ` M ${cxAt(-1)} -8.5 H ${midX - gap}`
-       + ` M ${midX + gap} -8.5 H ${cxAt(3)}`
-       + ` m -4 -3 l 4 3 l -4 3`,
-    }),
-    node('text', { class: 'rule-label', x: midX, y: -8.5, 'text-anchor': 'middle' }, 'depth'),
-  );
-
-  // The vertical axis needs no label of its own: it is the spine, so it is drawn as the
-  // spine — one thread down through the middle column, running on out of the bottom of the
-  // diagram with a head on it. Where the sideways rule annotates the shape from outside, this
-  // one is part of it.
+  // The vertical axis needs no label and no rule of its own: it is the spine, so it is drawn
+  // as the spine — one thread down through the middle column, running on out of the bottom of
+  // the diagram with a head on it. The sideways axis is not annotated at all; the shape says
+  // it, and the two asides sit on the very sides they name.
   svg.append(node('path', {
     class: 'thread',
     d: `M ${cxAt(0)} ${CH / 2} V ${H + 9} m -3 -4.5 l 3 4.5 l 3 -4.5`,
