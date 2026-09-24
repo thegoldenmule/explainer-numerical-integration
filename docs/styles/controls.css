@@ -6,14 +6,6 @@
    column); a lone button does not. */
 .controls { display: grid; gap: 0.75rem; }
 .controls > .btn { justify-self: start; }
-/* a stage beside its controls, so a square stage and a strip stage fit one pane */
-.viz-row {
-  display: grid;
-  grid-template-columns: calc(min(48%, calc(var(--stage-max) * 0.62)) * var(--fit, 1)) minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
-}
-.viz-row > .stage { width: 100%; }   /* the column is definite; the stage fills it */
 /* a row of buttons or toggles: each its natural width, left-aligned, wrapping if it must */
 .controls-row { display: flex; gap: 0.5rem 1rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
 
@@ -108,10 +100,6 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .pane-body .viz > .stage.strip { width: 100%; aspect-ratio: 3 / 1; }
 .pane-body .viz > .stage-slot { container-type: size; }
 .stage-slot > .stage.square { width: min(100cqw, 100cqh); aspect-ratio: 1; }
-/* legacy kinds, sized the old way until every pane has moved to fill / square / strip */
-.stage.wide { aspect-ratio: 16 / 9; width: calc(100% * var(--fit, 1)); }
-.stage.tall { aspect-ratio: 3 / 4; width: calc(min(100%, calc(var(--stage-max) * 0.75)) * var(--fit, 1)); }
-.stage.half { aspect-ratio: 1; width: calc(min(100%, calc(var(--stage-max) * 0.62)) * var(--fit, 1)); }
 .stage > canvas {
   position: absolute;
   inset: 0;

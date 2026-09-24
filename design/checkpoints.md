@@ -64,7 +64,8 @@ down again lands on panel 7. This matches the gesture in the idea ("you scroll d
 prompts you") and keeps the spine pane untouched.
 
 The alternative, a card inside the spine pane's article, loses: `.pane-body` is
-`overflow: hidden` and `--stage-max` is sized so a panel never scrolls internally. On a
+`overflow: hidden` and the viz column is sized to the viewport so a panel never scrolls
+internally. On a
 short viewport the card would be clipped or would push the viz off screen.
 
 The row costs the shell these touch points, all in files that already exist:

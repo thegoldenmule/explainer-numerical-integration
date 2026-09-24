@@ -51,12 +51,6 @@
   --measure: calc(var(--measure-chars) * 1rem);
 
   --radius: 6px;
-  /* The ceiling for one stage: the viewport less room for panel chrome (padding, meta, h2,
-     gaps ≈ 13rem) and the few rem most panes stack under the stage. It is a ceiling, not a
-     budget — it cannot know how much a given pane puts in its column, so `shared/ui/fit.js`
-     measures that per pane and scales the stages down with `--fit` when they would run off
-     the bottom. Raising this only ever lets a roomy pane's stage grow. */
-  --stage-max: calc(100dvh - 18rem);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 

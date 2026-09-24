@@ -194,7 +194,10 @@ which `main.js` applies in `onRoute`.
 ## Rendering conventions
 
 - A stage is a positioned `div` with stacked canvases (`.stage > canvas`), each sized by
-  `plot2d.fitCanvas()` at a capped device pixel ratio.
+  `plot2d.fitCanvas()` at a capped device pixel ratio. Its kind (`fill`, the default, `square`,
+  or `strip`) decides its box; a `fill` stage runs anywhere from 3:1 to 1:1, so every drawing
+  works across that range (`makeView`'s `minHalfH` keeps an equal-axis box in view, and
+  `bestGrid` arranges small multiples as large as the box allows).
 - `createRegionRenderer` returns `null` without WebGL2 so a panel can show a one-line
   notice; there is no canvas-2D fallback.
 - Colors are CSS custom properties read once per draw through `plot2d.cssVar`, so the canvas
@@ -204,12 +207,14 @@ which `main.js` applies in `onRoute`.
 
 ## Stylesheet
 
-`base.css` defines the tokens and the type scale, including `--stage-max`, the ceiling for a
-square stage. The ceiling alone cannot know what else a pane stacks in its column, so
-`shared/ui/fit.js` measures each mounted pane and writes `--fit` on its `.viz`; every stage
-width in `controls.css` is multiplied by that number, and the stages — never the controls or
-the equations — shrink together until the column clears the bottom of the viewport. The same
-module fits the other column with `--prose-fit` on the `.prose`, which scales the type and the
+`base.css` defines the tokens and the type scale. The interactive column sizes itself in
+CSS: `.viz` stretches to the article's content row and stacks its children in one flex
+column (stages, then one controls block, then live equations; CLAUDE.md's "Pane layout
+standard" is the rule). Controls and equations take their natural height; the stages share
+the rest — a `fill` stage flexes into its share, capped at its width and floored at 3:1, a
+`square` is the largest square in its flexing slot, a `strip` is a fixed 3:1 — so nothing
+measures the column and nothing scales. `shared/ui/fit.js` fits the other column with
+`--prose-fit` on the `.prose`, which scales the type and the
 measure together (`--measure-chars` characters, read in `rem` at the root and in `em` inside a
 `.prose`) so the line length holds and only the column's height gives; it floors at 0.8. `layout.css`
 is the spine, rails, and pane mechanics and nothing else. `controls.css` styles the small

@@ -167,13 +167,16 @@ direction that stays true under this standard, because everything in the viz sta
   `c`, an overdamped view, a constant-force run) is computed locally, never written.
 - Live numbers in prose are `<mn data-var="…" data-digits="…">` slots filled by
   `bindMath(article, store, derive)`; pass the `<article>`, not `.viz`.
-- `--stage-max` is the *ceiling* for one square stage, not the budget: the loader runs
-  `shared/ui/fit.js` on every pane, which measures the column and writes `--fit` on the `.viz`.
-  Every stage width in `controls.css` is multiplied by it, so a pane with more chrome than the
-  ceiling assumes shrinks its stages instead of running off the bottom. New stage widths must
-  carry `* var(--fit, 1)`; controls and equations never scale. A pane with a square and a strip
-  uses `.stage.half` inside `.viz-row`, whose first column must stay definite.
-- The prose column is fitted the same way by the same module, with `--prose-fit` on the
+- Stage sizing is pure CSS; nothing measures the viz column. `.viz` (layout.css) stretches to
+  the article's content row and is a flex column and an inline-size container; every child is
+  `flex: none` except the stages. In controls.css a `.stage.fill` flexes (`flex: 1 1 0`) with
+  `max-height: 100cqw` and `min-height: calc(100cqw / 3)`; a `square` stage sits in a
+  `.stage-slot` that flexes the same way and is a size container, and the square inside is
+  `min(100cqw, 100cqh)`; a `.strip` is `aspect-ratio: 3 / 1` and does not flex. A stage must be a
+  direct child of `.viz` (or of its slot) for any of this to apply, so `createStage(root, …)`
+  is always called on the viz itself, in stacking order. Live equations go in an
+  `.equations` block, which drops block math's margins.
+- The prose column is fitted by `shared/ui/fit.js`, which the loader runs on every pane, with `--prose-fit` on the
   `.prose`: it scales the type and the measure together, so the line stays `--measure-chars`
   characters wide (read in `rem` at the root, in `em` inside a `.prose`) and only the column's
   height gives. It floors at 0.8; a pane that needs more than that clips, and the fix is to
