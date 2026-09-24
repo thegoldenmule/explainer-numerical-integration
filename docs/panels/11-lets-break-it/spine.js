@@ -1,9 +1,9 @@
-// Panel 11, spine: transport above the plane, the region under it with a draggable λ, the
-// spring running against the exact solution below that, and the equation the reader can
+// Panel 11, spine: the region with a draggable λ, the spring running against the exact
+// solution under it, the transport and the picker, and last the equation the reader can
 // drag m and k in directly (c comes from dragging the root instead: c and k together fix a
 // point in the plane, m does not move it, so it needs its own handle).
 
-import { fmt, fragment } from 'shared/dom.js';
+import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
@@ -26,12 +26,10 @@ export function mount(root, ctx) {
   const { store, signal, loop } = ctx;
   const article = root.closest('article') ?? root;
 
-  // transport first, so the plane below it gets the full width instead of sharing a row
   const player = createPlayer({ store, loop, signal });
-  root.append(controls(transport(player, { signal })));
 
   // the plane, with the region blitted underneath and the λ handle
-  const planeStage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal, grab: true });
+  const planeStage = createStage(root, { layers: ['region', 'plane'], signal, grab: true });
   const plane = createComplexPlane({ stage: planeStage, store, signal, halfRange: 15, region: true, drag: true });
 
   // the run
@@ -56,7 +54,8 @@ export function mount(root, ctx) {
   });
   player.onChange(runStage.invalidate);
 
-  root.append(controls(methodPicker(store, { signal }), fragment(EQUATION)));
+  root.append(controls(transport(player, { signal }), methodPicker(store, { signal })));
+  root.append(el('div', { class: 'equations' }, fragment(EQUATION)));
 
   bindMath(article, store, undefined, { signal });
   const offScrub = bindScrub(article, store, { signal, limits: { h: [0.005, 0.25] } });

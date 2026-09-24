@@ -33,20 +33,18 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   const upper = s => { const ls = eigenvalues(s.m, s.c, s.k); return ls[handleIndex(ls)]; };
 
-  const top = el('div', { class: 'viz-row' });
-  root.append(top);
-  const planeStage = createStage(top, { layers: ['plane'], aspect: 'half', signal, grab: true });
+  // the plane, the exact run under it, then the buttons that jump to three places on it
+  const planeStage = createStage(root, { layers: ['plane'], signal, grab: true });
   // no method here: the roots are colored by the physical verdict
   createComplexPlane({ stage: planeStage, store, signal, drag: true, halfRange: HALF, verdict: 'physical' });
 
-  top.append(controls(
+  const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  root.append(controls(
     row(...PLACES.map(p => el('button', {
       class: 'btn', type: 'button',
       onclick: () => store.set(paramsFromEigenvalue(store.get().m, p.lambda)),
     }, p.label))),
   ));
-
-  const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
   const series = { t: new Float64Array(SAMPLES), x: new Float64Array(SAMPLES), n: SAMPLES };
   runStage.onDraw(size => {
     const s = store.get();
