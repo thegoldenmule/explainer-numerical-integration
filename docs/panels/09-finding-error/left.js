@@ -1,5 +1,5 @@
 // Panel 9, left: one step multiplies the error by z; n steps multiply it by zⁿ. A slider for
-// z (local to the pane) and a sequence you step forward, drawn as dots, with the number of
+// z (local to the pane) and a sequence you step or play forward, drawn as dots, with the number of
 // steps and the time (at the store's h) the error takes to double or halve.
 
 import { el, fmt } from 'shared/dom.js';
@@ -7,6 +7,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { doublingTime, halvingTime } from 'shared/math/stability.js';
 import { controls, row } from 'shared/ui/controls.js';
+import { transport, stepPlayer } from 'shared/ui/transport.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
@@ -15,7 +16,7 @@ const Z_RANGE = [0.5, 1.5];
 const sub = i => String(i).replace(/\d/g, d => '₀₁₂₃₄₅₆₇₈₉'[d]);
 
 export function mount(root, ctx) {
-  const { store, signal } = ctx;
+  const { store, loop, signal } = ctx;
   let z = 1.05, n = 10;   // the ratio and how many steps have been taken
 
   const stage = createStage(root, { layers: ['plot'], signal });
@@ -70,12 +71,19 @@ export function mount(root, ctx) {
 
   const update = () => stage.invalidate();
 
+  // the sequence's own clock through the shared transport: Step takes one, Play takes one per
+  // h of wall-clock time (so the error grows at the rate the prose's doubling time says), and
+  // Reset goes back to the opening ten
+  const clock = stepPlayer({
+    loop, signal, h: () => store.get().h,
+    step: () => { n = Math.min(MAX_STEPS, n + 1); update(); if (n >= MAX_STEPS) clock.pause(); },
+    reset: () => { n = 10; update(); },
+  });
   const btn = (label, fn) => el('button', { class: 'btn', type: 'button', onclick: fn }, label);
   root.append(controls(
+    transport(clock, { signal }),
     row(
-      btn('Step', () => { n = Math.min(MAX_STEPS, n + 1); update(); }),
       btn('+10 steps', () => { n = Math.min(MAX_STEPS, n + 10); update(); }),
-      btn('Reset', () => { n = 10; update(); }),
       btn('z = 1.05', () => zStore.set({ z: 1.05 })),
       btn('z = 0.95', () => zStore.set({ z: 0.95 })),
     ),
@@ -86,5 +94,5 @@ export function mount(root, ctx) {
   bindMath(article, zStore, () => ({}), { signal });
 
   const unsub = store.subscribe((s, patch) => { if ('h' in patch) update(); }, { immediate: false });
-  return { destroy() { unsub(); } };
+  return { pause() { clock.pause(); }, destroy() { unsub(); } };
 }
