@@ -3,8 +3,8 @@
 Built. See `design/idea.md` (section "8. Recap: real time") for the beat, and `design/plan.md` for the
 pane contract. Panes in this directory:
 
-- `spine.html` + `spine.js`: Recap: real time. The run with the log-scaled frame-budget bar above
-  it. Every cost number is on the bar's label and in the prose (`bindMath`); the live error is
+- `spine.html` + `spine.js`: Recap: real time. The run under the log-scaled frame-budget bar, on
+  one stage. Every cost number is on the bar's label and in the prose (`bindMath`); the live error is
   drawn in the top-right of the plot. No readout. The window is a few periods of the current
   spring and the vertical range is the run's own amplitude, so the trace oscillates at a readable
   scale and a blown-up Euler leaves the frame. Preset buttons (`demo`, `essay`) are the only

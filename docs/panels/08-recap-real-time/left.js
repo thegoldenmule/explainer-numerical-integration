@@ -13,7 +13,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, niceStep } from 'shared/gfx/plot2d.js';
 import { createStore } from 'shared/state.js';
 import { stepCost } from 'shared/player.js';
-import { controls } from 'shared/ui/controls.js';
+import { controls, row } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { stepsPerFrame, fmtMs, fmtSteps, fmtCount } from './cost.js';
@@ -27,7 +27,7 @@ export function mount(root, ctx) {
   const local = createStore({ objects: 500000, fps: 60 },
     { limits: { objects: [1, MAX_OBJECTS], fps: [30, 60] } });
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   /** Everything both the canvas and the prose need, from the two stores. */
   function budget() {
@@ -134,7 +134,7 @@ export function mount(root, ctx) {
     }
   });
 
-  const fpsRow = el('div', { class: 'controls-row' }, [60, 30].map(f => el('button', {
+  const fpsRow = row([60, 30].map(f => el('button', {
     class: 'btn', type: 'button', 'data-fps': f, onclick: () => local.set({ fps: f }),
   }, `${f} fps`)));
   const syncFps = () => { for (const b of fpsRow.children) b.setAttribute('aria-pressed', String(Number(b.dataset.fps) === local.get().fps)); };

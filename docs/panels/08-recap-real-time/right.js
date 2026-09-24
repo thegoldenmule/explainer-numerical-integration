@@ -35,7 +35,7 @@ const highlightIndex = () => { const i = aux.get().highlight; return i < 0 ? CEN
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   const values = state => {
     const [lo, hi] = LIMITS.h;

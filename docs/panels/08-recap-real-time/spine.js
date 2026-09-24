@@ -1,4 +1,4 @@
-// Panel 8, spine: the simulation running with a frame-budget bar above it. Raise h and the
+// Panel 8, spine: the simulation running under a frame-budget bar, both on one stage. Raise h and the
 // compute cost per frame falls while the error against the exact curve rises. The bar is on
 // a log scale because a spring costs microseconds against a 16.7 ms frame; the cost numbers
 // live on the bar and in the prose, and the error is called out on the run itself.
@@ -27,7 +27,7 @@ const CYCLES = 4;   // periods of the spring visible at once
 export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
   const player = createPlayer({ store, loop, signal });
   let maxErr = 0, maxAmp = 0, scanned = 0;
 
