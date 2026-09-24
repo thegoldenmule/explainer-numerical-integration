@@ -87,6 +87,65 @@ recorded in `design/idea.md`; keep them in sync if those numbers change.
 `plot2d.js`, which owns DPR sizing, the plot `view` mapping, grid/axes, and reads colors from
 CSS custom properties so canvases match the stylesheet.
 
+## Pane layout standard
+
+Every pane with a `.viz` column (spine, left, right, right-N alike) is laid out this way. The
+reference viewports are 1440×900 (viz column ≈ 648×720 px) and 1280×720 (≈ 488×540); a pane
+meets every rule at both. Layout is checked by arithmetic from the CSS, not by opening a browser.
+
+**Order in `.viz`, top to bottom. Nothing else, and nothing in between:**
+
+1. **Stages.** The first stage's top edge is level with the prose's first line. Nothing sits
+   above a stage.
+2. **Controls**, in one block directly under the last stage, in this order: the transport
+   (`transport()`: Play/Pause, Step, Reset), then the method picker, then sliders and sweeps, then
+   toggles and force rows, then any other buttons.
+3. **Equations.** A block equation belongs in the viz only if it is live: it has `data-var`
+   numbers or scrubbable numbers. It goes last, under the controls. An equation with no live
+   numbers goes in the prose. An equation whose height changes with the state (a series that
+   grows as a sweep moves) reserves its tallest height, so nothing above it moves.
+
+Why this order: the stage is the anchor and sits in the same place on every pane. The controls
+sit next to what they move. Whatever can grow goes last, where it pushes nothing.
+
+**Sizing: stages get all the height that nothing else needs.**
+
+- Controls and equations take their natural height and never scale. The stages share the rest of
+  the column. At the reference viewports, the only empty height left in a column is under a
+  stage that has reached its cap.
+- The stage kind is chosen by what it shows:
+  - `fill` (the default): full column width. Its height is its share of the free height, capped
+    at its width, so it is never taller than square. The drawing works at any aspect from 3:1 to
+    1:1. For equal-axis views (planes, the physical scene), pass `halfW` and let `makeView`
+    derive the vertical range. Plots pass explicit ranges and stretch.
+  - `square`: only for content that has a fixed square extent (both half-ranges fixed). The
+    stage is the largest square that fits its share, left-aligned.
+  - `strip`: a secondary time series under a primary stage. Full width, fixed at 3:1, and it
+    does not grow.
+- **Several stages:** the primary stage (the one the prose is about) comes first. Strips take
+  their fixed height, then the `fill` and `square` stages split what is left equally. A stage
+  that draws N cells side by side arranges them (1×N, or a grid) so each cell is as large as
+  possible, and square if the content has equal axes.
+- **Budget:** at 1280×720, controls plus equations take at most 40% of the column height
+  (≈ 216 px). A pane over budget moves content out of the viz rather than shrinking the stage. A
+  static equation moves to the prose. A single parameter becomes a scrubbable number in the
+  prose. A control readers rarely touch moves to a side pane.
+- Stages are left-aligned, and a stage never has controls beside it. There is no `.viz-row`,
+  and no `.half`, `.wide` or `.tall` sizing.
+- Every canvas is a layer of a stage made with `createStage`, so a bare canvas never sits in the
+  viz.
+
+**Controls**
+
+- Build controls with the shared helpers in `shared/ui/` (`controls`, `row`, `transport`,
+  `methodPicker`, `slider`, `sweepStrip`, `toggle`). Never hand-build a copy of one.
+- A button is its natural width, and buttons in a row are left-aligned. A lone button never
+  stretches across the column.
+- Time controls are always the shared transport, labelled Play/Pause, Step, Reset. Never Run.
+
+**Prose** does not describe the layout. If it must point at something, "below" is the only
+direction that stays true under this standard, because everything in the viz stacks.
+
 ## Rules that are not obvious from the code
 
 - Modules inside `shared/` import each other with **relative** paths (Node runs the tests and
