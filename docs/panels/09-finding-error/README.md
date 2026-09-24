@@ -4,7 +4,7 @@ Built. See `design/idea.md` (section "9. Finding error") for the beat, and `desi
 pane contract. Panes in this directory:
 
 - `spine.html` + `spine.js`: Finding error. No readout: the measured ratio `z` and the
-  doubling/halving time it implies — the panel's beat — are `drawText` in the error strip's
+  doubling/halving time it implies — the panel's beat — are `drawText` in the error plot's
   own top-right corner instead of a box beside it.
 - `left.html` + `left.js`: refresher, Geometric growth. No readout: `e₁ = z·e₀`, the value
   after `n` steps, and the doubling/halving time are `drawText` on the plot itself, in

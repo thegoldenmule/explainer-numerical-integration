@@ -18,7 +18,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   let z = 1.05, n = 10;   // the ratio and how many steps have been taken
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   // z is dragged where it is written, in e(i+1) = z·e(i). Local to the pane: the ratio is a
   // property of a step, not an entry of the tuple.

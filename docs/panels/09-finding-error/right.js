@@ -20,9 +20,9 @@ const SPAN = 4;   // seconds of the modal run
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  // the picker, above the plane: both λ with their |R|, scaled to the current system
-  root.append(controls(methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal })));
-  const planeStage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
+  // the plane (both λ with their |R|, scaled to the current system), the modal run under it,
+  // then the picker
+  const planeStage = createStage(root, { layers: ['plane'], signal });
   const plane = createComplexPlane({
     stage: planeStage, store, signal,
     halfRange: s => { const [l] = decompose(s.m, s.c, s.k).lambdas; return Math.max(1.5, 1.4 * Math.hypot(l[0], l[1])); },
@@ -30,6 +30,7 @@ export function mount(root, ctx) {
 
   // the modal run: |a₁|, |a₂| on a log axis beside the reconstructed x
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  root.append(controls(methodPicker(store, { only: ['euler', 'rk4', 'implicit'], signal })));
   let run = null, runKey = '';
   const modalRun = state => {
     const key = sweepKey({ method: state.method, h: state.h, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0 });

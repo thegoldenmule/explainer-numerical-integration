@@ -1,5 +1,5 @@
 // Panel 9, spine: the error between the simulation and the exact solution plotted over time
-// next to the run, on a log axis, with the *measured* step-to-step ratio and the doubling
+// under the run, on a log axis, with the *measured* step-to-step ratio and the doubling
 // time derived from it. No formula for the ratio here; panel 10 derives R(hλ).
 
 import { fmt } from 'shared/dom.js';
@@ -16,8 +16,10 @@ const SPAN = 6;   // seconds of run visible
 export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
 
-  const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  const errStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  // the run over its error, two fill stages sharing the column: the error is not a side note
+  // here, it carries the pane's measured ratio
+  const runStage = createStage(root, { layers: ['plot'], signal });
+  const errStage = createStage(root, { layers: ['plot'], signal });
   const player = createPlayer({ store, loop, signal });
 
   const window_ = () => { const tMax = Math.max(SPAN, player.t); return { tMin: tMax - SPAN, tMax }; };
