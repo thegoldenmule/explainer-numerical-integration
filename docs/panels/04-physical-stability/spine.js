@@ -66,7 +66,7 @@ export function mount(root, ctx) {
     limits: { c: C_SCRUB, epsilon: aux.limits.epsilon },
   };
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   const ts = new Float64Array(SAMPLES + 1);
   for (let i = 0; i <= SAMPLES; i++) ts[i] = SPAN * i / SAMPLES;

@@ -17,8 +17,8 @@ for the pane contract.
   stores (tuple, local damping, aux) so it stays current whichever one moves.
 - No left pane. (The old "What 'close' means" refresher plotted `d(t)` for one neighbor and
   never showed a run-away, so it was cut; the manifest entry is `left: null`.)
-- `right.html` + `right.js`: drill-down, Lyapunov vs asymptotic. Three phase portraits side by
-  side (`c = 0`, `c`, `−c`) with the flow field from `systemMatrix`; the unstable one negates `c`
+- `right.html` + `right.js`: drill-down, Lyapunov vs asymptotic. Three phase portraits in square
+  cells on one fill stage, arranged by `bestGrid` as large as they fit (`c = 0`, `c`, `−c`) with the flow field from `systemMatrix`; the unstable one negates `c`
   locally because the tuple clamps `c ≥ 0`. No readout: each portrait's own label now reads
   `c = …, Re λ = …` instead of just `c = …`, so the formula lands beside the picture it
   describes; the fact that the tuple's `c ≥ 0` forces the third portrait to negate `c` locally

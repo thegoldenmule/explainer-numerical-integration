@@ -1,12 +1,12 @@
-// Panel 4, right: the whole initial-condition plane as a phase portrait, three times side by
-// side: c = 0 (stable, orbits circle), c > 0 (asymptotically stable, spirals in), and c < 0
+// Panel 4, right: the whole initial-condition plane as a phase portrait, three times over,
+// in square cells arranged (bestGrid) as large as the stage allows: c = 0 (stable, orbits circle), c > 0 (asymptotically stable, spirals in), and c < 0
 // (unstable, spirals out). The flow field is the system matrix applied at each lattice point;
 // the trajectories are the closed form, which needs no integrator. The tuple clamps c ≥ 0,
 // so the unstable portrait negates c in a local matrix and never writes it back.
 
 import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
-import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText, drawVectorField, layoutGrid } from 'shared/gfx/plot2d.js';
+import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText, drawVectorField, bestGrid } from 'shared/gfx/plot2d.js';
 import { systemMatrix, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { apply } from 'shared/math/matrix2.js';
 import { bindScrub } from 'shared/ui/scrub.js';
@@ -19,7 +19,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   const article = root.closest('article') ?? root;
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   stage.onDraw(({ w, h, dpr }) => {
     const s = store.get();
@@ -36,7 +36,8 @@ export function mount(root, ctx) {
       { c: s.c, name: 'asymptotically stable', note: `c = ${fmt(s.c, 2)}, Re λ = ${fmt(alpha(s.c), 3)}`, color: cssVar('--stable') },
       { c: -s.c, name: 'unstable', note: `c = ${fmt(-s.c, 2)}, Re λ = ${fmt(alpha(-s.c), 3)}`, color: cssVar('--unstable') },
     ];
-    const cells = layoutGrid(w, h, 1, 3, 8 * dpr);
+    // v is scaled by ω, so the portraits have equal axes: square cells, as large as they fit
+    const { cells } = bestGrid(w, h, cases.length, 8 * dpr);
     cells.forEach((cell, i) => {
       const { c } = cases[i];
       const A = systemMatrix(s.m, c, s.k);

@@ -357,3 +357,27 @@ export function layoutGrid(w, h, rows, cols, gap = 0) {
   }
   return cells;
 }
+
+/**
+ * The arrangement of `n` small multiples that makes each cell as large as it can be in a
+ * w × h box, every cell `aspect` times as wide as it is tall (1, the default: square, for
+ * content with equal axes). Tries every column count; the grid is packed from the top-left,
+ * and the last row may be short.
+ *   bestGrid(w, h, n, gap, aspect) → { rows, cols, cells: [{ x, y, w, h, row, col }] × n }
+ */
+export function bestGrid(w, h, n, gap = 0, aspect = 1) {
+  let best = null;
+  for (let cols = 1; cols <= Math.max(1, n); cols++) {
+    const rows = Math.ceil(n / cols);
+    const fitW = (w - gap * (cols - 1)) / cols, fitH = (h - gap * (rows - 1)) / rows;
+    const ch = Math.max(0, Math.min(fitH, fitW / aspect));
+    if (!best || ch > best.ch + 1e-9) best = { rows, cols, ch, cw: ch * aspect };
+  }
+  const { rows, cols, cw, ch } = best;
+  const cells = [];
+  for (let i = 0; i < n; i++) {
+    const row = Math.floor(i / cols), col = i % cols;
+    cells.push({ x: col * (cw + gap), y: row * (ch + gap), w: cw, h: ch, row, col });
+  }
+  return { rows, cols, cells };
+}

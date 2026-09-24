@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseColor, toCss, withAlpha, mix, divergingColormap } from './color.js';
-import { layoutGrid } from './plot2d.js';
+import { layoutGrid, bestGrid } from './plot2d.js';
 
 test('parseColor reads the forms base.css uses', () => {
   assert.deepEqual(parseColor('#1a9c4a'), [26, 156, 74, 1]);
@@ -47,4 +47,24 @@ test('layoutGrid tiles the box row-major with gaps between cells only', () => {
   assert.equal(last.x + last.w, 100);
   assert.equal(last.y + last.h, 50);
   assert.deepEqual(layoutGrid(10, 10, 1, 1), [{ x: 0, y: 0, w: 10, h: 10, row: 0, col: 0 }]);
+});
+
+test('bestGrid picks the arrangement with the largest square cells', () => {
+  // three squares in a square box: 2 × 2 with one empty beats 1 × 3 or 3 × 1
+  const sq = bestGrid(100, 100, 3, 4);
+  assert.equal(sq.rows, 2);
+  assert.equal(sq.cols, 2);
+  assert.equal(sq.cells.length, 3);
+  assert.deepEqual(sq.cells[2], { x: 0, y: 52, w: 48, h: 48, row: 1, col: 0 });
+  // in a 3:1 strip they go 1 × 3
+  const strip = bestGrid(300, 100, 3, 0);
+  assert.equal(strip.cols, 3);
+  assert.equal(strip.cells[1].w, 100);
+  assert.equal(strip.cells[1].h, 100);
+  // a tall box stacks them
+  assert.equal(bestGrid(100, 300, 3, 0).rows, 3);
+  // non-square cells keep their aspect
+  const wide = bestGrid(200, 100, 2, 0, 2);
+  assert.equal(wide.rows, 2);
+  assert.deepEqual(wide.cells[1], { x: 0, y: 50, w: 100, h: 50, row: 1, col: 0 });
 });
