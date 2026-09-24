@@ -111,8 +111,8 @@ sit next to what they move. Whatever can grow goes last, where it pushes nothing
 **Sizing: stages get all the height that nothing else needs.**
 
 - Controls and equations take their natural height and never scale. The stages share the rest of
-  the column. At the reference viewports, the only empty height left in a column is under a
-  stage that has reached its cap.
+  the column. At the reference viewports, a column has empty height only when every stage in
+  it has reached its cap, and that height collects at the bottom, under the equations.
 - The stage kind is chosen by what it shows:
   - `fill` (the default): full column width. Its height is its share of the free height, capped
     at its width, so it is never taller than square. The drawing works at any aspect from 3:1 to
