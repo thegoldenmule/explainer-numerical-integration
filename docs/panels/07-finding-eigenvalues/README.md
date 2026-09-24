@@ -17,7 +17,7 @@ of the formula it belongs to (`bindScrub` + `bindMath` on the `<article>`), so t
   The root is draggable (cplane inverts λ back to `c` and `k`).
 - `right.html` + `right.js`: drill-down, Under-, critically, and overdamped. Dragging `c`
   sweeps the discriminant through zero; the roots collide and split on the plane while the
-  closed-form solution beside them switches regime. One button, `set c = 2√(mk)`, because
+  closed-form solution under them switches regime. One button, `set c = 2√(mk)`, because
   critical is a measure-zero value no drag lands on; the prose defines the word before the
   button uses it.
 

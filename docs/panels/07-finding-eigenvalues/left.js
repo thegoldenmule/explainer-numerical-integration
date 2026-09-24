@@ -4,7 +4,7 @@
 // real axis when the discriminant is positive and off it when it is not. Step down: one
 // number, checkable by hand.
 //
-// There are no sliders: the numbers in the formula above are the control (bindScrub), and the
+// There are no sliders: the numbers in the prose's formula are the control (bindScrub), and the
 // root itself is draggable (cplane inverts λ back to c and k). Everything here reads and
 // writes the tuple — this pane shows the reader's actual spring, no what-if.
 
@@ -30,7 +30,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   const article = root.closest('article') ?? root;
 
-  const stage = createStage(root, { layers: ['plane'], aspect: 'square', signal, grab: true });
+  const stage = createStage(root, { layers: ['plane'], signal, grab: true });
   const plane = createComplexPlane({
     stage, store, signal, drag: true, verdict: 'physical',
     halfRange: s => Math.max(3, 1.35 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),

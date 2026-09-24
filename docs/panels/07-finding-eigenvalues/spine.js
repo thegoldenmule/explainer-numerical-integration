@@ -28,7 +28,7 @@ export function mount(root, ctx) {
   const local = localDamping(store, { range: C_RANGE, signal });
 
   // 'shade' sits under 'plane'; cplane is given only the plane layer, so it never touches it.
-  const stage = createStage(root, { layers: ['shade', 'plane'], aspect: 'square', signal });
+  const stage = createStage(root, { layers: ['shade', 'plane'], signal });
   const plane = createComplexPlane({
     stage, store: local, signal, layers: { plane: 'plane' },
     // keep both roots comfortably inside the frame as k and c sweep

@@ -32,7 +32,10 @@ export function handleIndex(lambdas) {
  * createComplexPlane({ stage | canvases, layers = { region: 'region', plane: 'plane' }, store,
  *   signal, halfRange = 12, cx = 0, cy = 0, region = false, drag = false, circles = null,
  *   labels = true, grid = true, verdict = null, onDraw })
- *   halfRange  number | state → number: half the view's width in λ units
+ *   halfRange  number | state → number: the view's half-extent in λ units. Axes are equal,
+ *              and the whole ±halfRange box is always in view: on a square stage it is
+ *              exactly the view; on a stage wider than tall the real axis gets the extra
+ *              (makeView's minHalfH), so a fill stage at any aspect shows what a square did
  *   cx, cy     number | state → number: the view's center (10-right centers on −1/h)
  *   region     false | true (the store's method and h) | { layers, highlight } | state → that
  *   circles    null | number[] of h | state → number[]: Euler disks, center −1/h, radius 1/h
@@ -149,7 +152,7 @@ export function createComplexPlane({
   function draw({ w, h, dpr }) {
     const state = store.get();
     const half = resolve(halfRange, state);
-    view = makeView({ w, h, dpr, halfW: half, cx: resolve(cx, state), cy: resolve(cy, state) });
+    view = makeView({ w, h, dpr, halfW: half, minHalfH: half, cx: resolve(cx, state), cy: resolve(cy, state) });
     report = stabilityReport(state.method, state);
     const vd = verdicts(state, report);
 

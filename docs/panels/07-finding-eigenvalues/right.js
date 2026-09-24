@@ -1,8 +1,8 @@
-// Panel 7, right: sweep the discriminant through zero. Dragging c in the formula above walks
+// Panel 7, right: sweep the discriminant through zero. Dragging c in the prose's formula walks
 // the two roots along the real axis until they collide at −c/2m and split into the plane;
-// beside them the closed-form solution switches between overdamped, critically damped, and
+// under them the closed-form solution switches between overdamped, critically damped, and
 // underdamped. The regime, the discriminant and the roots are live numbers in the prose and on
-// the canvas — there is no readout under the picture.
+// the canvas — there is no readout.
 //
 // c is this pane's own copy (./local.js): an overdamped view is a what-if and is never written
 // to the tuple, and the sweep needs a range far past the tuple's LIMITS.c. It is dragged on a
@@ -16,7 +16,7 @@ import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
-import { controls } from 'shared/ui/controls.js';
+import { controls, row } from 'shared/ui/controls.js';
 import { discriminant, regime, eigenvalues, exactSolution, naturalFrequency } from 'shared/math/system.js';
 import { cfmt } from 'shared/math/complex.js';
 import { localDamping } from './local.js';
@@ -34,12 +34,8 @@ export function mount(root, ctx) {
   const article = root.closest('article') ?? root;
   const local = localDamping(store, { range: C_RANGE, signal });
 
-  // the one button, above a full-width plane, then a strip under both (--stage-max's budget)
-  const snap = el('button', { class: 'btn', type: 'button' }, 'set c = 2√(mk)');
-  snap.addEventListener('click', () => local.set({ c: criticalC(local.get()) }), { signal });
-  root.append(controls(snap));
-
-  const planeStage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
+  // the plane, the run strip under it, then the one button
+  const planeStage = createStage(root, { layers: ['plane'], signal });
   const plane = createComplexPlane({
     stage: planeStage, store: local, signal, verdict: 'physical',
     halfRange: s => Math.max(3, 1.3 * Math.max(...eigenvalues(s.m, s.c, s.k).flat().map(Math.abs))),
@@ -56,6 +52,9 @@ export function mount(root, ctx) {
 
   // the closed form, sampled over a few natural periods
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  const snap = el('button', { class: 'btn', type: 'button' }, 'set c = 2√(mk)');
+  snap.addEventListener('click', () => local.set({ c: criticalC(local.get()) }), { signal });
+  root.append(controls(row(snap)));
   const series = { t: new Float64Array(SAMPLES), x: new Float64Array(SAMPLES), n: SAMPLES };
   runStage.onDraw(size => {
     const s = local.get();
