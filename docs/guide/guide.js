@@ -24,9 +24,13 @@ const xAt = col => col < 0 ? 0
   : SIDE_W + CGAP + SPINE_W + CGAP + (col - 1) * (SIDE_W + CGAP);
 const cxAt = col => xAt(col) + wAt(col) / 2;
 const MAP_W = xAt(3) + SIDE_W;
-// The bottom margin is where the spine's thread runs on out of the diagram. Nothing else
-// lives outside the nodes, so the other three are air.
-const PAD = { top: 4, right: 6, bottom: 17, left: 6 };
+// The bottom margin is where the spine's thread runs on out of the diagram; the top and right
+// are air. The left is whatever it takes to put the middle column's center in the middle of
+// the box, so the spine is the center line of the page and the rest of the diagram hangs off
+// it. The dive side runs three columns deep against the surface side's one, so that comes to
+// most of a column of empty space.
+const PAD = { top: 4, right: 6, bottom: 17, left: 0 };
+PAD.left = MAP_W + PAD.right - 2 * cxAt(0);
 
 // The fake outline: one entry per row, saying which side nodes that row has. Shaped like the
 // real thing — most rows have a dive, many have a surface, one goes three deep, and the two

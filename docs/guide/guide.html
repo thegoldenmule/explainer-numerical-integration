@@ -38,17 +38,21 @@
   .guide .axes {
     display: grid;
     grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.15fr) minmax(10rem, 1fr);
-    align-items: center;
+    align-items: start;
     gap: clamp(1rem, 3vw, 3.5rem);
     min-height: 0;
   }
 
+  /* The two asides sit above the middle of the diagram, not level with it: the moves they
+     describe are made from the top of a column, and centring them against a tall diagram
+     dropped them below everything the eye starts on. */
   .guide .axis {
     display: grid;
     gap: 0.5rem;
     justify-items: center;
     max-width: 24rem;
     justify-self: center;
+    padding-top: clamp(1rem, 8vh, 4.5rem);
     transition: opacity 0.35s;
   }
   .guide .axis .key {
@@ -83,7 +87,7 @@
   .guide .axes:has(.axis.lit) .axis:not(.lit) { opacity: 0.45; }
 
   /* ---- the map ---- */
-  .guide .map { min-height: 0; height: 100%; display: grid; place-items: center; }
+  .guide .map { min-height: 0; align-self: stretch; display: grid; place-items: center; }
   .guide .map svg { display: block; width: 100%; height: 100%; }
 
   /* a node is drawn as what it stands for: one full viewport, landscape */
@@ -130,16 +134,14 @@
 
   <header>
     <h1>How to move around</h1>
-    <p class="lede">Every page here sits on a grid. Down the middle is the argument, one step at a
-      time. Sideways is how deep you want to go on the step you are standing on.</p>
+    <p class="lede">Walk through the presentation by moving down.</p>
   </header>
 
   <div class="axes">
     <aside class="axis surface">
       <span class="key" aria-hidden="true">←</span>
       <h2>Surface</h2>
-      <p>A step back toward solid ground: the thing this page assumes you remember, with fewer
-        moving parts and numbers you can check by hand.</p>
+      <p>Break down the concept when you don't understand it.</p>
     </aside>
 
     <div class="map"></div>
@@ -147,8 +149,7 @@
     <aside class="axis dive">
       <span class="key" aria-hidden="true">→</span>
       <h2>Dive</h2>
-      <p>A step further in: what the page gestures at but does not need. Another dimension,
-        a parameter swept, a method taken apart.</p>
+      <p>Explore the topic in more depth.</p>
     </aside>
   </div>
 
