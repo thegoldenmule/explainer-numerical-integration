@@ -16,6 +16,7 @@ import { sweep, sweepKey } from 'shared/math/sweep.js';
 import { scene } from 'shared/scene.js';
 import { aux } from 'shared/aux.js';
 import { sweepStrip } from 'shared/ui/sweep.js';
+import { controls } from 'shared/ui/controls.js';
 
 const TERMS = [0, 1, 2, 3, 4, 5, 6];   // degrees kept; 0 is the constant m g keeps
 const CURVE = 240;
@@ -84,7 +85,7 @@ export function mount(root, ctx) {
     values: TERMS, label: 'terms kept', format: n => `${n + 1} term${n ? 's' : ''}`, signal, initial: highlightIndex(),
     onSelect: i => aux.set({ highlight: i }),
   });
-  root.append(el('div', { class: 'controls' }, strip.el));
+  root.append(controls(strip.el));
 
   // the series itself, under the strip: rebuilt (not just re-numbered) on every change,
   // since the number of terms — not just their values — is what the strip is choosing

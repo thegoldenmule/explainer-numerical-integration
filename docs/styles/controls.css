@@ -144,10 +144,10 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .transport-group { display: inline-flex; gap: 0.35rem; }
 .transport .btn { min-width: 4rem; }
 
-/* a row of one toggle-driven force beside its live equation (panel 2 spine and right): a
-   fixed min-height so the row's height cannot change while it runs, `nowrap` so a live
-   number growing a digit (or the off-hint) cannot force a second line that would grow it
-   anyway, and `overflow-x: auto` so a row too wide for its column scrolls instead of
+/* a row of one toggle-driven force beside its live equation (panel 2 spine and right, panel
+   5 spine), on a .controls-row: a fixed min-height so the row's height cannot change while
+   it runs, `nowrap` so a live number growing a digit (or the off-hint, or 5 spine's real /
+   linear swap) cannot force a second line that would grow it anyway, and `overflow-x: auto` so a row too wide for its column scrolls instead of
    reflowing or bleeding into whatever is beside it. */
 .force-row { min-height: 2.75rem; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
 /* the off-hint stays in the DOM at its full width always, so toggling a force never itself

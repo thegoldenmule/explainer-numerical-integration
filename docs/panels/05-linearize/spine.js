@@ -23,7 +23,7 @@ import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText, drawArrow } from 'shared/gfx/plot2d.js';
 import { netForce, forceOf, gravityG, assemble, MODELS } from 'shared/math/forces.js';
 import { scene, FORCE_LIMITS, BODY_LIMITS } from 'shared/scene.js';
-import { toggleFn } from 'shared/ui/controls.js';
+import { controls, toggleFn } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
@@ -127,7 +127,9 @@ export function mount(root, ctx) {
     const swatch = el('span', { class: `swatch ${type}`, title: `${label} arrow` });
     const value = el('span', { class: 'mono muted' });
     values[type] = value;
-    const row = el('div', { class: 'controls-row' }, swatch, on, ...math, value);
+    // panel 2's .force-row: one line always (a wide row scrolls sideways), a reserved height,
+    // so flipping "linear" or a value gaining a digit never resizes the plane above it
+    const row = el('div', { class: 'controls-row force-row' }, swatch, on, ...math, value);
     rows.push(row);
     return row;
   };
@@ -141,7 +143,7 @@ export function mount(root, ctx) {
 
   // ---- the stage (body, arrows, a, and the look-ahead), then the force rows, then M, C, K ----
   const stage = createStage(root, { layers: ['plane'], signal });
-  root.append(el('div', { class: 'controls' }, rows));
+  root.append(controls(rows));
   root.append(el('div', { class: 'equations' }, fragment(ASSEMBLY)));
 
   /** One arrow from the body along F, at its own static length, with its name at the tip. */
