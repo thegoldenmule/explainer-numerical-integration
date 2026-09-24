@@ -43,16 +43,15 @@
     min-height: 0;
   }
 
-  /* The two asides sit above the middle of the diagram, not level with it: the moves they
-     describe are made from the top of a column, and centring them against a tall diagram
-     dropped them below everything the eye starts on. */
+  /* The three columns start on one line: each aside's keycap sits level with the diagram's
+     first row, which is why the diagram hangs from the top of its own column rather than
+     floating in the middle of it. */
   .guide .axis {
     display: grid;
     gap: 0.5rem;
     justify-items: center;
     max-width: 24rem;
     justify-self: center;
-    padding-top: clamp(1rem, 8vh, 4.5rem);
     transition: opacity 0.35s;
   }
   .guide .axis .key {
@@ -87,7 +86,7 @@
   .guide .axes:has(.axis.lit) .axis:not(.lit) { opacity: 0.45; }
 
   /* ---- the map ---- */
-  .guide .map { min-height: 0; align-self: stretch; display: grid; place-items: center; }
+  .guide .map { min-height: 0; align-self: stretch; display: grid; }
   .guide .map svg { display: block; width: 100%; height: 100%; }
 
   /* a node is drawn as what it stands for: one full viewport, landscape */

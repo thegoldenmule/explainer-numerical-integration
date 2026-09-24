@@ -24,12 +24,13 @@ const xAt = col => col < 0 ? 0
   : SIDE_W + CGAP + SPINE_W + CGAP + (col - 1) * (SIDE_W + CGAP);
 const cxAt = col => xAt(col) + wAt(col) / 2;
 const MAP_W = xAt(3) + SIDE_W;
-// The bottom margin is where the spine's thread runs on out of the diagram; the top and right
-// are air. The left is whatever it takes to put the middle column's center in the middle of
+// The bottom margin is where the spine's thread runs on out of the diagram; the top is a
+// sliver, just room for the first row's stroke, because the diagram is pinned to the top of
+// its column and the asides beside it line up with the first row. The right is air. The left is whatever it takes to put the middle column's center in the middle of
 // the box, so the spine is the center line of the page and the rest of the diagram hangs off
 // it. The dive side runs three columns deep against the surface side's one, so that comes to
 // most of a column of empty space.
-const PAD = { top: 4, right: 6, bottom: 17, left: 0 };
+const PAD = { top: 1, right: 6, bottom: 17, left: 0 };
 PAD.left = MAP_W + PAD.right - 2 * cxAt(0);
 
 // The fake outline: one entry per row, saying which side nodes that row has. Shaped like the
@@ -85,6 +86,10 @@ export function mount(root, { signal } = {}) {
   const H = SHAPE.length * ROWP - RGAP;
   const svg = node('svg', {
     viewBox: `${-PAD.left} ${-PAD.top} ${MAP_W + PAD.left + PAD.right} ${H + PAD.top + PAD.bottom}`,
+    // The column is taller than the diagram needs, and that slack goes below it rather than
+    // being split above and below: the diagram hangs from the top of its column, where the
+    // two asides start.
+    preserveAspectRatio: 'xMidYMin meet',
     'aria-hidden': 'true',
   });
 
