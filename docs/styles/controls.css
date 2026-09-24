@@ -76,12 +76,22 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 /* A stage is a positioned box holding one or more stacked canvases, a direct child of the
    `.viz` column (layout.css), sized entirely here by its kind (shared/gfx/stage.js):
      .fill    full width; flexes into its share of the column's free height, capped at its
-              width (never taller than square) and floored at a third of it (never past 3:1)
-     .strip   full width, fixed 3:1, does not flex
+              width (never taller than square) and floored at a third of it (3:1)
+     .strip   full width, a third of its width tall (3:1), does not flex
      .square  the largest square that fits its `.stage-slot`, which flexes like a fill; the
               slot is a size container so the square can read both of its extents
    Several fill stages and slots split the free height equally; one that reaches its cap
-   leaves the rest to the others, and the only empty height is then under it. */
+   leaves the rest to the others, and whatever no stage takes collects at the bottom of the
+   column, under the controls and equations.
+   The 3:1 floor and the strip's height grow with the column's width alone, and the column is
+   wider for its height the wider the viewport (0.9 at the reference viewports, 1.25 at
+   1920×1080, 1.4 at 2560×1440), so both are also bounded by the column's height: the fill
+   floor at 20cqh, the strip at 30.5cqh. At 1280×720 and 1440×900 the strip's bound does not
+   bite (30.5cqh = 164.8 / 219.7px against strips of 162.7 / 216px), so strips stay 3:1 there.
+   The floor's does (20cqh = 108 / 144px), but a floor only matters to a pane whose controls
+   and equations leave its fill less than 3:1. Past that a strip runs wider than 3:1 and a
+   fill at its floor flatter than 3:1, rather than the column running off the bottom of
+   `.pane-body`, which clips. */
 .stage {
   position: relative;
   background: var(--surface);
@@ -94,10 +104,10 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 .pane-body .viz > .stage-slot {
   flex: 1 1 0;
   width: 100%;
-  min-height: calc(100cqw / 3);
+  min-height: min(100cqw / 3, 20cqh);
   max-height: 100cqw;
 }
-.pane-body .viz > .stage.strip { width: 100%; aspect-ratio: 3 / 1; }
+.pane-body .viz > .stage.strip { width: 100%; height: min(100cqw / 3, 30.5cqh); }
 .pane-body .viz > .stage-slot { container-type: size; }
 .stage-slot > .stage.square { width: min(100cqw, 100cqh); aspect-ratio: 1; }
 .stage > canvas {

@@ -168,14 +168,20 @@ direction that stays true under this standard, because everything in the viz sta
 - Live numbers in prose are `<mn data-var="…" data-digits="…">` slots filled by
   `bindMath(article, store, derive)`; pass the `<article>`, not `.viz`.
 - Stage sizing is pure CSS; nothing measures the viz column. `.viz` (layout.css) stretches to
-  the article's content row and is a flex column and an inline-size container; every child is
-  `flex: none` except the stages. In controls.css a `.stage.fill` flexes (`flex: 1 1 0`) with
-  `max-height: 100cqw` and `min-height: calc(100cqw / 3)`; a `square` stage sits in a
-  `.stage-slot` that flexes the same way and is a size container, and the square inside is
-  `min(100cqw, 100cqh)`; a `.strip` is `aspect-ratio: 3 / 1` and does not flex. A stage must be a
-  direct child of `.viz` (or of its slot) for any of this to apply, so `createStage(root, …)`
-  is always called on the viz itself, in stacking order. Live equations go in an
-  `.equations` block, which drops block math's margins.
+  the article's content row (`minmax(0, 1fr)`, so its height never comes from its content) and
+  is a flex column and a size container; every child is `flex: none` except the stages. In
+  controls.css a `.stage.fill` flexes (`flex: 1 1 0`) with `max-height: 100cqw` and
+  `min-height: min(100cqw / 3, 20cqh)`; a `square` stage sits in a `.stage-slot` that flexes
+  the same way and is a size container of its own, and the square inside is
+  `min(100cqw, 100cqh)` of the slot; a `.strip` is `height: min(100cqw / 3, 30.5cqh)` and does
+  not flex. The strip's `cqh` bound does not bite at the reference viewports (strips stay 3:1
+  there), and the fill floor's matters only to a pane whose controls and equations leave less
+  than 3:1; both keep a column that is wide for its height (1920×1080, 2560×1440) from
+  outgrowing it, since `.pane-body` clips whatever runs past the bottom. Height no stage takes collects at
+  the bottom of the column, under the controls and equations. A stage must be a direct child
+  of `.viz` (or of its slot) for any of this to apply, so `createStage(root, …)` is always
+  called on the viz itself, in stacking order. Live equations go in an `.equations` block,
+  which drops block math's margins.
 - The prose column is fitted by `shared/ui/fit.js`, which the loader runs on every pane, with `--prose-fit` on the
   `.prose`: it scales the type and the measure together, so the line stays `--measure-chars`
   characters wide (read in `rem` at the root, in `em` inside a `.prose`) and only the column's

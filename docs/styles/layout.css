@@ -83,8 +83,10 @@ body { overflow: hidden; }
 /* The interactive column (CLAUDE.md, "Pane layout standard"): it fills the content row, and
    its children stack top to bottom: stages, then one controls block, then live equations.
    Everything but a stage takes its natural height; the `fill` stages and square slots in
-   controls.css flex into the height that is left. It is an inline-size container so a stage
-   can cap its height at the column's width (`100cqw`). */
+   controls.css flex into the height that is left. It is a size container, so a stage can
+   read the column's width (`100cqw`, its cap) and height (`cqh`, which bounds its floor on a
+   viewport wide for its height). Size containment is safe here: the column's height is the
+   stretched grid row (`minmax(0, 1fr)` of a definite article), never its content. */
 .pane-body .viz {
   align-self: stretch;
   min-width: 0;
@@ -92,7 +94,7 @@ body { overflow: hidden; }
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  container-type: inline-size;
+  container-type: size;
 }
 .pane-body .viz > * { flex: none; }
 
