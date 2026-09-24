@@ -26,8 +26,8 @@ const TOL_RANGE = [1e-3, 10 ** -0.5];   // the slider's span, inside AUX_LIMITS.
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  // one wide stage, the run in the top half and h(t) in the bottom half
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  // one fill stage, the run in the top half and h(t) in the bottom half
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   let run = null, runKey = '';
   function adaptive(state) {

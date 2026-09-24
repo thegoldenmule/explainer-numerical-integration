@@ -3,7 +3,8 @@
 // exact curve, the run's polyline, and a single step taken from the exact curve at a
 // scrubbed step index, with both errors called out in the corner.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
+import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
@@ -11,7 +12,7 @@ import { createStepper, simulate, METHODS } from 'shared/math/integrators.js';
 import { exactSolution } from 'shared/math/system.js';
 import { localTruncationError } from 'shared/math/taylor.js';
 import { sweepKey } from 'shared/math/sweep.js';
-import { controls } from 'shared/ui/controls.js';
+import { controls, slider } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 
@@ -19,9 +20,10 @@ const STEPS = 60;   // steps shown; the span is 60 h so a single step stays visi
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
-  let at = 12;   // which step the local one is taken at (local to the pane)
+  // which step the local one is taken at: local to the pane, never the tuple
+  const local = createStore({ at: 12 }, { limits: { at: [0, STEPS - 1] } });
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
   let sim = null, simKey = '';
   const fixedRun = state => {
     const key = sweepKey({ method: state.method, h: state.h, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0 });
@@ -41,7 +43,7 @@ export function mount(root, ctx) {
 
     // one step from the exact state at t_i
     const sol = exactSolution(state);
-    const i = Math.min(at, STEPS - 1);
+    const i = Math.min(Math.round(local.get().at), STEPS - 1);
     const t0 = i * h, x0 = sol.x(t0), v0 = sol.v(t0);
     const one = createStepper({ method, h, m, c, k, x0, v0 }).step();
     const xNext = sol.x(t0 + h);
@@ -65,16 +67,12 @@ export function mount(root, ctx) {
       view.xMax, view.yMax, { ...corner, color: cssVar('--approx'), size: 12, dy: 48 });
   });
 
-  const atInput = el('input', { type: 'range', min: 0, max: STEPS - 1, step: 1, value: at });
-  const atOut = el('output', {}, `step ${at}`);
-  atInput.addEventListener('input', () => { at = Number(atInput.value); atOut.textContent = `step ${at}`; stage.invalidate(); }, { signal });
-  root.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'take one step from the exact curve at'), atOut), atInput),
-  ));
+  root.append(controls(slider(local, 'at', { label: 'take one step from the exact curve at', step: 1, format: v => `step ${Math.round(v)}`, signal })));
+  const unsubLocal = local.subscribe(stage.invalidate, { immediate: false });
 
   const article = root.closest('article');
   const unsub = store.subscribe(stage.invalidate, { immediate: false });
   bindMath(article, store, () => ({}), { signal });
   const offScrub = bindScrub(article, store, { signal, limits: { h: [0.002, 0.25] } });
-  return { destroy() { unsub(); offScrub(); } };
+  return { destroy() { unsub(); unsubLocal(); offScrub(); } };
 }

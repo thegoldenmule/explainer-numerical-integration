@@ -38,7 +38,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
 
   // one wide stage: the highlighted run's estimates against its target on top, the h(t) bundle below
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   const runs = (state, tols) => sweep(tols, tol => runAdaptive({
     method: state.method, tol, m: state.m, c: state.c, k: state.k, x0: state.x0, v0: state.v0, hInit: state.h, hMax: H_MAX,
