@@ -33,10 +33,12 @@ nothing animated. There is no left pane.
 
 ## Two notes for whoever touches this next
 
-- **The plane is shared.** `HALF_W = 4` and the drag clamp `|y| ≤ 2.2` match panel 2's spine
-  exactly (a stage wider than square widens the view through `makeView`'s `minHalfH`, so the
-  drag box always shows), so the body does not jump when the reader moves between panels 1, 2 and 5. Changing
-  one of the three means changing all of them.
+- **The plane's coordinates are shared, its scale is not.** `HALF_W = 4` and the drag clamp
+  `|y| ≤ 2.2` match panel 2's spine exactly (panel 5's spine uses a tighter ±3 × ±1), so the
+  body keeps its `(x, y)` from panel to panel. Each view is fitted to its own stage, though,
+  and on a stage wider than square `makeView`'s `minHalfH` widens it so the whole drag box
+  shows: at 1280×720 panel 1's spine shows ±4 × ±4 and panel 2's ±6.5 × ±2.6, so the body can
+  shift on screen between panels. Changing `HALF_W` or the clamp means changing it in each.
 - **`grabSamples` is a workaround, not a design.** `createDragHandles` hit-tests against a list
   of points, so "grab the body anywhere" has to be spelled out as a lattice dense enough that
   its 14 px radius covers the gaps. The step is computed in CSS pixels from the live view and

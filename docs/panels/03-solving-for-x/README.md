@@ -16,14 +16,14 @@ pane contract. Panes in this directory:
   `bindMath`.
 - `left.html` + `left.js`: refresher, x, v, a: derivatives. Two `fill` stages, x(t) over v(t), with
   the a-bar as a layer of the v stage (a band under its plot); the scrubbed `t` is local to the pane, not the tuple. No readout: `t` is on the local
-  scrubbed `t` in the prose, `x` and `v` are `drawText` in the corner of the strip that plots them
-  (opposite each strip's title), and `a` is the a-bar.
+  scrubbed `t` in the prose, `x` and `v` are `drawText` in the corner of the plot that shows them
+  (opposite each plot's title), and `a` is the a-bar.
 - `right.html` + `right.js`: drill-down, ODEs vs PDEs; intractability. Two `fill` stages, the
   point mass (ODE) over a plucked string (PDE, explicit leapfrog under the CFL bound). Both
   carry a canvas-drawn title at `size: 15` in `--fg` instead of `drawGrid`'s 11px `yLabel`. No
   readout: the running "ODE state / PDE state" line is now `drawText` split onto the two
-  strips it was summarizing — `x = …` on the mass strip, `N numbers, max |u| = …` on the string
-  strip. The prose links out to Bonini's paradox on Wikipedia.
+  plots it was summarizing — `x = …` on the mass plot, `N numbers, max |u| = …` on the string
+  plot. The prose links out to Bonini's paradox on Wikipedia.
 
 Each `.js` exports `mount(root, ctx)`; each `.html` is an `<article>` with a `.viz` slot.
 Neither the spine's hover pick nor the right pane's clock writes the shared tuple.

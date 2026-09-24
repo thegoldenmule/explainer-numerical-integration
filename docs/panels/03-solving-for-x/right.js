@@ -17,7 +17,7 @@ const DT = 0.8 / (CELLS * WAVE_SPEED);   // CFL: c·dt/dx ≤ 1
 const DAMPING = 0.02;        // per unit time, so a pluck settles
 const PLUCK = 0.35;          // amplitude of a poke, in the plot's units
 const TITLE = 15;            // graph titles: bigger and darker than drawGrid's own 11px labels,
-                             // offset clear of the y-tick numbers at the strip's left edge
+                             // offset clear of the y-tick numbers at the plot's left edge
 
 export function mount(root, ctx) {
   const { store, loop, signal } = ctx;

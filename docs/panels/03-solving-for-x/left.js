@@ -42,11 +42,11 @@ export function mount(root, ctx) {
     return curve;
   }
 
-  // A strip's title: bigger and darker than drawTrajectory's own small --tick y-label (which
+  // A plot's title: bigger and darker than drawTrajectory's own small --tick y-label (which
   // is suppressed here, yLabel: null, so the two never overlap), offset clear of the y-tick
-  // numbers stacked at the strip's left edge. The value at the scrubbed instant is called out
+  // numbers stacked at the plot's left edge. The value at the scrubbed instant is called out
   // in the opposite corner, in place of the old readout box.
-  function strip(stage, size, ys, title, label, value, slope) {
+  function plot(stage, size, ys, title, label, value, slope) {
     const g = stage.ctx('plot');
     g.clearRect(0, 0, size.w, stage.size.h);
     const blue = cssVar('--exact');
@@ -90,7 +90,7 @@ export function mount(root, ctx) {
     const state = store.get();
     const c = curves(state);
     const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
-    strip(xStage, size, c.x, 'x(t)', 'x', x, v);
+    plot(xStage, size, c.x, 'x(t)', 'x', x, v);
   });
   vStage.onDraw(size => {
     const state = store.get();
@@ -98,7 +98,7 @@ export function mount(root, ctx) {
     const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
     const a = c.acc(x, v);
     // the plot takes the stage above the a-bar's band
-    strip(vStage, { ...size, h: Math.max(1, size.h - BAR_H * size.dpr) }, c.v, 'v(t)', 'v', v, a);
+    plot(vStage, { ...size, h: Math.max(1, size.h - BAR_H * size.dpr) }, c.v, 'v(t)', 'v', v, a);
     drawBar(size, a, c.capA);
   });
 

@@ -37,7 +37,7 @@ const highlightIndex = () => { const i = aux.get().highlight; return i < 0 ? CEN
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  // one wide stage: the highlighted run's estimates against its target on top, the h(t) bundle below
+  // one fill stage: the highlighted run's estimates against its target on top, the h(t) bundle below
   const stage = createStage(root, { layers: ['plot'], signal });
 
   const runs = (state, tols) => sweep(tols, tol => runAdaptive({

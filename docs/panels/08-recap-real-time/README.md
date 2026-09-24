@@ -7,8 +7,8 @@ pane contract. Panes in this directory:
   one stage. Every cost number is on the bar's label and in the prose (`bindMath`); the live error is
   drawn in the top-right of the plot. No readout. The window is a few periods of the current
   spring and the vertical range is the run's own amplitude, so the trace oscillates at a readable
-  scale and a blown-up Euler leaves the frame. Preset buttons (`demo`, `essay`) are the only
-  writes of `m, c, k`, and only when the reader presses one.
+  scale and a blown-up Euler leaves the frame. There are no preset buttons: `m`, `c`, `k` and
+  `h` are scrubbed in the prose's own equation, straight into the tuple.
 - `left.html` + `left.js`: refresher, Frame budget, ms per frame. One frame at true scale with the
   physics slice inside it. A spring step is ~16 ns, so the pane budgets for an **object count**
   (pane-local store, log slider 1 … 10 M, default 500 000 — the essay's "a few milliseconds every
