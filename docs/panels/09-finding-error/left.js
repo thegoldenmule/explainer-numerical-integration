@@ -72,18 +72,20 @@ export function mount(root, ctx) {
   const update = () => stage.invalidate();
 
   // the sequence's own clock through the shared transport: Step takes one, Play takes one per
-  // h of wall-clock time (so the error grows at the rate the prose's doubling time says), and
-  // Reset goes back to the opening ten
+  // h of wall-clock time (so the error grows at the rate the prose's doubling time says) and
+  // stops at MAX_STEPS, where the transport offers Replay, and Reset goes back to the
+  // opening ten
   const clock = stepPlayer({
     loop, signal, h: () => store.get().h,
-    step: () => { n = Math.min(MAX_STEPS, n + 1); update(); if (n >= MAX_STEPS) clock.pause(); },
+    step: () => { n = Math.min(MAX_STEPS, n + 1); update(); },
     reset: () => { n = 10; update(); },
+    ended: () => n >= MAX_STEPS,
   });
   const btn = (label, fn) => el('button', { class: 'btn', type: 'button', onclick: fn }, label);
   root.append(controls(
     transport(clock, { signal }),
     row(
-      btn('+10 steps', () => { n = Math.min(MAX_STEPS, n + 10); update(); }),
+      btn('+10 steps', () => { n = Math.min(MAX_STEPS, n + 10); update(); clock.changed(); }),
       btn('z = 1.05', () => zStore.set({ z: 1.05 })),
       btn('z = 0.95', () => zStore.set({ z: 0.95 })),
     ),
