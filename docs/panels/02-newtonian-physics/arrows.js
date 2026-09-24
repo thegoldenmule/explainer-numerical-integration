@@ -185,7 +185,7 @@ export function forceParamFacade() {
  * .force-off-hint CSS, which reserves the row's height too.
  */
 export function forceRow(f, i, { signal } = {}) {
-  return el('div', { class: 'transport force-row' },
+  return el('div', { class: 'controls-row force-row' },
     toggleFn({
       label: f.type[0].toUpperCase() + f.type.slice(1),
       get: () => scene.get().forces[i].on, set: v => scene.toggleForce(i, v), subscribe: scene.subscribe, signal,

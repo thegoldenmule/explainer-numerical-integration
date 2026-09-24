@@ -127,7 +127,7 @@ export function mount(root, ctx) {
     const swatch = el('span', { class: `swatch ${type}`, title: `${label} arrow` });
     const value = el('span', { class: 'mono muted' });
     values[type] = value;
-    const row = el('div', { class: 'transport' }, swatch, on, ...math, value);
+    const row = el('div', { class: 'controls-row' }, swatch, on, ...math, value);
     rows.push(row);
     return row;
   };
