@@ -42,11 +42,16 @@ export function observeResize(target, cb) {
  * A view maps plot coordinates to device pixels.
  *   makeView({ w, h, dpr, xMin, xMax, yMin, yMax })
  *   view.X(x), view.Y(y)   plot → pixel;   view.x(px), view.y(py)   pixel → plot
- * Convenience: pass { cx, cy, halfW, halfH } instead of min/max.
+ * Convenience: pass { cx, cy, halfW, halfH } instead of min/max. With `halfW` alone the
+ * vertical range follows the canvas's aspect (equal axes). `minHalfH` keeps that equal-axis
+ * view but widens `halfW` as far as it takes to show at least ±minHalfH vertically, so a
+ * stage that comes out wider than square (a fill stage runs 3:1 to 1:1) still shows the
+ * whole box ±halfW × ±minHalfH.
  * `yLog: true` maps y through log10 (yMin, yMax > 0, in linear units); y ≤ 0 maps to NaN,
  * which drawPolyline skips.
  */
-export function makeView({ w, h, dpr = 1, xMin, xMax, yMin, yMax, cx = 0, cy = 0, halfW, halfH, yLog = false }) {
+export function makeView({ w, h, dpr = 1, xMin, xMax, yMin, yMax, cx = 0, cy = 0, halfW, halfH, minHalfH, yLog = false }) {
+  if (xMin == null && minHalfH != null && halfH == null) halfW = Math.max(halfW, minHalfH * w / h);
   if (xMin == null) { xMin = cx - halfW; xMax = cx + halfW; }
   if (yMin == null) { yMin = cy - (halfH ?? halfW * h / w); yMax = cy + (halfH ?? halfW * h / w); }
   const sx = w / (xMax - xMin);
