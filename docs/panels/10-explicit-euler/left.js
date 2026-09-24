@@ -48,9 +48,8 @@ export function mount(root, ctx) {
   }
   function resetAndWalk() { reset(); step(AUTO_STEPS); }
 
-  // ---- the plot: the fine exact curve on a layer beneath the walk. No readout beside it
-  // any more, so a tangent walk gets the taller 'wide' stage instead of a 'strip'. ----
-  const stage = createStage(root, { layers: ['exact', 'plot'], aspect: 'wide', signal });
+  // ---- the plot: the fine exact curve on a layer beneath the walk, on a fill stage ----
+  const stage = createStage(root, { layers: ['exact', 'plot'], signal });
   const fine = { t: new Float64Array(FINE), x: new Float64Array(FINE) };
   stage.onDraw(size => {
     const s = store.get();

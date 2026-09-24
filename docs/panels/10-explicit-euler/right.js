@@ -4,11 +4,11 @@
 // not the origin: they all sit in the left half plane. A discrete slider walks the range by
 // setting the store's h, so the highlighted disk is the spine's disk.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
-import { controls } from 'shared/ui/controls.js';
+import { controls, slider } from 'shared/ui/controls.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { ampFactor } from 'shared/math/stability.js';
 import { cscale } from 'shared/math/complex.js';
@@ -26,7 +26,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   const current = s => nearestIndex(HS, s.h);
 
-  const stage = createStage(root, { layers: ['region', 'plane'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['region', 'plane'], signal });
   createComplexPlane({
     stage, store, signal, labels: false,
     region: s => ({ layers: HS.map(h => ({ method: 'euler', h })), highlight: current(s) }),
@@ -50,20 +50,15 @@ export function mount(root, ctx) {
     },
   });
 
-  // the range as a discrete slider on the store's h (no aux store yet; the store carries it)
-  const input = el('input', { type: 'range', min: 0, max: HS.length - 1, step: 1, value: current(store.get()) });
-  const value = el('output');
-  input.addEventListener('input', () => store.set({ h: HS[Number(input.value)] }), { signal });
+  // the range as a discrete slider on the store's h: the shared slider() over a facade whose
+  // one key is the index into HS, so the highlighted disk is always the store's (the spine's) h
+  const rangeIndex = {
+    get: () => ({ i: current(store.get()) }),
+    set: patch => { if (Number.isFinite(patch.i)) store.set({ h: HS[Math.round(patch.i)] }); return rangeIndex.get(); },
+    subscribe: (fn, opts) => store.subscribe(s => { const i = { i: current(s) }; fn(i, i); }, opts),
+    limits: { i: [0, HS.length - 1] },
+  };
+  root.append(controls(slider(rangeIndex, 'i', { label: 'h along the range', step: 1, format: i => `${fracOf(HS[i])} s`, signal })));
 
-  const unsubscribe = store.subscribe(s => {
-    const i = current(s);
-    if (Number(input.value) !== i) input.value = i;
-    value.textContent = `${fracOf(HS[i])} s`;
-  });
-
-  root.append(controls(
-    el('label', { class: 'control' }, el('span', { class: 'control-label' }, el('span', {}, 'h along the range'), value), input),
-  ));
-
-  return { destroy() { unsubscribe(); } };
+  return { destroy() {} };
 }
