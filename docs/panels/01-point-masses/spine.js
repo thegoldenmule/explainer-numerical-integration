@@ -24,6 +24,7 @@ import { bindScrub } from 'shared/ui/scrub.js';
 
 const HALF_W = 4;       // the same plane as panel 2's spine, so the body does not jump
 const CLAMP_Y = 2.2;
+const MIN_HALF_H = 2.6; // the drag box ±CLAMP_Y plus room for the labels, at any stage aspect
 const BODY_R = 9;
 
 /** A store-shaped view of (x, y, m): the three numbers printed in the spine's own equation. */
@@ -55,13 +56,13 @@ export function mount(root, ctx) {
   let view = null;
   let grab = [0, 0];    // pointer-to-body offset, so the dot does not snap under the cursor
 
-  const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plane'], signal });
 
   stage.onDraw(({ w, h, dpr }) => {
     const { body } = scene.get();
     const [x, y] = body.x;
     const g = stage.ctx('plane');
-    view = makeView({ w, h, dpr, halfW: HALF_W });
+    view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: MIN_HALF_H });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
 

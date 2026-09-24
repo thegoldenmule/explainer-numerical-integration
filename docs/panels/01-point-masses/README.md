@@ -4,7 +4,7 @@ Built. See `design/idea.md` (section "1. Point masses") for the beat, and `desig
 pane contract. The panel is the ground floor of the ladder: fully concrete, no wildcards,
 nothing animated. There is no left pane.
 
-- `spine.html` + `spine.js`: the point mass itself. One dot on a `wide` stage, dragged with
+- `spine.html` + `spine.js`: the point mass itself. One dot on a `fill` stage, dragged with
   `createDragHandles` through `scene.moveBody`, so the body panel 2 hangs its force arrows on
   and panel 5 scrubs its force models around is the body the reader just moved here. Its two
   coordinates are drawn as dashed drop lines onto the axes, `m` is a label beside the dot and a
@@ -34,7 +34,8 @@ nothing animated. There is no left pane.
 ## Two notes for whoever touches this next
 
 - **The plane is shared.** `HALF_W = 4` and the drag clamp `|y| ≤ 2.2` match panel 2's spine
-  exactly, so the body does not jump when the reader moves between panels 1, 2 and 5. Changing
+  exactly (a stage wider than square widens the view through `makeView`'s `minHalfH`, so the
+  drag box always shows), so the body does not jump when the reader moves between panels 1, 2 and 5. Changing
   one of the three means changing all of them.
 - **`grabSamples` is a workaround, not a design.** `createDragHandles` hit-tests against a list
   of points, so "grab the body anywhere" has to be spelled out as a lattice dense enough that

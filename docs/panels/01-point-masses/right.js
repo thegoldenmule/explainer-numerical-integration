@@ -27,6 +27,7 @@ import { BODY_RADIUS, worldPoints, grabSamples } from './body.js';
 
 const HALF_W = 4;        // the same plane as the spine and panel 2, so the body never jumps
 const CLAMP_Y = 2.2;
+const MIN_HALF_H = 3.2;  // ±CLAMP_Y plus the body and its handle, at any stage aspect
 const HANDLE_R = BODY_RADIUS + 0.44;   // the rotate handle, clear of the body on its own axis
 const ARC_R = 0.62;      // the θ arc, inside it
 const THETA0 = 0.6;      // ≈ 34°: the body is already turned when the reader arrives
@@ -91,10 +92,10 @@ export function mount(root, ctx) {
   let view = null;
   let grab = [0, 0];   // pointer-to-centre offset, so the body does not snap under the cursor
 
-  const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plane'], signal });
 
-  // the grab lattice is spaced in CSS pixels, not body units, so it still covers the body on a
-  // wide stage; it is rebuilt only when the view's scale changes, not on every pointermove
+  // the grab lattice is spaced in CSS pixels, not body units, so it still covers the body at any
+  // stage size; it is rebuilt only when the view's scale changes, not on every pointermove
   let samples = { step: 0, pts: [] };
   const bodySamples = v => {
     const step = Math.max(0.06, GRAB_PX / (v.sx / v.dpr));
@@ -106,7 +107,7 @@ export function mount(root, ctx) {
   stage.onDraw(({ w, h, dpr }) => {
     const { x, y, theta, m } = facade.get();
     const g = stage.ctx('plane');
-    view = makeView({ w, h, dpr, halfW: HALF_W });
+    view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: MIN_HALF_H });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
 
