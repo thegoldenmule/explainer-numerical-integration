@@ -31,7 +31,7 @@ export function mount(root, ctx) {
   const article = root.closest('article') ?? root;
   const current = s => nearestIndex(HS, s.h);
 
-  const planeStage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal });
+  const planeStage = createStage(root, { layers: ['region', 'plane'], signal });
   createComplexPlane({
     stage: planeStage, store, signal, labels: false,
     // implicit Euler's region and verdict, whatever the store's method is

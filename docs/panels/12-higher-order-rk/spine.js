@@ -1,5 +1,5 @@
 // Panel 12, spine: method = *. Two graphs, stacked full width: the plane for the store's
-// method (region + eigenvalues), and the live spring running against the exact curve.
+// method (region + eigenvalues), and the live spring running against the exact curve (a strip).
 // Switching integrator redraws both. The teaching contrast is implicit Euler: never
 // explodes, visibly over-damped (0.26 vs 0.71 at t = 60 with the essay preset) — the small
 // multiples that used to pin Euler/RK4/implicit side by side moved out; the three right
@@ -9,13 +9,13 @@
 // to pause it, and no preset buttons — m and k are draggable right in the prose's own
 // equation instead, the same data-scrub-into-the-tuple pattern panel 8 uses for h.
 
-import { el, fmt } from 'shared/dom.js';
+import { fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
 import { createPlayer } from 'shared/player.js';
-import { methodPicker } from 'shared/ui/controls.js';
+import { methodPicker, controls } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { eigenvalues } from 'shared/math/system.js';
 
@@ -35,11 +35,11 @@ export function mount(root, ctx) {
   const { store, signal, loop } = ctx;
 
   // the plane for the store's method
-  const planeStage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal });
+  const planeStage = createStage(root, { layers: ['region', 'plane'], signal });
   const plane = createComplexPlane({ stage: planeStage, store, signal, cx, halfRange, region: true });
 
-  // the live spring run against the exact curve
-  const runStage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  // the live spring run against the exact curve, a strip under the plane
+  const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
   const player = createPlayer({ store, loop, signal });
   runStage.onDraw(size => {
     const s = player.series;
@@ -57,7 +57,7 @@ export function mount(root, ctx) {
   player.onChange(runStage.invalidate);
 
   // just the picker; the run plays on its own and never stops
-  root.append(el('div', { class: 'controls-row' }, methodPicker(store, { only: MULTIPLES, signal })));
+  root.append(controls(methodPicker(store, { only: MULTIPLES, signal })));
 
   const article = root.closest('article') ?? root;
   const offScrub = bindScrub(article, store, { signal });

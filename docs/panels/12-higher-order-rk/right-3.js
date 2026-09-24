@@ -17,7 +17,7 @@ import { spectralRadiusNormalized, updateMatrixNormalized } from 'shared/math/st
 import { eigen } from 'shared/math/matrix2.js';
 import { naturalFrequency, dampingRatio } from 'shared/math/system.js';
 import { sweep, sweepKey } from 'shared/math/sweep.js';
-import { toggleFn, controls } from 'shared/ui/controls.js';
+import { toggleFn, controls, row } from 'shared/ui/controls.js';
 
 const CELL = 0.025;                                   // in both hω and ζ; hω = 2 falls on a cell edge
 const X_MIN = -0.05, X_MAX = 2.6, Y_MIN = -0.025, Y_MAX = 1.05;
@@ -76,7 +76,7 @@ export function mount(root, ctx) {
     { key: sweepKey({ panel: '12-right-3', method, hw, zeta }) })[0].result;
 
   // ---- the map ----
-  const mapStage = createStage(root, { layers: ['heat', 'plane'], aspect: 'wide', signal });
+  const mapStage = createStage(root, { layers: ['heat', 'plane'], signal });
   let view = null;
   mapStage.onDraw(({ w, h, dpr }) => {
     const s = store.get();
@@ -123,7 +123,7 @@ export function mount(root, ctx) {
       { color: cssVar('--fg'), size: 11, align: left ? 'right' : 'left', dx: left ? -14 : 14, dy: 4 });
   });
 
-  // ---- the run beside it ----
+  // ---- the run under it ----
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
   runStage.onDraw(size => {
     const s = store.get();
@@ -173,7 +173,7 @@ export function mount(root, ctx) {
     signal,
   });
   const resetBtn = el('button', { class: 'btn', type: 'button', title: 'Clear the hovered cell and show the current spring', onclick: () => { hover = null; mapStage.invalidate(); runStage.invalidate(); } }, 'Reset');
-  root.append(controls(el('div', { class: 'controls-row' }, compare, resetBtn)));
+  root.append(controls(row(compare, resetBtn)));
 
   const unsub = store.subscribe(() => { mapStage.invalidate(); runStage.invalidate(); }, { immediate: false });
   return { destroy() { unsub(); } };

@@ -4,9 +4,9 @@
 // RK4 is n = 4. The term count is the sweep strip's index, kept in aux.highlight so it
 // survives a remount (the key is shared by every sweep, so it is clamped on read).
 //
-// The expansion itself prints below the strip, one term per row of an mtable (same pattern
-// as panel 5 right's series): growing the term count adds exactly one row each time instead
-// of one long inline formula the browser wraps wherever it runs out of width.
+// The expansion itself prints below the strip, five terms to a row of an mtable (same pattern
+// as panel 5 right's series), with the terms not yet kept as <mphantom>s so its size never
+// changes as the term count does.
 
 import { el, clamp, fragment } from 'shared/dom.js';
 import { aux } from 'shared/aux.js';
@@ -29,16 +29,29 @@ const termsOf = h => (h < 0 ? DEFAULT_N : clamp(h, 0, MAX_N));
 const X_MIN = -5, X_MAX = 2, Y_MIN = -6, Y_MAX = 8;
 const SAMPLES = 400;
 
-/** eᶻ = 1 + z + z²/2 + … to degree n, one term per row: growing n adds a row, never a wrap. */
+/** Terms per row of the series' mtable. */
+const PER_ROW = 5;
+
+/**
+ * eᶻ = 1 + z + z²/2 + … to degree n, PER_ROW terms to a row, never one long line the browser
+ * wraps. Every term up to MAX_N is always there, the ones past degree n as <mphantom>s, so
+ * the block keeps its largest size and nothing above it moves as the strip selects
+ * (CLAUDE.md, "Pane layout standard").
+ */
 function seriesMathML(n) {
-  const rows = ['<mtr><mtd><msup><mi>e</mi><mi>z</mi></msup><mo>=</mo></mtd><mtd><mn>1</mn></mtd></mtr>'];
+  const cells = ['<mtd><mn>1</mn></mtd>'];
   let f = 1;
-  for (let i = 1; i <= n; i++) {
+  for (let i = 1; i <= MAX_N; i++) {
     f *= i;
-    const term = i === 1 ? '<mi>z</mi>' : `<mfrac><msup><mi>z</mi><mn>${i}</mn></msup><mn>${f}</mn></mfrac>`;
-    rows.push(`<mtr><mtd></mtd><mtd><mo>+</mo>${term}</mtd></mtr>`);
+    const term = `<mo>+</mo>${i === 1 ? '<mi>z</mi>' : `<mfrac><msup><mi>z</mi><mn>${i}</mn></msup><mn>${f}</mn></mfrac>`}`;
+    cells.push(`<mtd>${i <= n ? term : `<mphantom>${term}</mphantom>`}</mtd>`);
   }
-  return `<math display="block"><mtable columnalign="right left" rowspacing="0.3em">${rows.join('')}</mtable></math>`;
+  const rows = [];
+  for (let i = 0; i < cells.length; i += PER_ROW) {
+    const head = i === 0 ? '<msup><mi>e</mi><mi>z</mi></msup><mo>=</mo>' : '';
+    rows.push(`<mtr><mtd>${head}</mtd>${cells.slice(i, i + PER_ROW).join('')}</mtr>`);
+  }
+  return `<math display="block"><mtable columnalign="right left" rowspacing="0.3em" columnspacing="0.4em">${rows.join('')}</mtable></math>`;
 }
 
 export function mount(root, ctx) {
@@ -55,7 +68,7 @@ export function mount(root, ctx) {
     expPartialSums(xs[i], MAX_N).forEach((v, d) => { sums[d].ys[i] = v; });
   }
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
   stage.onDraw(({ w, h, dpr }) => {
     const g = stage.ctx('plot');
     const view = makeView({ w, h, dpr, xMin: X_MIN, xMax: X_MAX, yMin: Y_MIN, yMax: Y_MAX });
@@ -77,7 +90,7 @@ export function mount(root, ctx) {
 
   // the expansion itself, under the strip: rebuilt (not just re-numbered) on every change,
   // since the number of terms — not just their values — is what the strip is choosing
-  const seriesEl = el('div');
+  const seriesEl = el('div', { class: 'equations' });
   root.append(seriesEl);
   const renderSeries = () => seriesEl.replaceChildren(fragment(seriesMathML(n)));
   renderSeries();

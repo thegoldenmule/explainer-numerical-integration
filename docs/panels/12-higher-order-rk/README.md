@@ -5,7 +5,8 @@ Built. See `design/idea.md` (section "12. Higher-order Runge-Kutta") for the bea
 deep": its right pane is a three-long chain (`#/12/right`, `#/12/right/2`, `#/12/right/3`).
 
 - `spine.html` + `spine.js`: two graphs, stacked full width — the region for the store's
-  method (with its eigenvalues), and the live run against the exact curve — then just the
+  method (with its eigenvalues) on a fill stage, and the live run against the exact curve on
+  a strip under it — then just the
   method picker below, no presets, no transport. The small multiples (Euler, RK4, implicit
   Euler pinned to the same λ) that used to sit between them were dropped: two graphs, not
   five. The plane centers and sizes itself to the current method's own shape (Euler and
@@ -19,8 +20,8 @@ deep": its right pane is a three-long chain (`#/12/right`, `#/12/right/2`, `#/12
   time (a local slider), against the exponential, with |Sₙ(hλ)| for the current spring. No
   readout: the graph title already carries `Sₙ(x): n+1 terms`; the expansion itself,
   `eᶻ = 1 + z + z²/2 + …` to degree `n`, prints under the strip as an `mtable` (`seriesMathML`)
-  — one term per row, so growing `n` adds exactly one row instead of one long inline formula
-  wrapping wherever the browser runs out of width, same pattern as panel 5 right's series.
+  — five terms to a row, the terms past `n` kept as `<mphantom>`s so the block never changes
+  size as `n` does, same pattern as panel 5 right's series.
   `|Sₙ(hλ)|` against the exact factor and the grow/shrink verdict are a live prose sentence,
   bound with `bindMath` on both the tuple store and `aux` (the strip's `n` lives in
   `aux.highlight`), reading `n` fresh from `aux` each time rather than a closure variable, so

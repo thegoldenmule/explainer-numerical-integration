@@ -25,7 +25,7 @@ export function mount(root, ctx) {
   const { store, signal } = ctx;
   const highlight = () => highlightOf(aux.get().highlight);   // 0: every order lit; 1..4: that order
 
-  const stage = createStage(root, { layers: ['region', 'plane'], aspect: 'square', signal });
+  const stage = createStage(root, { layers: ['region', 'plane'], signal });
   createComplexPlane({
     stage, store, signal, labels: false,
     region: s => ({ layers: ORDERS.map(order => ({ order, h: s.h })), highlight: highlight() - 1 }),
