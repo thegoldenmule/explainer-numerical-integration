@@ -3,9 +3,8 @@
 
 /* the one controls block under the stages: transport, picker, sliders and sweeps, toggles and
    force rows, other buttons, in that order. Grid rows stretch (a slider or sweep spans the
-   column); a lone button does not. */
+   column); buttons go in a .controls-row, where each keeps its natural width. */
 .controls { display: grid; gap: 0.75rem; }
-.controls > .btn { justify-self: start; }
 /* a row of buttons or toggles: each its natural width, left-aligned, wrapping if it must */
 .controls-row { display: flex; gap: 0.5rem 1rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
 
