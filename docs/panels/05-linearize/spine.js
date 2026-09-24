@@ -1,8 +1,8 @@
 // Panel 5, spine: each force as its equation with every parameter a scrubbable number, a
 // real-vs-linear switch (only gravitation differs: G m₁ m₂ / r² against m₁ g), the force
-// arrows, a, and a short predicted trajectory updating live; below, M, C, K assembling from
-// the scene's linear models into M x″ + C x′ + K x = 0 (the MathML block under the stage and
-// the equation in the prose) and pushed into the tuple's m, c, k.
+// arrows, a, and a short predicted trajectory updating live; last, M, C, K assembling from
+// the scene's linear models into M x″ + C x′ + K x = 0 (the MathML block under the force rows
+// and the equation in the prose) and pushed into the tuple's m, c, k.
 //
 // The scrubs bind to one facade over the scene store (unique keys per parameter, each routed
 // to scene.setForceParam / setMass), so bindScrub and bindMath take the article once. The
@@ -28,6 +28,7 @@ import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
 const HALF_W = 3;
+const MIN_HALF_H = 1.5;   // the drag box |y| ≤ 1 plus the longest arrow, at any stage aspect
 const PREDICT = { dt: 1 / 60, steps: 120 };   // a 2 s look-ahead, RK4 in 2D
 
 /** One hue per force, all four far apart in light mode; the net force is neutral. */
@@ -137,11 +138,11 @@ export function mount(root, ctx) {
   forceRow('gravity', 'Gravity', realEq, linEq, linearSwitch);
   forceRow('drag', 'Drag', fragment(EQUATIONS.drag));
   forceRow('spring', 'Spring', fragment(EQUATIONS.spring));
-  root.append(el('div', { class: 'controls' }, rows));
 
-  // ---- the stage: body, arrows, a, and the look-ahead ----
-  const stage = createStage(root, { layers: ['plane'], aspect: 'tall', signal });
-  root.append(fragment(ASSEMBLY));
+  // ---- the stage (body, arrows, a, and the look-ahead), then the force rows, then M, C, K ----
+  const stage = createStage(root, { layers: ['plane'], signal });
+  root.append(el('div', { class: 'controls' }, rows));
+  root.append(el('div', { class: 'equations' }, fragment(ASSEMBLY)));
 
   /** One arrow from the body along F, at its own static length, with its name at the tip. */
   function drawForce(g, from, F, { color, label, width, head }) {
@@ -162,7 +163,7 @@ export function mount(root, ctx) {
     const s = scene.get();
     const { body, linear } = s;
     const g = stage.ctx('plane');
-    view = makeView({ w, h, dpr, halfW: HALF_W });
+    view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: MIN_HALF_H });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y', ticks: 4 });
 

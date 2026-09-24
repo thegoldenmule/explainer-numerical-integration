@@ -25,30 +25,39 @@ const highlightIndex = () => Math.min(TERMS.length - 1, Math.max(0, aux.get().hi
 /** What keeping this many terms buys, in one line under the curve. */
 const verdict = hi => (hi === 0 ? 'a constant: m g' : hi === 1 ? 'linear in δ: all a linear model keeps' : 'past δ¹: what linearizing drops');
 
+/** Terms per row of the series' mtable. */
+const PER_ROW = 3;
+
 /**
- * 1/r² ≈ [coefficients[0]] − [|coefficients[1]|]δ + … to degree n, r₀'s actual numbers, one
- * term per row of an mtable: as more terms are kept this grows by exactly one row each, down
- * the page, instead of the browser wrapping one long inline formula wherever it happens to
- * run out of width. Column 1 (right-aligned) carries the "1/r² ≈" head on the first row and
- * is blank after; column 2 (left-aligned) is the term, so every term's own start lines up.
+ * 1/r² ≈ [coefficients[0]] − [|coefficients[1]|]δ + … to degree n, r₀'s actual numbers, laid
+ * out PER_ROW terms to a row of an mtable rather than one long inline formula the browser
+ * would wrap wherever it ran out of width. Every term of the sweep's longest series is always
+ * there: the ones past degree n are <mphantom>s, so the block keeps the size of its tallest
+ * and widest case and nothing above it moves as the strip selects (CLAUDE.md, "Pane layout
+ * standard"). Column 1 (right-aligned) carries the "1/r² ≈" head on the first row and is
+ * blank after; the rest are terms, so every term's own start lines up down its column.
  */
 function seriesMathML(r0, n) {
-  const { coefficients } = inverseSquareExpansion(r0, n);
+  const { coefficients } = inverseSquareExpansion(r0, TERMS[TERMS.length - 1]);
   const head = '<mfrac><mn>1</mn><msup><mi>r</mi><mn>2</mn></msup></mfrac><mo>≈</mo>';
-  const rows = coefficients.map((c, i) => {
+  const cells = coefficients.map((c, i) => {
     const mag = `<mn>${fmt(Math.abs(c), 3)}</mn>`;
     const delta = i === 0 ? '' : i === 1 ? '<mi>δ</mi>' : `<msup><mi>δ</mi><mn>${i}</mn></msup>`;
     const term = i === 0 ? mag : `<mo>${c < 0 ? '−' : '+'}</mo>${mag}${delta}`;
-    return `<mtr><mtd>${i === 0 ? head : ''}</mtd><mtd>${term}</mtd></mtr>`;
-  }).join('');
-  return `<math display="block"><mtable columnalign="right left" rowspacing="0.3em">${rows}</mtable></math>`;
+    return `<mtd>${i <= n ? term : `<mphantom>${term}</mphantom>`}</mtd>`;
+  });
+  const rows = [];
+  for (let i = 0; i < cells.length; i += PER_ROW) {
+    rows.push(`<mtr><mtd>${i === 0 ? head : ''}</mtd>${cells.slice(i, i + PER_ROW).join('')}</mtr>`);
+  }
+  return `<math display="block"><mtable columnalign="right left" rowspacing="0.3em" columnspacing="0.4em">${rows.join('')}</mtable></math>`;
 }
 
 export function mount(root, ctx) {
   const { signal } = ctx;
   const gi = scene.forceIndex('gravity');
 
-  const taylor = createStage(root, { layers: ['plot'], aspect: 'square', signal });
+  const taylor = createStage(root, { layers: ['plot'], signal });
   taylor.onDraw(({ w, h, dpr }) => {
     const r0 = scene.get().forces[gi].r;
     const hi = highlightIndex();
@@ -79,7 +88,7 @@ export function mount(root, ctx) {
 
   // the series itself, under the strip: rebuilt (not just re-numbered) on every change,
   // since the number of terms — not just their values — is what the strip is choosing
-  const seriesEl = el('div');
+  const seriesEl = el('div', { class: 'equations' });
   root.append(seriesEl);
   function renderSeries() {
     seriesEl.replaceChildren(fragment(seriesMathML(scene.get().forces[gi].r, highlightIndex())));

@@ -13,7 +13,7 @@ import { el, fmt } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
-import { controls } from 'shared/ui/controls.js';
+import { controls, row } from 'shared/ui/controls.js';
 
 const X_MAX = 3.2;    // the plot shows only x ≥ 0: the drag range, and the only quadrant used
 const MARGIN = 0.1;   // a hair of room past 0 on both axes, so a point near it is still grabbable
@@ -28,7 +28,7 @@ export function mount(root, ctx) {
   let a = 0.8, b = 1.3;
   let view = null;
 
-  const stage = createStage(root, { layers: ['plot'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plot'], signal });
 
   stage.onDraw(({ w, h, dpr }) => {
     const { f } = FUNCTIONS[kind];
@@ -84,7 +84,7 @@ export function mount(root, ctx) {
     buttons.forEach((x, j) => x.setAttribute('aria-pressed', String(i === j)));
     stage.invalidate();
   }, { signal }));
-  root.append(controls(el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, ...buttons))));
+  root.append(controls(row(...buttons)));
 
   return { destroy() {} };
 }
