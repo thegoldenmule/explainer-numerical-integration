@@ -11,7 +11,7 @@
 // attractor), and a vector refresher needs two arrows that turn freely. Nothing here writes
 // the scene or the tuple.
 
-import { fragment } from 'shared/dom.js';
+import { el, fragment } from 'shared/dom.js';
 import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createDragHandles } from 'shared/gfx/drag.js';
@@ -60,7 +60,7 @@ function labelShaft(g, view, from, d, text, color) {
 export function mount(root, ctx) {
   const { signal } = ctx;
   const article = root.closest('article') ?? root;
-  let view = null, frozenHalf = null;
+  let view = null, frozenHalf = null, lastHalf = HALF_W;
 
   const vecs = createStore({ ...START }, {
     limits: { ax: A_COMP, ay: A_COMP, bx: B_COMP, by: B_COMP },
@@ -78,13 +78,15 @@ export function mount(root, ctx) {
    */
   const halfNow = ({ a, b, s }) => frozenHalf ?? Math.max(HALF_W, 1.12 * Math.max(...[a, b, s].flat().map(Math.abs)));
 
-  const stage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
-  root.append(fragment(EQUATIONS));
+  const stage = createStage(root, { layers: ['plane'], signal });
+  root.append(el('div', { class: 'equations' }, fragment(EQUATIONS)));
 
   stage.onDraw(({ w, h, dpr }) => {
     const { a, b, s } = parts();
     const g = stage.ctx('plane');
-    view = makeView({ w, h, dpr, halfW: halfNow({ a, b, s }) });
+    // equal axes, and the whole ±half box in view however wide the stage comes out
+    lastHalf = halfNow({ a, b, s });
+    view = makeView({ w, h, dpr, halfW: lastHalf, minHalfH: lastHalf });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
 
@@ -116,7 +118,7 @@ export function mount(root, ctx) {
       return [{ id: 'a', x: a[0], y: a[1] }, { id: 'b', x: s[0], y: s[1] }];
     },
     view: () => view ?? makeView({ w: 1, h: 1, dpr: 1, halfW: HALF_W }),
-    onStart: () => { frozenHalf = view?.xMax ?? HALF_W; },
+    onStart: () => { frozenHalf = lastHalf; },
     onMove: (id, p) => {
       const x = Math.max(-REACH, Math.min(REACH, p.x)), y = Math.max(-REACH, Math.min(REACH, p.y));
       if (id === 'a') { vecs.set({ ax: x, ay: y }); return; }

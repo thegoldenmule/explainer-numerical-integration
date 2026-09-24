@@ -1,7 +1,7 @@
 // Panel 2, spine: F = ma on the scene's point mass. Each force is its own equation — a
 // constant wind vector, Newton's G m₁ m₂ / r², drag −c v, a spring −k x — with every
 // parameter a draggable number and the vector it produces read out inside the equation
-// itself. Below them, ΣF and a = ΣF / m as live MathML with m draggable too.
+// itself. Under them, ΣF and a = ΣF / m as live MathML with m draggable too.
 //
 // The scrubs bind to one facade over the scene store (unique keys per parameter, each routed
 // to scene.setForceParam / setMass), the same shape panel 5's spine uses, so bindScrub and
@@ -11,7 +11,8 @@
 //
 // Every active force is also an arrow from the body; the sum and a are drawn on top. Toggle
 // each force, drag an arrow's head to scale it (through the scene store, so the left pane
-// sees the same numbers), drag the body itself, run or step time by hand: explicit Euler
+// sees the same numbers), drag the body itself, play or step time by hand (the shared
+// transport, over a stepPlayer, since this clock is the pane's own and not the tuple's): explicit Euler
 // steps of the tuple's h in 2D. The scene is 2D and createStepper is 1D, so the step is
 // written here; time is a local clock and lives on the canvas, not in the tuple. A dotted
 // line previews the next FORECAST_STEPS of that same step from wherever the body is now, so
@@ -24,6 +25,7 @@ import { cssVar, makeView, drawGrid, drawPoint, drawPolyline, drawText } from 's
 import { netForce } from 'shared/math/forces.js';
 import { scene, defaultScene } from 'shared/scene.js';
 import { controls } from 'shared/ui/controls.js';
+import { transport, stepPlayer } from 'shared/ui/transport.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import {
@@ -33,6 +35,7 @@ import {
 
 const HALF_W = 4;
 const HALF_H = 2.2;
+const MIN_HALF_H = 2.6;   // the drag box ±HALF_H plus room for the legend, at any stage aspect
 const BODY_R = 9;
 const FORECAST_STEPS = 25;
 
@@ -67,21 +70,18 @@ export function mount(root, ctx) {
   const article = root.closest('article') ?? root;
   const facade = forceParamFacade();
   let t = 0, steps = 0;           // this pane's clock: the tuple's t belongs to the players
-  let running = false, carry = 0;
   let view = null, frozenMap = null;
 
-  // ---- the force rows: switch, equation, and whether it counts toward the sum. Each row's
-  // off-hint is always in the DOM at its full width (CSS hides it by :has(input:checked), not
-  // a text swap) and the row itself has a reserved min-height, so toggling a force or
-  // dragging a number wide never wraps the row and shoves the stage below it around. ----
-  const rows = forceRows(signal);
-  const runBtn = el('button', { class: 'btn', type: 'button', title: 'Run explicit Euler steps of the tuple’s h', 'aria-pressed': 'false' }, 'Run');
-  const stepBtn = el('button', { class: 'btn', type: 'button', title: 'One explicit Euler step of the tuple’s h' }, 'Step');
-  const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
-  root.append(controls(rows, el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
-
-  const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  root.append(el('div', { class: 'totals' }, fragment(TOTALS)));
+  // ---- stage, then one controls block (the transport, then the force rows: switch,
+  // equation, and whether it counts toward the sum), then the live totals. Each row's off-hint
+  // is always in the DOM at its full width (CSS hides it by :has(input:checked), not a text
+  // swap) and the row itself has a reserved min-height, so toggling a force or dragging a
+  // number wide never wraps the row and moves the totals under it. ----
+  const stage = createStage(root, { layers: ['plane'], signal });
+  const clock = stepPlayer({ loop, signal, h: () => store.get().h, step, reset });
+  clock.onChange(stage.invalidate);
+  root.append(controls(transport(clock, { signal }), forceRows(signal)));
+  root.append(el('div', { class: 'equations totals' }, fragment(TOTALS)));
 
   const mapNow = () => frozenMap ?? arrowMap(scene.get());
 
@@ -92,7 +92,7 @@ export function mount(root, ctx) {
     const map = mapNow();
     const a = [sum[0] / body.m, sum[1] / body.m];
     const g = stage.ctx('plane');
-    view = makeView({ w, h, dpr, halfW: HALF_W });
+    view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: MIN_HALF_H });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
 
@@ -126,7 +126,7 @@ export function mount(root, ctx) {
     const hint = list.length === 0 ? 'every force is off' : 'arrow lengths are compressed (log) so all four fit; the equations are the truth';
     drawText(g, view, `x = (${fmt(body.x[0], 2)}, ${fmt(body.x[1], 2)})   v = (${fmt(body.v[0], 2)}, ${fmt(body.v[1], 2)})`,
       view.xMin, view.yMin, { color: cssVar('--fg'), size: 11, dx: 8, dy: -32 });
-    drawText(g, view, `t = ${fmt(t, 3)} s: ${steps} step${steps === 1 ? '' : 's'} of h = ${fmt(store.get().h, 3)} s${running ? '   running' : ''}`,
+    drawText(g, view, `t = ${fmt(t, 3)} s: ${steps} step${steps === 1 ? '' : 's'} of h = ${fmt(store.get().h, 3)} s${clock.playing ? '   running' : ''}`,
       view.xMin, view.yMin, { color: cssVar('--muted'), size: 11, dx: 8, dy: -18 });
     drawText(g, view, hint, view.xMin, view.yMin, { color: cssVar('--muted'), size: 10, dx: 8, dy: -5 });
   });
@@ -178,24 +178,6 @@ export function mount(root, ctx) {
     t = 0; steps = 0;
     stage.invalidate();
   }
-  function setRunning(v) {
-    running = v; carry = 0;
-    runBtn.setAttribute('aria-pressed', String(running));
-    runBtn.textContent = running ? 'Pause' : 'Run';
-    stage.invalidate();
-  }
-  const offFrame = loop.onFrame(dt => {
-    if (!running) return;
-    carry += dt;
-    const h = store.get().h;
-    let n = Math.min(Math.floor(carry / h), 200);
-    carry -= n * h;
-    while (n-- > 0) step();
-  });
-  runBtn.addEventListener('click', () => setRunning(!running), { signal });
-  stepBtn.addEventListener('click', step, { signal });
-  resetBtn.addEventListener('click', reset, { signal });
-
   // ---- live math: every scrub and every slot reads the one facade over the scene ----
   bindScrub(article, facade, { signal });
   bindMath(article, facade, () => {
@@ -211,7 +193,7 @@ export function mount(root, ctx) {
   const unsub = scene.subscribe(stage.invalidate, { immediate: false });
   const unsubTuple = store.subscribe((s, patch) => { if ('h' in patch) stage.invalidate(); }, { immediate: false });
   return {
-    pause() { setRunning(false); },
-    destroy() { offFrame(); unsub(); unsubTuple(); },
+    pause() { clock.pause(); },
+    destroy() { unsub(); unsubTuple(); },
   };
 }

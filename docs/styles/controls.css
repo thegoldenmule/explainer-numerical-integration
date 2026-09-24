@@ -156,6 +156,13 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
    changes the row's width; :has() reacts to the checkbox instead of a text swap doing it. */
 .force-row:has(input:checked) .force-off-hint { visibility: hidden; }
 
+/* the live equations, last in a .viz under the controls (CLAUDE.md, "Pane layout standard"):
+   their natural height, never scaled. The column's own gap spaces them from the controls, so
+   a block equation here drops its margins. */
+.equations { display: grid; gap: 0.5rem; }
+.equations > math[display="block"],
+.pane-body .viz > math[display="block"] { margin: 0; }
+
 /* the ΣF / a summary under a force stage (panel 2 spine): reserved height, and horizontal
    overflow contained the same way as .force-row, for the same reason */
 .totals { min-height: 3.25rem; overflow-x: auto; }

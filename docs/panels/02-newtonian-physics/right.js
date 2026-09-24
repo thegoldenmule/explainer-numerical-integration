@@ -6,7 +6,7 @@
 // act; the torque does, which is the whole point of the lever arm d — a scrubbable number
 // inside its own equation, "at d = …".
 //
-// θ, θ′, t and the lever arm live in a pane-local store so the equations under the stage can
+// θ, θ′, t and the lever arm live in a pane-local store so the equations under the controls can
 // be ordinary live MathML: one bindMath over that store catches the integration, a second
 // over the scene catches a force being toggled or dragged — here or on the spine, the same
 // four force rows as the spine's (arrows.js's forceRows), so a force can be changed without
@@ -18,12 +18,14 @@ import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawText } from 'shared/gfx/plot2d.js';
 import { scene } from 'shared/scene.js';
 import { controls } from 'shared/ui/controls.js';
+import { transport, stepPlayer } from 'shared/ui/transport.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { FORCE_COLOR, SUM_COLOR, forceVectors, arrowMap, drawForceArrow, forceParamFacade, forceRows, forceComponents } from './arrows.js';
 
 const BODY = { w: 1.6, h: 1 };
 const HALF_W = 4;
+const MIN_HALF_H = 2.6;   // the spine's drag box ±2.2 plus room, at any stage aspect
 const LEVER = [-0.8, 0.8];
 
 const EQUATIONS = `
@@ -48,7 +50,6 @@ export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
   const article = root.closest('article') ?? root;
   const facade = forceParamFacade();
-  let running = false, carry = 0;
 
   // the body's rotation state and where the forces act: local to this pane
   const rot = createStore({ theta: 0, omega: 0, t: 0, lever: 0.5 }, {
@@ -57,21 +58,13 @@ export function mount(root, ctx) {
     presets: {},
   });
 
-  // ---- the same four force rows as the spine's: drag or toggle a force here too ----
-  // Run/Step/Reset sit above the stage (not after the equations, where they'd fall below
-  // the fold on a short pane): `stage` isn't assigned until after these run, but nothing
-  // here calls stage.invalidate() until a click, by which point it is.
-  const runBtn = el('button', { class: 'btn', type: 'button', 'aria-pressed': 'false' }, 'Run');
-  runBtn.addEventListener('click', () => { running = !running; carry = 0; runBtn.setAttribute('aria-pressed', String(running)); runBtn.textContent = running ? 'Pause' : 'Run'; stage.invalidate(); }, { signal });
-  const stepBtn = el('button', { class: 'btn', type: 'button' }, 'Step');
-  stepBtn.addEventListener('click', step, { signal });
-  const resetBtn = el('button', { class: 'btn', type: 'button' }, 'Reset');
-  resetBtn.addEventListener('click', () => rot.set({ theta: 0, omega: 0, t: 0 }), { signal });
-
-  root.append(controls(forceRows(signal), el('div', { class: 'transport' }, el('div', { class: 'transport-group' }, runBtn, stepBtn, resetBtn))));
-
-  const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
-  root.append(fragment(EQUATIONS));
+  // ---- the stage, then one controls block (the transport, then the same four force rows as
+  // the spine's: drag or toggle a force here too), then the live equations ----
+  const stage = createStage(root, { layers: ['plane'], signal });
+  const clock = stepPlayer({ loop, signal, h: () => store.get().h, step, reset: () => rot.set({ theta: 0, omega: 0, t: 0 }) });
+  clock.onChange(stage.invalidate);
+  root.append(controls(transport(clock, { signal }), forceRows(signal)));
+  root.append(el('div', { class: 'equations' }, fragment(EQUATIONS)));
 
   /** The rotational sum at the current θ. */
   function torque() {
@@ -90,7 +83,7 @@ export function mount(root, ctx) {
     const { body } = s;
     const map = arrowMap(s);
     const g = stage.ctx('plane');
-    const view = makeView({ w, h, dpr, halfW: HALF_W });
+    const view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: MIN_HALF_H });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
 
@@ -139,7 +132,7 @@ export function mount(root, ctx) {
     }
 
     // the rotation state, and the point the lever arm is there to make
-    drawText(g, view, `θ = ${fmt(theta, 3)} rad   θ′ = ${fmt(omega, 3)} rad/s   t = ${fmt(t, 2)} s${running ? '   running' : ''}`,
+    drawText(g, view, `θ = ${fmt(theta, 3)} rad   θ′ = ${fmt(omega, 3)} rad/s   t = ${fmt(t, 2)} s${clock.playing ? '   running' : ''}`,
       view.xMin, view.yMin, { color: cssVar('--fg'), size: 11, dx: 8, dy: -20 });
     drawText(g, view, 'ΣF is the same wherever the forces act; ΣT flips when the lever arm crosses zero',
       view.xMin, view.yMin, { color: cssVar('--muted'), size: 10, dx: 8, dy: -6 });
@@ -152,14 +145,6 @@ export function mount(root, ctx) {
     const { theta, omega, t } = rot.get();
     rot.set({ theta: theta + h * omega, omega: omega + h * alpha, t: t + h });
   }
-  const offFrame = loop.onFrame(dt => {
-    if (!running) return;
-    carry += dt;
-    const h = store.get().h;
-    let n = Math.min(Math.floor(carry / h), 200);
-    carry -= n * h;
-    while (n-- > 0) step();
-  });
 
   // ---- live math: the rotation store drives the integration, the scene drives the forces
   // and the force rows' own equations (forceComponents: Fgx/Fgy, Fdx/Fdy, Fsx/Fsy) ----
@@ -175,7 +160,7 @@ export function mount(root, ctx) {
   const unsubRot = rot.subscribe(stage.invalidate, { immediate: false });
   const unsubScene = scene.subscribe(stage.invalidate, { immediate: false });
   return {
-    pause() { running = false; runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; },
-    destroy() { offFrame(); unsubRot(); unsubScene(); offScrub(); offForceScrub(); },
+    pause() { clock.pause(); },
+    destroy() { unsubRot(); unsubScene(); offScrub(); offForceScrub(); },
   };
 }
