@@ -3,12 +3,12 @@
 Built. See `design/idea.md` (section "6. Eigen-what-now") for the beat, and `design/plan.md`
 for the pane contract.
 
-- `spine.html` + `spine.js`: Eigen-what-now. Three things, in order, and no readout under the
-  picture: **Â**, a 2×2 matrix whose four entries are draggable numbers right in the
+- `spine.html` + `spine.js`: Eigen-what-now. Three things, in order, and no readout: **Â**, a 2×2 matrix whose four entries are draggable numbers right in the
   equation; **v**, an arrow dragged around the plane (also draggable as the same equation's
   two numbers); and **R = Â v**, drawn *split* — the part of `v` along one invariant
   direction, scaled by that direction's eigenvalue, plus whatever is left over, laid head to
-  tail so the two pieces visibly add up to `R`. Land `v` on a direction and the leftover is
+  tail so the two pieces visibly add up to `R` (that split's equation is static, so it is in
+  the prose; the viz holds the plane, then the live `Â v = R`). Land `v` on a direction and the leftover is
   zero and `R = λ̂ v`. The split is the eigenbasis one (`v = c₁û₁ + c₂û₂`, so
   `Âv = λ̂₁c₁û₁ + λ̂₂c₂û₂` exactly), not an orthogonal projection; `decompose` returns `null`
   — and the canvas says why — for a complex pair, for the defective repeated root at

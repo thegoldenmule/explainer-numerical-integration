@@ -12,7 +12,7 @@ import { cssVar, makeView, drawGrid, drawTransformedGrid, drawArrow, drawText } 
 import { rotation, scale, mmul, eigen, apply } from 'shared/math/matrix2.js';
 import { sweep, sweepRange, sweepKey } from 'shared/math/sweep.js';
 import { aux } from 'shared/aux.js';
-import { controls } from 'shared/ui/controls.js';
+import { controls, row } from 'shared/ui/controls.js';
 import { sweepStrip } from 'shared/ui/sweep.js';
 
 const HALF_W = 2.4;
@@ -42,7 +42,7 @@ export function mount(root, ctx) {
   const { signal } = ctx;
   let kind = 'rotation';
 
-  const stage = createStage(root, { layers: ['plane'], aspect: 'wide', signal });
+  const stage = createStage(root, { layers: ['plane'], signal });
 
   const results = () => {
     const sw = SWEEPS[kind];
@@ -54,7 +54,7 @@ export function mount(root, ctx) {
     const rs = results();
     const hi = highlightIndex();
     const g = stage.ctx('plane');
-    const view = makeView({ w, h, dpr, halfW: HALF_W });
+    const view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: HALF_W });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
     drawTransformedGrid(g, view, rs[hi].result.M, { spacing: 0.5, extent: 10, color: cssVar('--accent'), alpha: 0.22, axes: false });
@@ -78,7 +78,7 @@ export function mount(root, ctx) {
       });
     }
 
-    // the verdict, on the canvas: the readout under the picture is gone
+    // the verdict, on the canvas: there is no readout
     const status = e.vectors
       ? [`${sw.format(rs[hi].value)}: two invariant directions, ${fmt(degreesApart(e.vectors), 1)}° apart`,
          kind === 'rotation' ? 'sweep on and watch that angle close' : 'they stay on the axes; only λ changes']
@@ -106,7 +106,8 @@ export function mount(root, ctx) {
     stage.invalidate();
   }, { signal }));
 
-  root.append(controls(el('div', { class: 'controls-row' }, ...buttons), box));
+  // the sweep, then the buttons that pick which one it is
+  root.append(controls(box, row(...buttons)));
 
   const unsubAux = aux.subscribe((s, patch) => {
     if ('highlight' in patch) { strip.select(highlightIndex(), { notify: false }); stage.invalidate(); }

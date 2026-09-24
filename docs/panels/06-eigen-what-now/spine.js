@@ -3,8 +3,8 @@
 // draggable as numbers in that same equation); and R = Â v, drawn split into the part of v
 // that lies along an invariant direction — scaled by that direction's eigenvalue — plus
 // whatever is left over. Land v on a direction and the leftover is zero and R = λ v: an
-// arrow that only changed length. That split is the whole panel; there is no readout under
-// the picture, and no tuple write — this pane never reads m, c, k past the first frame.
+// arrow that only changed length. That split is the whole panel (its equation is in the
+// prose); there is no readout, and no tuple write — this pane never reads m, c, k past the first frame.
 //
 // Â opens at the spring's own matrix in natural units, overdamped (ζ = PRESET_FACTOR, always
 // −2·PRESET_FACTOR on the diagonal regardless of m and k — natural units is exactly what
@@ -57,15 +57,14 @@ function decompose(e, v) {
   return { c: [c1, c2], u: [u1, u2], p, q, lam };
 }
 
-const sup = (name, i) => `<msub><mover><mi>${name}</mi><mo>^</mo></mover><mn>${i}</mn></msub>`;
 const col = (a, b) => `<mrow><mo>[</mo><mtable><mtr><mtd>${a}</mtd></mtr><mtr><mtd>${b}</mtd></mtr></mtable><mo>]</mo></mrow>`;
 const slot = (name, digits, initial) => `<mn data-var="${name}" data-digits="${digits}">${initial}</mn>`;
 const scrub = (name, digits, initial) => `<mn data-var="${name}" data-scrub="${name}" data-digits="${digits}">${initial}</mn>`;
 
 /** Â, v and R as one equation — every entry of Â and both of v draggable, R read-only,
- *  since it is what they produce — then the split of R. No readout under either. */
+ *  since it is what they produce. The split of R, a static equation, is in the prose. */
 const equations = () => fragment(`
-  <div>
+  <div class="equations">
     <math display="block">
       <mrow>
         <mover><mi>A</mi><mo>^</mo></mover><mi>v</mi><mo>=</mo>
@@ -77,14 +76,6 @@ const equations = () => fragment(`
         <mo>=</mo>
         ${col(slot('rx', 2, '0.90'), slot('ry', 2, '−3.90'))}
         <mo>=</mo><mi>R</mi>
-      </mrow>
-    </math>
-    <math display="block">
-      <mrow>
-        <mi>R</mi><mo>=</mo>
-        ${sup('λ', 1)}<msub><mi>c</mi><mn>1</mn></msub>${sup('u', 1)}
-        <mo>+</mo>
-        ${sup('λ', 2)}<msub><mi>c</mi><mn>2</mn></msub>${sup('u', 2)}
       </mrow>
     </math>
   </div>`);
@@ -136,15 +127,15 @@ export function mount(root, ctx) {
     return { Ahat, e, v, dirs, near, off, R: apply(Ahat, v), split: decompose(e, v) };
   }
 
+  const stage = createStage(root, { layers: ['plane'], signal });
   root.append(equations());
-  const stage = createStage(root, { layers: ['plane'], aspect: 'half', signal });
 
   const notify = (patch) => { const s = snapshot(); for (const fn of subs) fn(s, patch ?? s); stage.invalidate(); };
 
   stage.onDraw(({ w, h, dpr }) => {
     const { e, v, R, dirs, near, off, split } = model(local.get());
     const g = stage.ctx('plane');
-    view = makeView({ w, h, dpr, halfW: HALF_W });
+    view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: HALF_W });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'v / ω', ticks: 6 });
 

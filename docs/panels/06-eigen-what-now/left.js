@@ -16,7 +16,7 @@
 //               drag, so it never flickers.
 // No eigenvectors here.
 
-import { fragment } from 'shared/dom.js';
+import { el, fragment } from 'shared/dom.js';
 import { createStore } from 'shared/state.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { cssVar, makeView, drawGrid, drawShape, drawArrow, drawText } from 'shared/gfx/plot2d.js';
@@ -55,15 +55,15 @@ export function mount(root, ctx) {
   });
   const M = () => { const { tx, ty, theta, s } = local.get(); return trs({ tx, ty, theta: theta * D2R, s }); };
 
-  // ---- the matrix (output), above the picture: a shape under M, the images of the two unit
-  // arrows, the moved origin. Stacked, not side by side, so the picture runs full width. ----
-  root.append(numberMatrix());
-  const stage = createStage(root, { layers: ['plane'], aspect: 'square', signal });
+  // ---- the picture (a shape under M, the images of the two unit arrows, the moved origin),
+  // then the matrix (output) under it ----
+  const stage = createStage(root, { layers: ['plane'], signal });
+  root.append(el('div', { class: 'equations' }, numberMatrix()));
 
   stage.onDraw(({ w, h, dpr }) => {
     const m = M();
     const g = stage.ctx('plane');
-    const view = makeView({ w, h, dpr, halfW: HALF_W });
+    const view = makeView({ w, h, dpr, halfW: HALF_W, minHalfH: HALF_W });
     g.clearRect(0, 0, w, h);
     drawGrid(g, view, { xLabel: 'x', yLabel: 'y' });
     drawAffineGrid(g, view, m, { spacing: 0.5, extent: 12, color: cssVar('--accent'), alpha: 0.3 });
