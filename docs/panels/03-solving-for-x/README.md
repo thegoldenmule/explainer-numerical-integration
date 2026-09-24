@@ -3,11 +3,10 @@
 Built. See `design/idea.md` (section "3. Solving for x") for the beat, and `design/plan.md` for the
 pane contract. Panes in this directory:
 
-- `spine.html` + `spine.js`: Solving for x. Two `strip` stages stacked on one time axis
-  (`0 … SPAN = 4 s`): the blue exact curve with the red segmented approximation on top, and
-  `|x − exact|` at every integrator step underneath on a **log** axis, so the growth reads as
-  a slope. Two strips rather than `wide` + `strip` because a 16/9 top plot plus a strip runs
-  past the fold at 1920×1080 and `.pane-body` clips; panel 9's spine pairs the same way. One
+- `spine.html` + `spine.js`: Solving for x. A `fill` stage and a `strip` under it on one
+  time axis (`0 … SPAN = 4 s`): the blue exact curve with the red segmented approximation on
+  top, and `|x − exact|` at every integrator step underneath on a **log** axis, so the growth
+  reads as a slope. Panel 9's spine pairs the same way. One
   `dt` is a scrubbable number in the prose (0.001 … 0.033 s, the store's own `LIMITS.h`
   floor) and drives both.
   Hovering (or touching) either canvas picks the nearest step and highlights it on both
@@ -15,12 +14,11 @@ pane contract. Panes in this directory:
   error array, and the error peak/floor are memoized on a `sweepKey`. There is no readout
   block: the step count and the max error are live `data-var` slots in the prose, filled by
   `bindMath`.
-- `left.html` + `left.js`: refresher, x, v, a: derivatives. Two `strip` stages plus a local
-  a-bar; the scrubbed `t` is local to the pane, not the tuple. No readout: `t` is on the local
+- `left.html` + `left.js`: refresher, x, v, a: derivatives. Two `fill` stages, x(t) over v(t), with
+  the a-bar as a layer of the v stage (a band under its plot); the scrubbed `t` is local to the pane, not the tuple. No readout: `t` is on the local
   scrubbed `t` in the prose, `x` and `v` are `drawText` in the corner of the strip that plots them
-  (opposite each strip's title), and `a` stays exactly where it was, the a-bar canvas — now
-  sized from its own wrapper `<div>` instead of the removed box.
-- `right.html` + `right.js`: drill-down, ODEs vs PDEs; intractability. Two `strip` stages, the
+  (opposite each strip's title), and `a` is the a-bar.
+- `right.html` + `right.js`: drill-down, ODEs vs PDEs; intractability. Two `fill` stages, the
   point mass (ODE) over a plucked string (PDE, explicit leapfrog under the CFL bound). Both
   carry a canvas-drawn title at `size: 15` in `--fg` instead of `drawGrid`'s 11px `yLabel`. No
   readout: the running "ODE state / PDE state" line is now `drawText` split onto the two

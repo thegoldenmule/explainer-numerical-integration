@@ -1,28 +1,29 @@
 // Panel 3, left: one instant of the spine's trajectory (t concrete). x and v as two stacked
-// strips of the exact solution, with the tangent at a scrubbed t: the slope of x is v, the
+// plots of the exact solution, with the tangent at a scrubbed t: the slope of x is v, the
 // slope of v is a. The scrub is local to this pane; the store's t belongs to the players.
 
-import { el, fmt, clamp } from 'shared/dom.js';
+import { fmt, clamp } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, drawPoint, drawPolyline, drawText, makeView } from 'shared/gfx/plot2d.js';
 import { exactSolution, acceleration } from 'shared/math/system.js';
-import { controls } from 'shared/ui/controls.js';
 import { bindScrub } from 'shared/ui/scrub.js';
 import { bindMath } from 'shared/ui/livemath.js';
 
 const SPAN = 4;        // seconds shown
 const SAMPLES = 800;   // of the exact curve
 const TANGENT = 0.2;   // half-length of the tangent segment, in seconds
-const BAR_H = 34;      // the local, canvas-drawn a-bar: no shared "thin bar" stage exists, so
-                        // this pane sizes and draws its own bare canvas (see mount())
+const BAR_H = 34;      // the a-bar: a band along the bottom of the v(t) stage, in CSS px
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
   let tScrub = 0.6;
 
-  const xStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
-  const vStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  // x(t) over v(t), two fill stages sharing the column's height; the a-bar is a layer of the
+  // v stage, a band under its plot, so a (the slope of v) reads right under the curve it is
+  // the slope of
+  const xStage = createStage(root, { layers: ['plot'], signal });
+  const vStage = createStage(root, { layers: ['plot', 'bar'], signal });
 
   let curve = null, curveKey = '';
   function curves(state) {
@@ -47,6 +48,7 @@ export function mount(root, ctx) {
   // in the opposite corner, in place of the old readout box.
   function strip(stage, size, ys, title, label, value, slope) {
     const g = stage.ctx('plot');
+    g.clearRect(0, 0, size.w, stage.size.h);
     const blue = cssVar('--exact');
     const view = drawTrajectory(g, size, { t: curve.t, x: ys }, { tMin: 0, tMax: SPAN, approx: blue, yLabel: null, width: 1.5 });
     drawPolyline(g, view, [tScrub, tScrub], [view.yMin, view.yMax], { color: cssVar('--axis'), width: 1, dash: [3, 3], alpha: 0.5 });
@@ -56,31 +58,32 @@ export function mount(root, ctx) {
     drawText(g, view, `${label} = ${fmt(value, 3)}`, view.xMax, view.yMax, { color: cssVar('--approx'), size: 13, align: 'right', dx: -8, dy: 19 });
   }
 
-  // The a-bar: a bare canvas (no shared "thin bar" stage exists — done locally per CLAUDE.md).
-  // Sized to its own wrapper's content width so it spans the controls column.
-  const barBox = el('div');
-  const barCanvas = el('canvas', { width: 1, height: BAR_H });
-  barBox.append(barCanvas);
-  function drawBar(a, capA) {
-    const w = barCanvas.width;
-    const g = barCanvas.getContext('2d');
-    g.clearRect(0, 0, w, BAR_H);
-    const view = makeView({ w, h: BAR_H, dpr: 1, xMin: -capA, xMax: capA, yMin: 0, yMax: 1 });
+  // The a-bar, in the band of `BAR_H` CSS px along the bottom of the v stage: a signed bar from
+  // zero, its value at the right, `a` at the left.
+  function drawBar(size, a, capA) {
+    const { w, h, dpr } = size;
+    const g = vStage.ctx('bar');
+    g.clearRect(0, 0, w, h);
+    const top = h - BAR_H * dpr;
+    const pad = 8 * dpr;
+    const view = makeView({ w: w - 2 * pad, h: BAR_H * dpr, dpr, xMin: -capA, xMax: capA, yMin: 0, yMax: 1 });
     const av = clamp(a, -capA, capA);
-    const x0 = view.X(0), x1 = view.X(av);
-    const trackTop = 16, trackH = BAR_H - trackTop - 4;
+    const x0 = pad + view.X(0), x1 = pad + view.X(av);
+    const trackTop = top + 16 * dpr, trackH = (BAR_H - 16 - 4) * dpr;
+    g.strokeStyle = cssVar('--border');
+    g.lineWidth = dpr;
+    g.beginPath(); g.moveTo(0, top + 0.5 * dpr); g.lineTo(w, top + 0.5 * dpr); g.stroke();
     g.fillStyle = cssVar('--approx');
-    g.fillRect(Math.min(x0, x1), trackTop, Math.max(1.5, Math.abs(x1 - x0)), trackH);
+    g.fillRect(Math.min(x0, x1), trackTop, Math.max(1.5 * dpr, Math.abs(x1 - x0)), trackH);
     g.strokeStyle = cssVar('--axis');
-    g.lineWidth = 1;
-    g.beginPath(); g.moveTo(x0, trackTop - 2); g.lineTo(x0, trackTop + trackH + 2); g.stroke();
-    g.font = `600 12px ${cssVar('--font') || 'system-ui'}`;
+    g.beginPath(); g.moveTo(x0, trackTop - 2 * dpr); g.lineTo(x0, trackTop + trackH + 2 * dpr); g.stroke();
+    g.font = `600 ${12 * dpr}px ${cssVar('--font') || 'system-ui'}`;
     g.fillStyle = cssVar('--fg');
-    g.textAlign = 'left'; g.fillText('a', 0, 11);
-    g.textAlign = 'right'; g.fillText(fmt(a, 2), w, 11);
-    g.font = `10px ${cssVar('--font') || 'system-ui'}`;
+    g.textAlign = 'left'; g.fillText('a', pad, top + 12 * dpr);
+    g.textAlign = 'right'; g.fillText(fmt(a, 2), w - pad, top + 12 * dpr);
+    g.font = `${10 * dpr}px ${cssVar('--font') || 'system-ui'}`;
     g.fillStyle = cssVar('--tick');
-    g.textAlign = 'center'; g.fillText('0', clamp(x0, 10, w - 10), trackTop - 5);
+    g.textAlign = 'center'; g.fillText('0', clamp(x0, pad + 10 * dpr, w - pad - 10 * dpr), trackTop - 5 * dpr);
   }
 
   xStage.onDraw(size => {
@@ -94,14 +97,12 @@ export function mount(root, ctx) {
     const c = curves(state);
     const x = c.sol.x(tScrub), v = c.sol.v(tScrub);
     const a = c.acc(x, v);
-    strip(vStage, size, c.v, 'v(t)', 'v', v, a);
-    const w = Math.max(60, Math.round(barBox.clientWidth));
-    if (barCanvas.width !== w) barCanvas.width = w;
-    drawBar(a, c.capA);
+    // the plot takes the stage above the a-bar's band
+    strip(vStage, { ...size, h: Math.max(1, size.h - BAR_H * size.dpr) }, c.v, 'v(t)', 'v', v, a);
+    drawBar(size, a, c.capA);
   });
 
   const invalidate = () => { xStage.invalidate(); vStage.invalidate(); };
-  root.append(controls(barBox));
 
   // The instant itself is the control: t is dragged where it is written, in the prose.
   // Local to the pane — the store's t belongs to the players.

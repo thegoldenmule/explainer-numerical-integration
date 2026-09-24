@@ -1,5 +1,5 @@
 // Panel 3, right: add a second independent variable. The point mass (an ODE: one number,
-// x, over time) runs beside a vibrating string (a PDE: a whole shape u(x) over time),
+// x, over time) runs over a vibrating string (a PDE: a whole shape u(x) over time),
 // integrated locally with an explicit leapfrog scheme on a few dozen cells at a fixed
 // internal step under the CFL bound. Poke the string to pluck it.
 
@@ -8,6 +8,7 @@ import { createStage } from 'shared/gfx/stage.js';
 import { drawTrajectory } from 'shared/gfx/trajectory.js';
 import { cssVar, makeView, drawGrid, drawPolyline, drawPoint, drawText } from 'shared/gfx/plot2d.js';
 import { exactSolution } from 'shared/math/system.js';
+import { controls, row } from 'shared/ui/controls.js';
 
 const SPAN = 4;              // seconds of the mass's history shown
 const CELLS = 64;            // string cells (interior unknowns per step)
@@ -22,7 +23,8 @@ export function mount(root, ctx) {
   const { store, loop, signal } = ctx;
 
   // ---- the ODE: one number over time ----
-  const massStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });
+  // two fill stages, the ODE over the PDE: they share the column's height equally
+  const massStage = createStage(root, { layers: ['plot'], signal });
   let tau = 0;   // this pane's own clock (the store's t belongs to the players)
   let sol = null, solKey = '';
   const solution = state => {
@@ -44,7 +46,7 @@ export function mount(root, ctx) {
   });
 
   // ---- the PDE: a shape over time ----
-  const stringStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal, grab: true });
+  const stringStage = createStage(root, { layers: ['plot'], signal, grab: true });
   let u = new Float64Array(CELLS + 1), uPrev = new Float64Array(CELLS + 1), uNext = new Float64Array(CELLS + 1);
   let carry = 0, energy = 0, stringView = null;
   const r2 = (WAVE_SPEED * DT * CELLS) ** 2;   // (c dt / dx)²
@@ -89,9 +91,9 @@ export function mount(root, ctx) {
     e.preventDefault();
   }, { signal });
 
-  root.append(el('div', { class: 'controls-row' },
+  root.append(controls(row(
     el('button', { class: 'btn', type: 'button', onclick: () => { resetString(); stringStage.invalidate(); } }, 'Still the string'),
-  ));
+  )));
 
   // ---- one clock for both ----
   const offFrame = loop.onFrame(dt => {

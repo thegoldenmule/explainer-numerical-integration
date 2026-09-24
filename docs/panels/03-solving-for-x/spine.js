@@ -33,9 +33,9 @@ function errRange(s) {
 export function mount(root, ctx) {
   const { store, signal } = ctx;
 
-  // two strips, not wide + strip: at 1920×1080 a 16/9 top plot plus a strip runs ~11rem past
-  // the fold, and .pane-body clips rather than scrolls. Same pairing as panel 9's spine.
-  const stage = createStage(root, { layers: ['plot'], aspect: 'strip', signal, grab: true });
+  // the run fills the column; the error, a secondary time series on the same axis, is a
+  // strip under it. Same pairing as panel 9's spine.
+  const stage = createStage(root, { layers: ['plot'], signal, grab: true });
   const errStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal, grab: true });
   let run = null, runKey = null;          // the memoized whole trajectory, plus its error
   let view = null, errView = null;        // the two plots share tMin = 0, tMax = SPAN
