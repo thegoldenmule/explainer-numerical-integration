@@ -4,7 +4,9 @@ Built. See `design/idea.md` (section "10. Runge-Kutta family: explicit Euler") f
 and `design/plan.md` for the pane contract.
 
 - `spine.html` + `spine.js`: the first shaded region, `|1 + hλ| ≤ 1`, with the eigenvalues
-  on it in green or red, Rhodes' reading in the margins, `h`, `m`, `c`, `k` scrubbable in the prose. No
+  on it in green or red, Rhodes' reading in the margins, `h` scrubbable in the prose, and under the plane the
+  spring's equation `m x″ + c x′ + k x = 0` with `m`, `c`, `k` scrubbable (`equation.js`,
+  shared with the right pane). No
   readout: the verdict word and the halving/doubling time it implies are `bindMath` slots in
   the prose sentence that already carries `|1 + hλ|`.
 - `left.html` + `left.js`: refresher, Euler, step by step, to the disk. A local explicit-Euler
@@ -18,7 +20,8 @@ and `design/plan.md` for the pane contract.
   own `|1 + hλ|` and inside/outside verdict survive, `drawText` on the plane itself beside the
   disk-geometry label that was already there — the other five h's own rows were dropped as
   redundant with the nested disks, which already show visually which radii the eigenvalue
-  falls inside.
+  falls inside. Under the slider, the spine's spring equation with `m`, `c`, `k` scrubbable
+  (`equation.js`), since this pane shows the same spring.
 
 Every pane is pinned to explicit Euler regardless of the store's `method` (the region, the
 verdict dots, and the numbers are Euler's); nothing here writes `method`. Each `.js` exports

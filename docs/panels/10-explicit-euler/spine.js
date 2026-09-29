@@ -3,9 +3,11 @@
 // The panel is about explicit Euler, so the region and the verdict are Euler's whatever
 // integrator the store currently holds (cplane's verdict is pinned to 'euler'); the store's
 // method is not written here. The view is centered on the disk itself, not the origin, so
-// its whole circle is visible instead of just the sliver nearest the eigenvalues.
+// its whole circle is visible instead of just the sliver nearest the eigenvalues. Under the
+// plane, the spring's equation with m, c and k draggable (equation.js, shared with the right
+// pane).
 
-import { el, fmt } from 'shared/dom.js';
+import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
@@ -14,6 +16,7 @@ import { bindScrub } from 'shared/ui/scrub.js';
 import { eigenvalues } from 'shared/math/system.js';
 import { ampFactor, doublingTime, halvingTime } from 'shared/math/stability.js';
 import { cscale } from 'shared/math/complex.js';
+import { EQUATION, SCRUB_LIMITS } from './equation.js';
 
 /** Euler's verdict for every root at the store's h: [{ lambda, factor, stable }] */
 function eulerVerdicts(s) {
@@ -47,6 +50,9 @@ export function mount(root, ctx) {
     },
   });
 
+  // the spring's equation, m, c and k draggable: last, under the stage (the right pane has it too)
+  root.append(el('div', { class: 'equations' }, fragment(EQUATION)));
+
   const article = root.closest('article') ?? root;
   bindMath(article, store, s => {
     const [v] = eulerVerdicts(s);
@@ -57,7 +63,7 @@ export function mount(root, ctx) {
     return { 'abs-r': v.factor, verdict, time };
   }, { signal });
   const offScrub = bindScrub(article, store, {
-    signal, limits: { h: [0.005, 0.25], m: [0.1, 20], c: [0, 30], k: [0, 400] },
+    signal, limits: { h: [0.005, 0.25], ...SCRUB_LIMITS },
   });
 
   return { destroy() { offScrub(); } };

@@ -2,9 +2,10 @@
 // region layers composited in one shader pass, with the analytic circles (center −1/h,
 // radius 1/h) drawn over them and the eigenvalues fixed. The view is centered on the disks,
 // not the origin: they all sit in the left half plane. A discrete slider walks the range by
-// setting the store's h, so the highlighted disk is the spine's disk.
+// setting the store's h, so the highlighted disk is the spine's disk. Under it, the spine's
+// spring equation with m, c and k draggable (equation.js).
 
-import { fmt } from 'shared/dom.js';
+import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
 import { createComplexPlane } from 'shared/gfx/cplane.js';
 import { cssVar, drawText } from 'shared/gfx/plot2d.js';
@@ -13,6 +14,8 @@ import { eigenvalues } from 'shared/math/system.js';
 import { ampFactor } from 'shared/math/stability.js';
 import { cscale } from 'shared/math/complex.js';
 import { sweepRange, nearestIndex } from 'shared/math/sweep.js';
+import { bindScrub } from 'shared/ui/scrub.js';
+import { EQUATION, SCRUB_LIMITS } from './equation.js';
 
 // six frame rates, 10 to 60 fps, as steps h = 1/fps from the smallest up: 1/30 and 1/60 are
 // the essay's two steps and both land exactly in the range
@@ -60,5 +63,9 @@ export function mount(root, ctx) {
   };
   root.append(controls(slider(rangeIndex, 'i', { label: 'h along the range', step: 1, format: i => `${fracOf(HS[i])} s`, signal })));
 
-  return { destroy() {} };
+  // the spine's spring equation, m, c and k draggable, since this pane shows the same spring
+  root.append(el('div', { class: 'equations' }, fragment(EQUATION)));
+  const offScrub = bindScrub(root.closest('article') ?? root, store, { signal, limits: SCRUB_LIMITS });
+
+  return { destroy() { offScrub(); } };
 }
