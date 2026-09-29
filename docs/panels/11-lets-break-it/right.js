@@ -17,6 +17,7 @@ import { sweep, sweepKey } from 'shared/math/sweep.js';
 import { cfmt } from 'shared/math/complex.js';
 import { aux } from 'shared/aux.js';
 import { methodPicker, controls } from 'shared/ui/controls.js';
+import { GEOM, regionFrame } from './frame.js';
 
 const ROWS = 3, COLS = 3, COUNT = ROWS * COLS;
 const PERIODS = 4;                 // of the exact solution per mini run
@@ -25,15 +26,6 @@ const EXACT_SAMPLES = 240;
 const EPS = 1e-9;
 const KINDS = ['inside', 'on the boundary', 'outside'];
 
-// The plane's geometry per method, in units of 1/h: `scale` is the region's vertical
-// extent (the rows sit at 0.45, 0.7, 0.9 of it), cx and half frame the view around it.
-const GEOM = {
-  euler:    { scale: 1,   cx: -0.7, half: 1.5 },
-  implicit: { scale: 1,   cx: 0.7,  half: 1.5 },
-  rk4:      { scale: 2.8, cx: -1,   half: 4.6 },
-  semi:     { scale: 2,   cx: -0.6, half: 3 },
-  verlet:   { scale: 2,   cx: -0.6, half: 3 },
-};
 const LEVELS = [0.9, 0.7, 0.45];   // top row first, as fractions of scale
 const RAYS = [Math.PI / 2, Math.PI * 5 / 8, Math.PI * 3 / 4];   // top row first: the Im axis, then two rays into the left half plane
 const RATIOS = [0.5, 1, 1.3];      // in, on, out along a ray, as fractions of the boundary radius
@@ -134,7 +126,6 @@ function label(g, dpr, text, x, y, { color, align = 'left' }) {
 
 export function mount(root, ctx) {
   const { store, signal } = ctx;
-  const geom = s => GEOM[s.method] ?? GEOM.euler;
 
   const points = state => sweep([0], () => gridPoints(state.method, state.h, state.m),
     { key: sweepKey({ panel: '11-right-points', method: state.method, h: state.h, m: state.m }) })[0].result;
@@ -147,8 +138,8 @@ export function mount(root, ctx) {
   const planeStage = createStage(root, { layers: ['region', 'plane'], signal });
   const plane = createComplexPlane({
     stage: planeStage, store, signal, region: true, labels: false,
-    halfRange: s => geom(s).half / s.h,
-    cx: s => geom(s).cx / s.h,
+    halfRange: s => regionFrame(s.method, s.h).half,
+    cx: s => regionFrame(s.method, s.h).cx,
     onDraw(g, view, state) {
       const pts = points(state);
       const hi = highlightIndex();

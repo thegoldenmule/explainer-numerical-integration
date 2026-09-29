@@ -2,6 +2,11 @@
 // solution under it, the transport and the picker, and last the equation the reader can
 // drag m and k in directly (c comes from dragging the root instead: c and k together fix a
 // point in the plane, m does not move it, so it needs its own handle).
+//
+// The plane is framed like the right pane's, around the method's whole region at the current
+// h, and grown if need be to keep the roots in view. The frame is taken when the method, h or
+// m changes, never when c or k do: dragging the root writes those, and a view that followed
+// the root being dragged would run away from the pointer.
 
 import { el, fmt, fragment } from 'shared/dom.js';
 import { createStage } from 'shared/gfx/stage.js';
@@ -13,6 +18,8 @@ import { transport } from 'shared/ui/transport.js';
 import { methodPicker, controls } from 'shared/ui/controls.js';
 import { bindMath } from 'shared/ui/livemath.js';
 import { bindScrub } from 'shared/ui/scrub.js';
+import { eigenvalues } from 'shared/math/system.js';
+import { frameWith } from './frame.js';
 
 const SPAN = 6;   // seconds of run visible in the trajectory strip
 
@@ -29,8 +36,17 @@ export function mount(root, ctx) {
   const player = createPlayer({ store, loop, signal });
 
   // the plane, with the region blitted underneath and the λ handle
+  const takeFrame = s => frameWith(s.method, s.h, eigenvalues(s.m, s.c, s.k));
+  let frame = takeFrame(store.get());
+  const offFrame = store.subscribe((s, patch) => {
+    if ('method' in patch || 'h' in patch || 'm' in patch) frame = takeFrame(s);
+  }, { immediate: false });
+  signal.addEventListener('abort', offFrame, { once: true });
   const planeStage = createStage(root, { layers: ['region', 'plane'], signal, grab: true });
-  const plane = createComplexPlane({ stage: planeStage, store, signal, halfRange: 15, region: true, drag: true });
+  const plane = createComplexPlane({
+    stage: planeStage, store, signal, region: true, drag: true,
+    halfRange: () => frame.half, cx: () => frame.cx,
+  });
 
   // the run
   const runStage = createStage(root, { layers: ['plot'], aspect: 'strip', signal });

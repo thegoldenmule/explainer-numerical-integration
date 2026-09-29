@@ -6,7 +6,9 @@ for the pane contract.
 - `spine.html` + `spine.js`: Let’s break it. The region under a draggable λ, the spring
   running against the exact solution, transport, a scrubbable `h` in the prose, and the integrator picker (no
   presets). Laid out top to bottom: the plane (fill), the run strip, the transport and picker,
-  then the live equation. No readout: the verdict/`|R|`, the predicted-vs-measured doubling
+  then the live equation. The plane is framed like the right pane's (`frame.js`), around the
+  method's whole region at the current h, widened only if a root would fall outside it; the
+  frame follows method, h and m, never the root being dragged. No readout: the verdict/`|R|`, the predicted-vs-measured doubling
   time, and `t`/`x`/exact are `drawText` in the run strip's own top-right corner.
 - `left.html` + `left.js`: refresher, The exact solution, no method. A draggable λ on a plane
   with no region and the closed form for that λ in time; buttons jump to pure decay, a
