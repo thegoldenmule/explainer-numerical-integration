@@ -8,7 +8,7 @@ Built. See `design/idea.md` (section "5. Stability analysis: linearize") for the
   once), on/off switches, the real-vs-linear switch on gravitation (the only model that differs; both of its equations
   share one `.swap` cell, so flipping it never moves or resizes the row),
   a coloured swatch per force keyed to its arrow (`--force-*` tokens, one hue each), the
-  force arrows, `a`, and a 2 s RK4
+  force arrows, `a`, and a 6 s RK4
   look-ahead. Arrow length is a *static* log map of `|F|` (`LEN` in `spine.js`), so an arrow's
   length depends on nothing but its own force: switching one off or scrubbing `k` leaves every
   other arrow exactly where it was. `M`, `C`, `K` assemble from `assemble(scene)` into the MathML

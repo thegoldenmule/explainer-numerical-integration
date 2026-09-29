@@ -1,6 +1,6 @@
 // Panel 5, spine: each force as its equation with every parameter a scrubbable number, a
 // real-vs-linear switch (only gravitation differs: G m₁ m₂ / r² against m₁ g), the force
-// arrows, a, and a short predicted trajectory updating live; last, M, C, K assembling from
+// arrows, a, and a predicted trajectory updating live; last, M, C, K assembling from
 // the scene's linear models into M x″ + C x′ + K x = 0 (the MathML block under the force rows
 // and the equation in the prose) and pushed into the tuple's m, c, k.
 //
@@ -29,7 +29,7 @@ import { bindMath } from 'shared/ui/livemath.js';
 
 const HALF_W = 3;
 const MIN_HALF_H = 1.5;   // the drag box |y| ≤ 1 plus the longest arrow, at any stage aspect
-const PREDICT = { dt: 1 / 60, steps: 120 };   // a 2 s look-ahead, RK4 in 2D
+const PREDICT = { dt: 1 / 60, steps: 360 };   // a 6 s look-ahead, RK4 in 2D
 
 /** One hue per force, all four far apart in light mode; the net force is neutral. */
 const COLOR = { wind: '--force-wind', gravity: '--force-gravity', drag: '--force-drag', spring: '--force-spring' };
@@ -195,7 +195,7 @@ export function mount(root, ctx) {
     for (const v of drawn) drawForce(g, body.x, v.F, { color: COLOR[v.f.type], label: MODELS[v.f.type].label, width: 2, head: 7 });
 
     drawPoint(g, view, body.x[0], body.x[1], { r: 7, fill: cssVar('--fg') });
-    drawText(g, view, `a = (${fmt(a[0], 2)}, ${fmt(a[1], 2)})   ${linear ? 'linear' : 'real'} models   next 2 s dashed   (drag the mass)`, view.xMin, view.yMax, { color: cssVar('--muted'), size: 11, dx: 8, dy: 16 });
+    drawText(g, view, `a = (${fmt(a[0], 2)}, ${fmt(a[1], 2)})   ${linear ? 'linear' : 'real'} models   next ${fmt(PREDICT.dt * PREDICT.steps, 0)} s dashed   (drag the mass)`, view.xMin, view.yMax, { color: cssVar('--muted'), size: 11, dx: 8, dy: 16 });
   });
 
   createDragHandles(stage.canvas('plane'), {
