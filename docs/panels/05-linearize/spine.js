@@ -134,10 +134,13 @@ export function mount(root, ctx) {
     return row;
   };
   forceRow('wind', 'Wind', fragment(EQUATIONS.wind));
+  // the real and linear equations share one .swap cell, and the switch sits before it, so
+  // flipping "linear" changes which form shows and nothing else: not the row's width, not
+  // where anything in it sits
   const realEq = el('span', {}, fragment(EQUATIONS.gravityReal));
   const linEq = el('span', {}, fragment(EQUATIONS.gravityLinear));
   const linearSwitch = toggleFn({ label: 'linear', get: () => scene.get().linear, set: v => scene.setLinear(v), subscribe: scene.subscribe, signal });
-  forceRow('gravity', 'Gravity', realEq, linEq, linearSwitch);
+  forceRow('gravity', 'Gravity', linearSwitch, el('span', { class: 'swap' }, realEq, linEq));
   forceRow('drag', 'Drag', fragment(EQUATIONS.drag));
   forceRow('spring', 'Spring', fragment(EQUATIONS.spring));
 
@@ -218,8 +221,10 @@ export function mount(root, ctx) {
 
   function refresh() {
     const s = scene.get();
-    realEq.hidden = s.linear;
-    linEq.hidden = !s.linear;
+    realEq.classList.toggle('off', s.linear);
+    linEq.classList.toggle('off', !s.linear);
+    realEq.setAttribute('aria-hidden', String(s.linear));
+    linEq.setAttribute('aria-hidden', String(!s.linear));
     stage.invalidate();
   }
   const push = () => { if (active) scene.pushToTuple(); };

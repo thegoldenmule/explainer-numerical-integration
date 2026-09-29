@@ -153,6 +153,13 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
    changes the row's width; :has() reacts to the checkbox instead of a text swap doing it. */
 .force-row:has(input:checked) .force-off-hint { visibility: hidden; }
 
+/* two forms of one thing in the same cell (panel 5's real and linear gravity): both are laid
+   out always, so the cell is as wide as the wider one whichever is showing, and swapping them
+   never moves or resizes anything around it. `.off` hides a form without removing its box. */
+.swap { display: inline-grid; align-items: center; }
+.swap > * { grid-area: 1 / 1; }
+.swap > .off { visibility: hidden; }
+
 /* the live equations, last in a .viz under the controls (CLAUDE.md, "Pane layout standard"):
    their natural height, never scaled. The column's own gap spaces them from the controls, so
    a block equation here drops its margins. */

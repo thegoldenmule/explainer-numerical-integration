@@ -5,7 +5,8 @@ Built. See `design/idea.md` (section "5. Stability analysis: linearize") for the
 
 - `spine.html` + `spine.js`: each force as its equation with every parameter a scrubbable number
   (one facade store over the scene's `paramStore`s, so `bindScrub`/`bindMath` take the article
-  once), on/off switches, the real-vs-linear switch on gravitation (the only model that differs),
+  once), on/off switches, the real-vs-linear switch on gravitation (the only model that differs; both of its equations
+  share one `.swap` cell, so flipping it never moves or resizes the row),
   a coloured swatch per force keyed to its arrow (`--force-*` tokens, one hue each), the
   force arrows, `a`, and a 2 s RK4
   look-ahead. Arrow length is a *static* log map of `|F|` (`LEN` in `spine.js`), so an arrow's
