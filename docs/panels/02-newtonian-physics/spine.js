@@ -37,7 +37,7 @@ const HALF_W = 4;
 const HALF_H = 2.2;
 const MIN_HALF_H = 2.6;   // the drag box ±HALF_H plus room for the legend, at any stage aspect
 const BODY_R = 9;
-const FORECAST_STEPS = 25;
+const FORECAST_STEPS = 75;
 
 /**
  * The next `n` explicit-Euler steps of size `h` from the scene's current (x, v), without
