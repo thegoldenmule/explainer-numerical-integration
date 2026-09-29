@@ -145,20 +145,13 @@ fieldset.choice input { accent-color: var(--accent); margin: 0; }
 
 /* a row of one toggle-driven force beside its live equation (panel 2 spine and right, panel
    5 spine), on a .controls-row: a fixed min-height so the row's height cannot change while
-   it runs, `nowrap` so a live number growing a digit (or the off-hint, or 5 spine's real /
-   linear swap) cannot force a second line that would grow it anyway, and `overflow-x: auto` so a row too wide for its column scrolls instead of
-   reflowing or bleeding into whatever is beside it. */
+   it runs, `nowrap` so a live number growing a digit (or the off-hint) cannot force a second
+   line that would grow it anyway, and `overflow-x: auto` so a row too wide for its column
+   scrolls instead of reflowing or bleeding into whatever is beside it. */
 .force-row { min-height: 2.75rem; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
 /* the off-hint stays in the DOM at its full width always, so toggling a force never itself
    changes the row's width; :has() reacts to the checkbox instead of a text swap doing it. */
 .force-row:has(input:checked) .force-off-hint { visibility: hidden; }
-
-/* two forms of one thing in the same cell (panel 5's real and linear gravity): both are laid
-   out always, so the cell is as wide as the wider one whichever is showing, and swapping them
-   never moves or resizes anything around it. `.off` hides a form without removing its box. */
-.swap { display: inline-grid; align-items: center; }
-.swap > * { grid-area: 1 / 1; }
-.swap > .off { visibility: hidden; }
 
 /* the live equations, last in a .viz under the controls (CLAUDE.md, "Pane layout standard"):
    their natural height, never scaled. The column's own gap spaces them from the controls, so

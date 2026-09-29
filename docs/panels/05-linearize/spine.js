@@ -1,5 +1,6 @@
-// Panel 5, spine: each force as its equation with every parameter a scrubbable number, a
-// real-vs-linear switch (only gravitation differs: G m₁ m₂ / r² against m₁ g), the force
+// Panel 5, spine: each force as its equation with every parameter a scrubbable number,
+// gravitation as two rows, Newtonian and linear, whose switches exclude each other (only
+// gravitation differs: G m₁ m₂ / r² against m₁ g), the force
 // arrows, a, and a predicted trajectory updating live; last, M, C, K assembling from
 // the scene's linear models into M x″ + C x′ + K x = 0 (the MathML block under the force rows
 // and the equation in the prose) and pushed into the tuple's m, c, k.
@@ -118,31 +119,38 @@ export function mount(root, ctx) {
   let view = null;
 
   // ---- the force rows: switch, equation, value ----
+  // Gravity has two rows, Newtonian and linear, one equation each. Both are always there and
+  // each has its own switch; switching one on switches the other off (the scene's gravity
+  // force plus its `linear` flag), so choosing a model never adds, removes or resizes a row.
   const rows = [];
   const values = {};
-  const forceRow = (type, label, ...math) => {
+  const forceRow = (key, type, label, math, onOff) => {
     const i = scene.forceIndex(type);
-    const on = toggleFn({ label, get: () => scene.get().forces[i].on, set: v => scene.toggleForce(i, v), subscribe: scene.subscribe, signal });
+    const { get, set } = onOff ?? { get: () => scene.get().forces[i].on, set: v => scene.toggleForce(i, v) };
+    const on = toggleFn({ label, get, set, subscribe: scene.subscribe, signal });
     // the legend: the same colour as this force's arrow, keyed to its equation
     const swatch = el('span', { class: `swatch ${type}`, title: `${label} arrow` });
     const value = el('span', { class: 'mono muted' });
-    values[type] = value;
-    // panel 2's .force-row: one line always (a wide row scrolls sideways), a reserved height,
-    // so flipping "linear" or a value gaining a digit never resizes the plane above it
-    const row = el('div', { class: 'controls-row force-row' }, swatch, on, ...math, value);
+    values[key] = value;
+    // panel 2's .force-row: one line always (a wide row scrolls sideways) and a reserved
+    // height, so a value gaining a digit never resizes the plane above it
+    const row = el('div', { class: 'controls-row force-row' }, swatch, on, math, value);
     rows.push(row);
     return row;
   };
-  forceRow('wind', 'Wind', fragment(EQUATIONS.wind));
-  // the real and linear equations share one .swap cell, and the switch sits before it, so
-  // flipping "linear" changes which form shows and nothing else: not the row's width, not
-  // where anything in it sits
-  const realEq = el('span', {}, fragment(EQUATIONS.gravityReal));
-  const linEq = el('span', {}, fragment(EQUATIONS.gravityLinear));
-  const linearSwitch = toggleFn({ label: 'linear', get: () => scene.get().linear, set: v => scene.setLinear(v), subscribe: scene.subscribe, signal });
-  forceRow('gravity', 'Gravity', linearSwitch, el('span', { class: 'swap' }, realEq, linEq));
-  forceRow('drag', 'Drag', fragment(EQUATIONS.drag));
-  forceRow('spring', 'Spring', fragment(EQUATIONS.spring));
+  const gi = scene.forceIndex('gravity');
+  const gravityModel = linear => ({
+    get: () => { const s = scene.get(); return s.forces[gi].on && s.linear === linear; },
+    set: v => {
+      if (v) scene.setLinear(linear);
+      scene.toggleForce(gi, v);
+    },
+  });
+  forceRow('wind', 'wind', 'Wind', fragment(EQUATIONS.wind));
+  forceRow('gravity', 'gravity', 'Gravity, Newtonian', fragment(EQUATIONS.gravityReal), gravityModel(false));
+  forceRow('gravity-linear', 'gravity', 'Gravity, linear', fragment(EQUATIONS.gravityLinear), gravityModel(true));
+  forceRow('drag', 'drag', 'Drag', fragment(EQUATIONS.drag));
+  forceRow('spring', 'spring', 'Spring', fragment(EQUATIONS.spring));
 
   // ---- the stage (body, arrows, a, and the look-ahead), then the force rows, then M, C, K ----
   const stage = createStage(root, { layers: ['plane'], signal });
@@ -188,7 +196,12 @@ export function mount(root, ctx) {
     drawForce(g, body.x, sum, { color: SUM_COLOR, width: 4, head: 11 });
     g.restore();
 
-    for (const v of all) values[v.f.type].textContent = v.f.on ? `= (${fmt(v.F[0], 2)}, ${fmt(v.F[1], 2)})` : 'off';
+    const shown = v => `= (${fmt(v.F[0], 2)}, ${fmt(v.F[1], 2)})`;
+    for (const v of all) {
+      if (v.f.type !== 'gravity') { values[v.f.type].textContent = v.f.on ? shown(v) : 'off'; continue; }
+      values.gravity.textContent = v.f.on && !linear ? shown(v) : 'off';
+      values['gravity-linear'].textContent = v.f.on && linear ? shown(v) : 'off';
+    }
     // longest first: gravity and drag are nearly collinear here, so the shorter arrow must
     // land on top of the longer one or it disappears inside it
     const drawn = list.slice().sort((p, q) => Math.hypot(...q.F) - Math.hypot(...p.F));
@@ -219,14 +232,7 @@ export function mount(root, ctx) {
   }, { signal });
   bindMath(article, store, () => ({}), { signal });
 
-  function refresh() {
-    const s = scene.get();
-    realEq.classList.toggle('off', s.linear);
-    linEq.classList.toggle('off', !s.linear);
-    realEq.setAttribute('aria-hidden', String(s.linear));
-    linEq.setAttribute('aria-hidden', String(!s.linear));
-    stage.invalidate();
-  }
+  const refresh = () => stage.invalidate();
   const push = () => { if (active) scene.pushToTuple(); };
 
   const unsub = scene.subscribe(() => { push(); refresh(); }, { immediate: false });
